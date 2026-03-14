@@ -3,8 +3,30 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <title>Wiki Faces</title>
+        <script src="js/utils.js"></script>
+        <script src="js/cache.js"></script>
+        <script src="js/wiki.js"></script>
+        <script src="js/ui.js"></script>
+        <script src="js/app.js"></script>
     </head>
     <body>
         TODO:
     </body>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const app = window.WfApp({
+                collections: {
+                    'lit': {
+                        title: 'Nobel laureates in Literature',
+                        page: 'List_of_Nobel_laureates_in_Literature'
+                    },
+                    'phys': {
+                        title: 'Nobel laureates in Physics',
+                        page: 'List_of_Nobel_laureates_in_Physics'
+                    }
+                }
+            })
+            app.loadCollection('lit')
+        });
+    </script>
 </html>

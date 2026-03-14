@@ -1,5 +1,7 @@
 Media Wiki
 https://en.wikipedia.org/w/api.php
+Media Wiki / action=parse
+https://en.wikipedia.org/w/api.php?action=help&modules=parse
 
 pupils (face) detection on js
 https://github.com/bronkula/picojs/tree/ham-module
