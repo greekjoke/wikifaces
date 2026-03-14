@@ -38,6 +38,7 @@ window.WfWiki = {
 
     requestLaureates: async function(page) {
         const self = window.WfWiki
+        const utils = window.WfUtils
         const cache = window.WfLocalCache
         const cacheKey = `wiki.requestLaureates:${page}`
         const cachedValue = cache.get(cacheKey)
@@ -57,8 +58,6 @@ window.WfWiki = {
         const tables = html.querySelectorAll('.wikitable');
 
         const parseTab = function(tab) {
-            const mapFull = { year: 0, photo: 1, name: 2, country: 3 }
-            const mapShort = { photo: 0, name: 1, country: 2 }
             let lastCountry = ''
             let lastFlag = ''
             const links = []
@@ -81,39 +80,39 @@ window.WfWiki = {
             }
 
             tab.querySelectorAll('tr').forEach(tr => {
-                const cells = Array.from(tr.querySelectorAll('td'))
-                const fullRow = cells.length === 6
-                const im = fullRow ? mapFull : mapShort
+                const fileLink = tr.querySelector('a.mw-file-description')
+                if (!fileLink)
+                    return // skip rows without photo
 
-                if (cells.length < 2)
-                    return  // skip separator
-
-                if (fullRow) { // full row
-                    out.push({
-                        year: parseInt(cells[im.year].innerText),
-                        person: []
-                    })
+                const flagElem = tr.querySelector('span.flagicon')
+                if (flagElem) {
+                    lastFlag = addLink(flagElem.querySelector('img').src)
+                    lastCountry = flagElem.closest('td').innerText.trim()
                 }
 
-                const last = out[out.length-1]
-                const name = cells[im.name].innerText.trim()
-                const photoLink = cells[im.photo].querySelector('a')
+                const fileElem = fileLink.closest('td')
+                const nameElem = fileElem.nextElementSibling
+                if (!nameElem)
+                    return // skip rows without name
 
-                if (!photoLink)
-                    return // skip persons without photo
-
-                if (im.country < cells.length) {
-                    const td = cells[im.country]
-                    const flag = td.querySelector('.flagicon')
-                    if (flag) {
-                        lastCountry = td.innerText.trim()
-                        lastFlag = addLink(flag.querySelector('img').src)
+                const yearElem = tr.querySelector('td')
+                if (yearElem) {
+                    const yearStr = yearElem.innerText.trim()
+                    if (utils.isNumeric(yearStr)) {
+                        out.push({
+                            year: parseInt(yearStr),
+                            person: []
+                        })
                     }
                 }
 
+                const last = out[out.length-1]
+                const photo = cleanFileLink(fileLink.href)
+                const name = nameElem.querySelector('a').innerText.trim()
+
                 last.person.push({
                     name: name,
-                    photo: cleanFileLink(photoLink.href),
+                    photo: photo,
                     country: lastCountry,
                     flag: lastFlag
                 })
@@ -130,8 +129,8 @@ window.WfWiki = {
             if (headerSize >= 5) {
                 const res = parseTab(tab)
                 if (res) {
-                    // const cachingResult = cache.set(cacheKey, res)
-                    // console.log('cachingResult', cachingResult)
+                    const cachingResult = cache.set(cacheKey, res)
+                    console.log('cachingResult', cachingResult)
                     return res
                 }
             }

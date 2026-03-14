@@ -13,6 +13,12 @@ window.WfUtils = {
         )
     },
 
+    isNumeric: function(str) {
+        if (typeof str != "string" || str.length === 0)
+            return false;
+        return !isNaN(str) && isFinite(str);
+    },
+
     isMobile: function() {
         return (/Android|iPhone/i.test(navigator.userAgent))
     },
