@@ -1,0 +1,8 @@
+Media Wiki
+https://en.wikipedia.org/w/api.php
+
+pupils (face) detection on js
+https://github.com/bronkula/picojs/tree/ham-module
+
+request to wiki api
+https://stackoverflow.com/questions/53127383/how-to-pull-data-from-wikipedia-page

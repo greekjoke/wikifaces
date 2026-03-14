@@ -1,0 +1,5 @@
+tmp
+backup
+*.log
+*.old
+*.bak
