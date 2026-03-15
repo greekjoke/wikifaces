@@ -1,16 +1,47 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="UTF-8">
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <title>Wiki Faces</title>
+        <script src="js/picojs/pico.js"></script>
         <script src="js/utils.js"></script>
         <script src="js/cache.js"></script>
         <script src="js/wiki.js"></script>
+        <script src="js/face.js"></script>
         <script src="js/ui.js"></script>
         <script src="js/app.js"></script>
     </head>
+    <style>
+        #view {
+            border: 2px solid blue;
+            overflow: hidden;
+            width: 240px;
+            height: 320px;
+            position: relative;
+            background-color: gray;
+        }
+        img#test {
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform-origin: left top;
+            transform: scale(1);
+            transition-property: top, left, transform;
+            transition-duration: 3s;
+            transition-timing-function: ease-out;
+        }
+    </style>
     <body>
-        TODO:
+
+        <div>top</div>
+        <canvas id="canvas" style="display: none;" width=320 height=240></canvas>
+        <div id="view">
+            <img src="" id="test" loading="lazy" />
+        </div>
+        <div>bottom</div>
+
     </body>
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
@@ -23,10 +54,97 @@
                     'phys': {
                         title: 'Nobel laureates in Physics',
                         page: 'List_of_Nobel_laureates_in_Physics'
+                    },
+                    'chem': {
+                        title: 'Nobel laureates in Chemistry',
+                        page: 'List_of_Nobel_laureates_in_Chemistry'
+                    },
+                    'med': {
+                        title: 'Nobel laureates in Physiology or Medicine',
+                        page: 'List_of_Nobel_laureates_in_Physiology_or_Medicine'
+                    },
+                    'econ': {
+                        title: 'Nobel Prize winners in Economics',
+                        page: 'List_of_Nobel_Memorial_Prize_laureates_in_Economic_Sciences'
+                    },
+                    'comp': {
+                        title: 'Turing Award (computing science)',
+                        page: 'Turing_Award'
+                    },
+                    'math_abel': {
+                        title: 'Abel Prize (math)',
+                        page: 'Abel_Prize'
+                    },
+                    'math_field': {
+                        title: 'Fields Medal (math)',
+                        page: 'Fields_Medal'
                     }
                 }
             })
-            app.loadCollection('phys')
+            // app.loadCollection('lit')
+
+            // const fileTitle = 'File:Portrait_frederic_mistral_(cropped).jpg'
+            // const fileTitle = 'File:Professor_Jennifer_Doudna_ForMemRS_(cropped).jpg'
+            // const fileTitle = 'File:Mumford2.jpg'
+            // const fileTitle = 'File:VladimirVoevodsky.jpg'
+            // const fileTitle = 'File:Hugo_Duminil-Copin_in_Oberwolfach_(cropped).jpg'
+            // const fileTitle = 'File:Maryna_Vazovska_MFO_2013_crop.jpg'
+            // const fileTitle = 'File:Alain_Aspect_(26341660894)_(cropped).jpg'
+            // const fileTitle = 'File:Michael_Jordan_in_2014.jpg'
+            const fileTitle = 'File:Kanye_West_at_the_2009_Tribeca_Film_Festival_(crop_2).jpg'
+
+            const res = await WfWiki.requestFileInfo(fileTitle)
+            if (res) {
+                const img = document.querySelector('#test')
+
+                img.addEventListener('load', async function() {
+                    console.log('image loaded')
+
+                    const det = window.WfDetector(img)
+                    let res = await det.detect()
+                    console.log('detection result', res)
+
+                    const pad = 1.3
+                    const iw = img.naturalWidth
+                    const ih = img.naturalHeight
+                    const view = img.closest('#view')
+                    const vw = view.clientWidth
+                    const vh = view.clientHeight
+                    const viewScale = vw / iw
+
+                    if (!res)
+                        res = {x:0.5, y:0.5, diam:(1.0 / pad)}
+
+                    if (res) {
+                        const detScale = 1.0 / (res.diam * pad)
+                        const scale = viewScale * detScale
+                        let ox = Math.round(0.5 * vw - res.x * iw * scale)
+                        let oy = Math.round(0.5 * vh - res.y * ih * scale)
+
+                        // snap to view border
+                        const iRight = Math.round(vw - iw * scale)
+                        const iBottom = Math.round(vh - ih * scale)
+                        ox = Math.min(0, ox) // snap to left border
+                        oy = Math.min(0, oy) // snap to top border
+                        ox = Math.max(iRight, ox) // snap to right border
+                        oy = Math.max(iBottom, oy) // snap to bottom border
+
+                        // update image style & etc
+                        img.style.transform = `scale(${scale})`
+                        img.style.left = `${ox}px`;
+                        img.style.top = `${oy}px`;
+                        img.classList.add('face-detected')
+                    }
+                })
+                img.addEventListener('error', function() {
+                    console.log('image loading error')
+                })
+
+                img.crossOrigin = 'Anonymous'
+                img.src = res.url
+                // img.src = 'media/test1.jpg'
+            }
+
         });
     </script>
 </html>

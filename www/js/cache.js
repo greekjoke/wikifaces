@@ -6,7 +6,8 @@ window.WfLocalCache = {
         Minute: 60,
         Hour: 3600,
         Day: 3600*24,
-        Week: 3600*24*7
+        Week: 3600*24*7,
+        Infinite: Number.MAX_VALUE
     },
 
     get: function(key, defValue, expireIn) {
