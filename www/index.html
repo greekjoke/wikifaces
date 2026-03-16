@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta http-equiv="Cache-Control" content="max-age=3600, must-revalidate" />
         <title>Wiki Faces</title>
         <script src="js/picojs/pico.js"></script>
         <script src="js/utils.js"></script>
@@ -12,15 +13,20 @@
         <script src="js/face.js"></script>
         <script src="js/ui.js"></script>
         <script src="js/app.js"></script>
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="icon" type="image/ico" href="media/favicon.ico" />
     </head>
     <style>
         #view {
             border: 2px solid blue;
             overflow: hidden;
-            width: 240px;
-            height: 320px;
+            width: 10vw;
+            aspect-ratio: 2 / 3;
             position: relative;
             background-color: gray;
+        }
+        #view.big {
+            width: 15vw;
         }
         img#test {
             position: absolute;
@@ -29,7 +35,7 @@
             transform-origin: left top;
             transform: scale(1);
             transition-property: top, left, transform;
-            transition-duration: 3s;
+            transition-duration: 1.2s;
             transition-timing-function: ease-out;
         }
     </style>
@@ -45,66 +51,70 @@
     </body>
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
-            const app = window.WfApp({
-                collections: {
-                    'lit': {
-                        title: 'Nobel laureates in Literature',
-                        page: 'List_of_Nobel_laureates_in_Literature'
-                    },
-                    'phys': {
-                        title: 'Nobel laureates in Physics',
-                        page: 'List_of_Nobel_laureates_in_Physics'
-                    },
-                    'chem': {
-                        title: 'Nobel laureates in Chemistry',
-                        page: 'List_of_Nobel_laureates_in_Chemistry'
-                    },
-                    'med': {
-                        title: 'Nobel laureates in Physiology or Medicine',
-                        page: 'List_of_Nobel_laureates_in_Physiology_or_Medicine'
-                    },
-                    'econ': {
-                        title: 'Nobel Prize winners in Economics',
-                        page: 'List_of_Nobel_Memorial_Prize_laureates_in_Economic_Sciences'
-                    },
-                    'comp': {
-                        title: 'Turing Award (computing science)',
-                        page: 'Turing_Award'
-                    },
-                    'math_abel': {
-                        title: 'Abel Prize (math)',
-                        page: 'Abel_Prize'
-                    },
-                    'math_field': {
-                        title: 'Fields Medal (math)',
-                        page: 'Fields_Medal'
-                    }
+            const allCols = await window.WfUtils.loadDataFile('data/collections.json')
+            if (!allCols)
+                return
+
+            const view = document.querySelector('#view')
+            const img = document.querySelector('#test')
+            const facePad = 1.3
+            const app = window.WfApp(allCols)
+            await app.loadCollection('lit')
+
+            // window.WfWiki.requestClaims('Sully_Prudhomme|Donald_Trump', function(title, claims) {
+            //     console.log('requestClaims result', title, claims)
+            // })
+
+            const pers = window.WfWiki.Person('Orhan_Pamuk')
+            if (pers) {
+                await pers.load()
+                const photo = pers.photo
+                console.log('pers photo', photo)
+                if (photo) {
+                    img.crossOrigin = 'Anonymous'
+                    img.src = photo.url
                 }
-            })
-            // app.loadCollection('lit')
+            }
+
+            return
+
 
             // const fileTitle = 'File:Portrait_frederic_mistral_(cropped).jpg'
             // const fileTitle = 'File:Professor_Jennifer_Doudna_ForMemRS_(cropped).jpg'
             // const fileTitle = 'File:Mumford2.jpg'
-            // const fileTitle = 'File:VladimirVoevodsky.jpg'
+            const fileTitle = 'File:VladimirVoevodsky.jpg'
             // const fileTitle = 'File:Hugo_Duminil-Copin_in_Oberwolfach_(cropped).jpg'
             // const fileTitle = 'File:Maryna_Vazovska_MFO_2013_crop.jpg'
             // const fileTitle = 'File:Alain_Aspect_(26341660894)_(cropped).jpg'
             // const fileTitle = 'File:Michael_Jordan_in_2014.jpg'
-            const fileTitle = 'File:Kanye_West_at_the_2009_Tribeca_Film_Festival_(crop_2).jpg'
+            // const fileTitle = 'File:Kanye_West_at_the_2009_Tribeca_Film_Festival_(crop_2).jpg'
 
             const res = await WfWiki.requestFileInfo(fileTitle)
             if (res) {
-                const img = document.querySelector('#test')
+                const updateImageScale = async function(img, pad) {
+                    console.log('updateImageScale...')
 
-                img.addEventListener('load', async function() {
-                    console.log('image loaded')
+                    let faceInfo = undefined
+                    const atrX = img.getAttribute('data-det-x')
+                    const atrY = img.getAttribute('data-det-y')
+                    const atrDiam = img.getAttribute('data-det-diam')
 
-                    const det = window.WfDetector(img)
-                    let res = await det.detect()
-                    console.log('detection result', res)
+                    if (atrX === null || atrX === undefined) {
+                        const det = window.WfDetector(img)
+                        faceInfo = await det.detect()
+                        console.log('detection result', faceInfo)
+                        img.setAttribute('data-det-x', faceInfo.x)
+                        img.setAttribute('data-det-y', faceInfo.y)
+                        img.setAttribute('data-det-diam', faceInfo.diam)
+                    } else {
+                        faceInfo = {
+                            x: parseFloat(atrX),
+                            y: parseFloat(atrY),
+                            diam: parseFloat(atrDiam)
+                        }
+                        console.log('detection in attributes', faceInfo)
+                    }
 
-                    const pad = 1.3
                     const iw = img.naturalWidth
                     const ih = img.naturalHeight
                     const view = img.closest('#view')
@@ -112,37 +122,59 @@
                     const vh = view.clientHeight
                     const viewScale = vw / iw
 
-                    if (!res)
-                        res = {x:0.5, y:0.5, diam:(1.0 / pad)}
+                    if (!faceInfo)
+                        faceInfo = {x:0.5, y:0.5, diam:(1.0 / pad)}
 
-                    if (res) {
-                        const detScale = 1.0 / (res.diam * pad)
-                        const scale = viewScale * detScale
-                        let ox = Math.round(0.5 * vw - res.x * iw * scale)
-                        let oy = Math.round(0.5 * vh - res.y * ih * scale)
+                    const detScale = 1.0 / (faceInfo.diam * pad)
+                    const scale = viewScale * detScale
+                    let ox = Math.round(0.5 * vw - faceInfo.x * iw * scale)
+                    let oy = Math.round(0.5 * vh - faceInfo.y * ih * scale)
 
-                        // snap to view border
-                        const iRight = Math.round(vw - iw * scale)
-                        const iBottom = Math.round(vh - ih * scale)
-                        ox = Math.min(0, ox) // snap to left border
-                        oy = Math.min(0, oy) // snap to top border
-                        ox = Math.max(iRight, ox) // snap to right border
-                        oy = Math.max(iBottom, oy) // snap to bottom border
+                    // snap to view border
+                    const iRight = Math.round(vw - iw * scale)
+                    const iBottom = Math.round(vh - ih * scale)
+                    ox = Math.min(0, ox) // snap to left border
+                    oy = Math.min(0, oy) // snap to top border
+                    ox = Math.max(iRight, ox) // snap to right border
+                    oy = Math.max(iBottom, oy) // snap to bottom border
 
-                        // update image style & etc
-                        img.style.transform = `scale(${scale})`
-                        img.style.left = `${ox}px`;
-                        img.style.top = `${oy}px`;
-                        img.classList.add('face-detected')
-                    }
-                })
-                img.addEventListener('error', function() {
+                    // update image style & etc
+                    img.style.transform = `scale(${scale})`
+                    img.style.left = `${ox}px`;
+                    img.style.top = `${oy}px`;
+                }
+
+                img.onload = async function() {
+                    console.log('image loaded')
+                    updateImageScale(img, facePad)
+                }
+
+                img.onerror = function() {
                     console.log('image loading error')
-                })
+                }
 
                 img.crossOrigin = 'Anonymous'
                 img.src = res.url
                 // img.src = 'media/test1.jpg'
+
+                img.onclick = function() {
+                    view.classList.toggle('big')
+                    // updateImageScale(img, facePad)
+                }
+
+                let resizeTimer = undefined
+                const resizeObserver = new ResizeObserver(entries => {
+                    for (const entry of entries) {
+                        const { width, height } = entry.contentRect;
+                        clearTimeout(resizeTimer)
+                        resizeTimer = setTimeout(function() {
+                            updateImageScale(img, facePad)
+                        }, 800)
+                    }
+                });
+                if (view) {
+                    resizeObserver.observe(view);
+                }
             }
 
         });

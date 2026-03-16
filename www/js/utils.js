@@ -130,4 +130,18 @@ window.WfUtils = {
             return false
         }
     },
+
+    loadDataFile: async function(url) {
+        try {
+            console.log('load data file', url)
+            const response = await fetch(url)
+            if (!response.ok)
+                throw new Error(`http status: ${response.status}`)
+            const data = await response.json()
+            return data
+        } catch (err) {
+            console.error(err)
+        }
+    },
+
 }

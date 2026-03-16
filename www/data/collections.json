@@ -1,0 +1,36 @@
+{
+    "collections": {
+        "lit": {
+            "title": "Nobel laureates in Literature",
+            "page": "List_of_Nobel_laureates_in_Literature"
+        },
+        "phys": {
+            "title": "Nobel laureates in Physics",
+            "page": "List_of_Nobel_laureates_in_Physics"
+        },
+        "chem": {
+            "title": "Nobel laureates in Chemistry",
+            "page": "List_of_Nobel_laureates_in_Chemistry"
+        },
+        "med": {
+            "title": "Nobel laureates in Physiology or Medicine",
+            "page": "List_of_Nobel_laureates_in_Physiology_or_Medicine"
+        },
+        "econ": {
+            "title": "Nobel Prize winners in Economics",
+            "page": "List_of_Nobel_Memorial_Prize_laureates_in_Economic_Sciences"
+        },
+        "comp": {
+            "title": "Turing Award (computing science)",
+            "page": "Turing_Award"
+        },
+        "math_abel": {
+            "title": "Abel Prize (math)",
+            "page": "Abel_Prize"
+        },
+        "math_field": {
+            "title": "Fields Medal (math)",
+            "page": "Fields_Medal"
+        }
+    }
+}

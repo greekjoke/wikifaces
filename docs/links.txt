@@ -3,6 +3,11 @@ https://en.wikipedia.org/w/api.php
 Media Wiki / action=parse
 https://en.wikipedia.org/w/api.php?action=help&modules=parse
 
+Wikidata Properties
+https://www.wikidata.org/wiki/Special:ListProperties
+Wikidata api
+https://www.wikidata.org/w/api.php
+
 pupils (face) detection on js
 https://github.com/bronkula/picojs/tree/ham-module
 

@@ -2,6 +2,9 @@
 
 window.WfWiki = {
 
+    site: 'https://en.wikipedia.org',
+    siteWikiData: 'https://www.wikidata.org',
+
     request: async function(url) {
         try {
             console.log(`request wiki url: ${url}`)
@@ -19,8 +22,11 @@ window.WfWiki = {
                     if (info)
                         return info.shift()
                 }
+            } else if ('parse' in data) {
+                return data['parse']
+            } else {
+                return data
             }
-            return data['parse']
         } catch (err) {
             console.error('fetching data:', err)
         }
@@ -30,7 +36,7 @@ window.WfWiki = {
         const self = window.WfWiki
         if (!page)
             throw new Error('page code is required')
-        const url = `https://en.wikipedia.org/w/api.php?action=parse&format=json&origin=*&page=${page}`
+        const url = `${self.site}/w/api.php?action=parse&format=json&origin=*&page=${page}`
         return self.request(url)
     },
 
@@ -38,7 +44,7 @@ window.WfWiki = {
         const self = window.WfWiki
         if (!page)
             throw new Error('page code is required')
-        const url = `https://en.wikipedia.org/w/api.php?action=parse&origin=*&prop=text&format=json&page=${page}&section=${secIindex}`
+        const url = `${self.site}/w/api.php?action=parse&origin=*&prop=text&format=json&page=${page}&section=${secIindex}`
         return self.request(url)
     },
 
@@ -88,7 +94,7 @@ window.WfWiki = {
     requestFileInfo: async function(fileTitle) {
         const self = window.WfWiki
         const title = self.getFileTitle(fileTitle)
-        const url = `https://en.wikipedia.org/w/api.php?action=query&origin=*&prop=imageinfo&format=json&titles=File:${title}&iiprop=url|size|mime|bitdepth`
+        const url = `${self.site}/w/api.php?action=query&origin=*&prop=imageinfo&format=json&titles=File:${title}&iiprop=url|size|mime|bitdepth`
         const cache = window.WfLocalCache
         const cacheKey = self.getFileCacheKey(fileTitle)
         const cachedValue = cache.get(cacheKey, false, cache.Period.Infinite)
@@ -111,7 +117,7 @@ window.WfWiki = {
         const self = window.WfWiki
         const cache = window.WfLocalCache
         const cacheKey = `wiki.requestLaureates:${page}`
-        const cachedValue = cache.get(cacheKey)
+        const cachedValue = cache.get(cacheKey, false, cache.Period.Day*20)
 
         if (cachedValue) {
             console.log('requestLaureates: found cached value')
@@ -140,6 +146,66 @@ window.WfWiki = {
         }
     },
 
+    requestClaims: async function(page, callback) {
+        const self = window.WfWiki
+
+        if (!page)
+            throw new Error('page code is required')
+        if (Array.isArray(page))
+            page = page.join('|')
+
+        const url = `${self.siteWikiData}/w/api.php?action=wbgetentities&props=claims&sites=enwiki&titles=${page}&format=json&origin=*`
+        const data = await self.request(url)
+        if (!data || !('entities' in data))
+            return
+
+        function getClaimValue(claims, id) {
+            if (id in claims) {
+                const ar = claims[id]
+                if (ar) {
+                    const snak = ar[0].mainsnak
+                    const valueType = snak.datavalue.type
+                    const value = snak.datavalue.value
+                    if (valueType == 'time') {
+                        // const isoDate = value.time.substring(1, 11)
+                        // return new Date(isoDate)
+                        return value.time.substring(1)
+                    }
+                }
+            }
+        }
+
+        const claimsToRead = {
+            birth: 'P569',
+            die: 'P570'
+        }
+
+        const srcTitles = page.split('|')
+        const resKeys = Object.keys(data.entities)
+        const result = {}
+
+        for (let i in resKeys) {
+            const title = srcTitles[i]
+            const id = resKeys[i]
+            const item = data.entities[id]
+            const claims = item.claims
+            const out = {}
+            for (let field in claimsToRead) {
+                const prop = claimsToRead[field]
+                const value = getClaimValue(claims, prop)
+                out[field] = value
+            }
+            result[title] = {
+                qid: item.id,
+                claims: out
+            }
+            if (callback)
+                callback(title, result[title])
+        }
+
+        return result
+    },
+
     parseTable: function(tab) {
         const utils = window.WfUtils
         let lastCountry = ''
@@ -156,11 +222,17 @@ window.WfWiki = {
             return i
         }
 
-        const cleanFileLink = function(link) {
+        const cleanWikiLink = function(link) {
+            if (!link)
+                return
             const i = link.indexOf('/wiki/')
             if (i !== -1)
                 return link.substring(i)
             return link
+        }
+
+        const receivePageTitle = function(link) {
+            return link ? link.split('/wiki/').pop() : undefined
         }
 
         tab.querySelectorAll('tr').forEach(tr => {
@@ -223,14 +295,17 @@ window.WfWiki = {
             }
 
             const last = out[out.length-1]
-            const photo = cleanFileLink(fileLink.href)
-            const name = nameElem.querySelector('a').innerText.trim()
+            const photo = cleanWikiLink(fileLink.href)
+            const nameAnchor = nameElem.querySelector('a')
+            const name = nameAnchor.innerText.trim()
+            const personPage = receivePageTitle(nameAnchor.href)
 
             if (photo.toLowerCase().indexOf('no_image') !== -1)
                 return // skip persons without photo
 
             last.person.push({
                 name: name,
+                page: personPage,
                 photo: photo,
                 country: lastCountry,
                 flag: lastFlag
@@ -240,6 +315,84 @@ window.WfWiki = {
         return {
             links: links,
             items: out
+        }
+    },
+
+    getCachedCollections: function() {
+        const out = {}
+        const cache = window.WfLocalCache
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('wiki.requestLaureates:')) {
+                const value = cache.get(key)
+                out[key] = value
+            }
+        });
+        return out
+    },
+
+    /* Person data model & methods */
+    Person: function(pageTitle) {
+        const wiki = window.WfWiki
+        const cache = window.WfLocalCache
+        const cacheKey = `wiki.Person:${pageTitle}`
+        let colPerson = {}
+        let needLoad = true
+
+        function findInCollections(pageTitle) {
+            const all = wiki.getCachedCollections()
+            console.log('col', all)
+            for (let cid in all) {
+                const col = all[cid]
+                for (let i in col.items) {
+                    const item = col.items[i]
+                    for (let j in item.person) {
+                        if (item.person[j].page === pageTitle) {
+                            return item.person[j]
+                        }
+                    }
+                }
+            }
+        }
+
+        async function load() {
+            if (!needLoad)
+                return
+
+            const fileInfo = await wiki.requestFileInfo(colPerson.photo)
+            if (fileInfo) {
+                colPerson['photo_orig'] = fileInfo
+            }
+
+            const ext = await wiki.requestClaims(colPerson.page)
+            if (ext) {
+                colPerson['ext'] = ext
+            }
+
+            cache.set(cacheKey, colPerson)
+            needLoad = false
+            return true
+        }
+
+        const cachedValue = cache.get(cacheKey, false, cache.Period.Day*15)
+        if (cachedValue) {
+            colPerson = cachedValue
+            needLoad = false
+        } else {
+            colPerson = findInCollections(pageTitle)
+        }
+
+        if (!colPerson) {
+            console.warn(`person "${pageTitle}" not found in cached collections`)
+            return
+        }
+
+        return {
+            load: async function() {
+                return await load()
+            },
+            get photo() {
+                return colPerson['photo_orig']
+            }
         }
     }
 
