@@ -1,1 +1,143 @@
 /* main styles */
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+button {
+    cursor: pointer;
+    padding: 2px 5px;
+}
+
+.button {
+    cursor: pointer;
+    opacity: 0.5;
+}
+.button:hover {
+    opacity: 1;
+}
+
+.pa1 { padding: 1em; }
+.pa2 { padding: 2em; }
+.pa3 { padding: 3em; }
+.pa4 { padding: 4em; }
+.pa5 { padding: 5em; }
+
+.list-none { list-style: none; }
+.list-none > li { margin: 0.5em 0; }
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.face-slot-wrapper {
+    display: inline-block;
+    margin: 5px;
+}
+.face-slot {
+    border: 2px solid blue;
+    overflow: hidden;
+    width: 12vw;
+    aspect-ratio: 2 / 3;
+    position: relative;
+    background-color: gray;
+}
+.face-slot > img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: left top;
+    transform: scale(1);
+    transition-property: top, left, transform;
+    transition-duration: 1.2s;
+    transition-timing-function: ease-out;
+}
+
+#top-sidebar {
+    padding-left: 50%;
+    background-color: darkslategray;
+}
+#back {
+    font-size: 2em;
+    position: absolute;
+    left: 0.5em;
+    top: 0.5em;
+    display: inline-block;
+    background: white;
+    width: 1em;
+    height: 1em;
+    text-align: center;
+    border-radius: 0.5em;
+    padding: 0.1em;
+    line-height: 0.9em;
+}
+body[data-layout="main"] #back {
+    display: none;
+}
+#main-wrapper {
+    width: 400px;
+    margin-left: -200px;
+    text-align: center;
+}
+#main-icon {
+    display: inline-block;
+    width: 2em;
+    font-size: 3em;
+    text-align: right;
+}
+#main-title {
+    display: inline-block;
+    font-size: 3em;
+    color: gray;
+    text-align: left;
+    margin: 8px 0;
+}
+
+#modal-wrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding-left: 50%;
+    padding-top: 120px;
+}
+#modal-box {
+    min-width: 300px;
+    min-height: 50px;
+    width: 300px;
+    margin-left: -150px;
+    background-color: white;
+    border: 1px solid black;
+    border-radius: 5px;
+    box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+#modal-title {
+    text-transform: capitalize;
+    background-color: dimgray;
+    color: white;
+    padding: 2px 5px;
+    border-bottom: 1px solid black;
+    position: relative;
+}
+#modal-close {
+    font-size: 2em;
+    position: absolute;
+    right: 0.18em;
+    top: -0.22em;
+}
+
+.layout-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.layout-wrapper button {
+    width: 100%;
+    padding: 0.25em 3em;
+}

@@ -7,6 +7,8 @@ Wikidata Properties
 https://www.wikidata.org/wiki/Special:ListProperties
 Wikidata api
 https://www.wikidata.org/w/api.php
+query
+https://query.wikidata.org/
 
 pupils (face) detection on js
 https://github.com/bronkula/picojs/tree/ham-module

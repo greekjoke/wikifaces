@@ -160,7 +160,7 @@ window.WfWiki = {
             return
 
         function getClaimValue(claims, id) {
-            if (id in claims) {
+            if (claims && (id in claims)) {
                 const ar = claims[id]
                 if (ar) {
                     const snak = ar[0].mainsnak

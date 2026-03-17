@@ -9,6 +9,8 @@ window.WfDetector = function(image, options) {
     options = options || {}
 
     const canvas = document.getElementById('canvas')
+    if (!canvas)
+        throw new Error('canvas not found')
 
     async function downloadClsRegion() {
         try {
