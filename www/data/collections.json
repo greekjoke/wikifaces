@@ -1,35 +1,35 @@
 {
     "collections": {
         "lit": {
-            "title": "Nobel laureates in Literature",
+            "title": "Литература (нобелевские лауреаты)",
             "page": "List_of_Nobel_laureates_in_Literature"
         },
         "phys": {
-            "title": "Nobel laureates in Physics",
+            "title": "Физика (нобелевские лауреаты)",
             "page": "List_of_Nobel_laureates_in_Physics"
         },
         "chem": {
-            "title": "Nobel laureates in Chemistry",
+            "title": "Химия (нобелевские лауреаты)",
             "page": "List_of_Nobel_laureates_in_Chemistry"
         },
         "med": {
-            "title": "Nobel laureates in Physiology or Medicine",
+            "title": "Медицина или Психология (нобелевские лауреаты)",
             "page": "List_of_Nobel_laureates_in_Physiology_or_Medicine"
         },
         "econ": {
-            "title": "Nobel Prize winners in Economics",
+            "title": "Экономика (нобелевские лауреаты)",
             "page": "List_of_Nobel_Memorial_Prize_laureates_in_Economic_Sciences"
         },
         "comp": {
-            "title": "Turing Award (computing science)",
+            "title": "Информатика (премия Тьюринга)",
             "page": "Turing_Award"
         },
         "math_abel": {
-            "title": "Abel Prize (math)",
+            "title": "Математика (Абелевская премия)",
             "page": "Abel_Prize"
         },
         "math_field": {
-            "title": "Fields Medal (math)",
+            "title": "Математика (медаль Филдса)",
             "page": "Fields_Medal"
         }
     }

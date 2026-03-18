@@ -156,7 +156,7 @@ class GameExplorer extends GameBase {
             throw new Error('faces container not found')
         this.listElem = listElem
         this.collectionId = collectionId
-        this.capacitySizes = [1, 2, 4, 8, 16]
+        this.capacitySizes = [1, 2, 4, 8, 16, 24, 32]
         this.capacityCur = 2
         this.facePad = 1.4
         this.pageCur = 0
