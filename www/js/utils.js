@@ -67,6 +67,16 @@ window.WfUtils = {
         return str.split('').reverse().join('')
     },
 
+    shuffle: function(ar) {
+        let currentIndex = ar.length, randomIndex
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex)
+            currentIndex--
+            [ar[currentIndex], ar[randomIndex]] = [ar[randomIndex], ar[currentIndex]]
+        }
+        return ar
+    },
+
     setCookie: function(c_name, value, exmins) {
         const expires = new Date()
         expires.setTime(expires.getTime() + (1000 * 60 * exmins))

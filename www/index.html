@@ -56,6 +56,26 @@
 
     <!-- collection explorer menu -->
     <script type="text/template" id="tpl-layout-collection-explorer">
+        <div class="pa1 toolbar w100 flex-center">
+            <div class="w50 tar pah1">
+                <span class="button bn-order-asc" data-action=".orderAsc" title="Сортировка по возрастанию">🔼</span>
+                <span class="button bn-order-desc" data-action=".orderDesc" title="Сортировка по убыванию">🔽</span>
+                <span class="button bn-order-shuffle" data-action=".orderShuffle"title="Перемешать">🔀</span>
+                &nbsp;
+                &nbsp;
+                <span class="button bn-page-first" data-action=".pageFirst" title="Первая страница">⏮️</span>
+                <span class="button bn-page-prev" data-action=".pagePrev" title="Предыдущая страница">⬅️</span>
+                <span class="button bn-page-next" data-action=".pageNext" title="Следующая страница">➡️</span>
+                <span class="button bn-page-last" data-action=".pageLast" title="Последняя страница">⏭️</span>
+                &nbsp;
+                &nbsp;
+                <span class="button bn-cap-less" data-action=".capLess" title="Меньше картинок">➖</span>
+                <span class="button bn-cap-more" data-action=".capMore" title="Больше картинок">➕</span>
+            </div>
+            <div class="w50 pah1">
+                <span class="title">Title</span>
+            </div>
+        </div>
         <div class="pa1 faces-list"></div>
     </script>
 
@@ -69,7 +89,7 @@
     <!-- main page -->
     <body>
         <div id="top-sidebar">
-            <span id="back" data-action=":navBack" class="button" title="Назад">&LeftArrow;</span>
+            <span id="back" data-action=":navBack" class="button light" title="Назад">&LeftArrow;</span>
             <div id="main-wrapper">
                 <div id="main-icon">😀</div>
                 <div id="main-title">Wiki Faces</div>
@@ -80,7 +100,7 @@
             <div id="modal-box">
                 <div id="modal-title">
                     <span>modal</span>
-                    <span id="modal-close" class="button" data-action=":close" title="Закрыть">&times;</span>
+                    <span id="modal-close" class="button light" data-action=":close" title="Закрыть">&times;</span>
                 </div>
                 <div id="modal-content"></div>
             </div>
@@ -91,17 +111,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
             const cols = await window.WfUtils.loadDataFile('data/collections.json')
-
             if (!cols)
                 return
-
             const app = window.WfApp(cols)
             app.selectLayout('main')
-
-            // await app.loadCollection('lit')
-            // window.WfUI.addFaceSlot('Orhan_Pamuk')
-            // window.WfUI.addFaceSlot('Orhan_Pamuk')
-            // window.WfUI.addFaceSlot('Orhan_Pamuk')
         });
     </script>
 </html>

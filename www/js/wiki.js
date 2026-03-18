@@ -4,15 +4,19 @@ window.WfWiki = {
 
     site: 'https://en.wikipedia.org',
     siteWikiData: 'https://www.wikidata.org',
+    requestCounter: 0,
 
     request: async function(url) {
+        const self = window.WfWiki
         try {
-            console.log(`request wiki url: ${url}`)
+            self.requestCounter++
+            const reqNum = self.requestCounter
+            console.log(`[${reqNum}] request wiki url: ${url}`)
             const response = await fetch(url)
             if (!response.ok)
                 throw new Error(`http status: ${response.status}`)
             const data = await response.json()
-            console.log('request done', data)
+            console.log(`[${reqNum}] request done`, data)
             if ('warnings' in data) {
                 console.error('wiki warnings', data['warnings'])
             } else if ('query' in data) {
@@ -363,10 +367,10 @@ window.WfWiki = {
                 colPerson['photo_orig'] = fileInfo
             }
 
-            const ext = await wiki.requestClaims(colPerson.page)
-            if (ext) {
-                colPerson['ext'] = ext
-            }
+            // const ext = await wiki.requestClaims(colPerson.page)
+            // if (ext) {
+            //     colPerson['ext'] = ext
+            // }
 
             cache.set(cacheKey, colPerson)
             needLoad = false
