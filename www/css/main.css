@@ -7,14 +7,20 @@
 
 body {
     height: 100vh;
-    background-image: linear-gradient(rgb(120, 120, 120), rgb(50, 50, 50));
+    /* background-image: linear-gradient(rgb(120, 120, 120), rgb(50, 50, 50)); */
+    background: radial-gradient(ellipse at top, #ddd, #333);
+}
+
+a.icon-link {
+    text-decoration: none;
+    filter: hue-rotate(260deg) brightness(1.2);
 }
 
 #disclaimer {
     border-top: 1px solid gray;
     text-align: center;
-    color: #aaa;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+    color: #555;
+    /* text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); */
 }
 
 button, .button {
@@ -177,6 +183,7 @@ body[data-layout="main"] #back {
     color: gray;
     text-align: left;
     margin: 8px 0;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 #modal-wrapper {
@@ -216,7 +223,9 @@ body[data-layout="main"] #back {
 }
 
 .toolbar {
-    background-color: #dda;
+    /* background-color: #dda; */
+    background: radial-gradient(circle at center, #dda, #553);
+    border-bottom: 1px solid #555;
 }
 
 .layout-wrapper {

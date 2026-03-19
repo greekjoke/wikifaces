@@ -22,9 +22,13 @@ window.WfWiki = {
             } else if ('query' in data) {
                 const q = data['query']
                 if ('pages' in q) {
-                    const info = q['pages'][-1]['imageinfo']
-                    if (info)
-                        return info.shift()
+                    const firstPage = Object.values(q['pages'])[0]
+                    console.log('firstPage', firstPage)
+                    if (firstPage) {
+                        const info = firstPage['imageinfo']
+                        if (info)
+                            return info.shift()
+                    }
                 }
             } else if ('parse' in data) {
                 return data['parse']

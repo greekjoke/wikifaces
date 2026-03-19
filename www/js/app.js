@@ -220,7 +220,7 @@ class GameExplorer extends GameBase {
             app.hideProgress()
         })
     }
-    render() {
+    async render() {
         super.render();
 
         const that = this
@@ -240,12 +240,16 @@ class GameExplorer extends GameBase {
         this.clear()
 
         const skip = this.pageSize * this.pageCur
-        ar.slice(skip, skip + this.pageSize).forEach(p => {
-            ui.addFaceSlot(p.page, {
+        const part = ar.slice(skip, skip + this.pageSize)
+
+        for (let i=0; i < part.length; i++) {
+            // await utils.sleep(250)
+            const p = part[i]
+            await ui.addFaceSlot(p.page, {
                 container: that.listElem,
                 pad: that.facePad
             })
-        })
+        }
     }
     getOrder() {
         return this.rootElem.getAttribute('data-order')
@@ -305,7 +309,7 @@ class GameExplorer extends GameBase {
     }
     updatePaginator() {
         const num = this.getPagesCount()
-        if (!num)
+        if (num <= 1)
             this.rootElem.setAttribute('data-pag', 'empty')
         else if (this.pageCur < 1)
             this.rootElem.setAttribute('data-pag', 'noless')
@@ -319,8 +323,10 @@ class GameExplorer extends GameBase {
         const titleElem = this.rootElem.querySelector('.toolbar .title')
         const colMeta = this.app.getCollectionsInfo()[cid]
         const title = colMeta.title || 'Untitled'
-        const icon = (colMeta.icon || '') + (colMeta.icon ? ' ' : '')
-        titleElem.innerText = `${icon}${title}`
+        const icon = (colMeta.icon || '') + (colMeta.icon ? '&nbsp;' : '')
+        const wikiHost = window.WfWiki.site
+        const link = colMeta.link || `${wikiHost}/wiki/${colMeta.page}`
+        titleElem.innerHTML = `${icon}${title} <a class="icon-link" target="_blank" href="${link}">🔗</a>`
     }
     capLess() {
         if (this.capacityCur > 0) {

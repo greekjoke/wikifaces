@@ -153,14 +153,18 @@ window.WfUtils = {
     },
 
     simpleHash: function(str) {
-        let hash = 0;
-        if (str.length === 0) return hash;
+        let hash = 0
+        if (str.length === 0) return hash
         for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char; // Equivalent to hash * 31 + char
-            hash = hash & hash; // Convert to a 32bit integer
+            const char = str.charCodeAt(i)
+            hash = ((hash << 5) - hash) + char // Equivalent to hash * 31 + char
+            hash = hash & hash // Convert to a 32bit integer
         }
         return hash;
+    },
+
+    sleep: function(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms))
     }
 
 }
