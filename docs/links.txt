@@ -2,6 +2,8 @@ Media Wiki
 https://en.wikipedia.org/w/api.php
 Media Wiki / action=parse
 https://en.wikipedia.org/w/api.php?action=help&modules=parse
+Media Wiki / bad files
+https://en.wikipedia.org/wiki/MediaWiki:Bad_image_list
 
 Wikidata Properties
 https://www.wikidata.org/wiki/Special:ListProperties

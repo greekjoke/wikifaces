@@ -1,6 +1,26 @@
 /* face detection utils */
 let facefinderClassifyRegion = undefined
-const facefinderClassifyRegionFallback = function(r, c, s, pixels, ldim) {return -1.0;}
+const facefinderClassifyRegionFallback = function(r, c, s, pixels, ldim) {return -1.0}
+
+const __ffrLoader = async function() {
+    try {
+        // download the face-detection cascade
+        const url = 'data/facefinder';
+        const response = await fetch(url)
+        if (!response.ok)
+            throw new Error(`http status: ${response.status}`)
+        const buffer = await response.arrayBuffer()
+        const bytes = new Int8Array(buffer);
+        const clsRegion = pico.unpack_cascade(bytes);
+        console.log('cls region loaded')
+        facefinderClassifyRegion = clsRegion
+        return clsRegion
+    } catch (err) {
+        console.error('fetching data:', err)
+    }
+}
+
+__ffrLoader()
 
 window.WfDetector = function(image, options) {
     if (!image)
@@ -12,27 +32,8 @@ window.WfDetector = function(image, options) {
     if (!canvas)
         throw new Error('canvas not found')
 
-    async function downloadClsRegion() {
-        try {
-            // download the face-detection cascade
-            const url = 'data/facefinder';
-            const response = await fetch(url)
-            if (!response.ok)
-                throw new Error(`http status: ${response.status}`)
-            const buffer = await response.arrayBuffer()
-            const bytes = new Int8Array(buffer);
-            const clsRegion = pico.unpack_cascade(bytes);
-            console.log('cls region loaded')
-            return clsRegion
-        } catch (err) {
-            console.error('fetching data:', err)
-        }
-    }
-
     async function touchClsRegion() {
-        if (!facefinderClassifyRegion)
-            facefinderClassifyRegion = await downloadClsRegion() || facefinderClassifyRegionFallback
-        return facefinderClassifyRegion
+        return facefinderClassifyRegion || facefinderClassifyRegionFallback
     }
 
     function rgba2gray(rgba, nrows, ncols) {
@@ -52,9 +53,6 @@ window.WfDetector = function(image, options) {
             const clsReg = await touchClsRegion()
             const w = image.naturalWidth
             const h = image.naturalHeight
-
-            console.log('natural image size:', w, h)
-
             const maxWidth = 500
             const targetWidth = Math.min(w, maxWidth)
             const targetHeight = parseInt(h * (targetWidth / w))

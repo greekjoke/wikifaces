@@ -98,7 +98,7 @@ window.WfWiki = {
     requestFileInfo: async function(fileTitle) {
         const self = window.WfWiki
         const title = self.getFileTitle(fileTitle)
-        const url = `${self.site}/w/api.php?action=query&origin=*&prop=imageinfo&format=json&titles=File:${title}&iiprop=url|size|mime|bitdepth`
+        const url = `${self.site}/w/api.php?action=query&origin=*&prop=imageinfo&format=json&titles=File:${title}&iiprop=url|size|mime|bitdepth&iiurlwidth=500`
         const cache = window.WfLocalCache
         const cacheKey = self.getFileCacheKey(fileTitle)
         const cachedValue = cache.get(cacheKey, false, cache.Period.Infinite)
@@ -113,7 +113,7 @@ window.WfWiki = {
             return
 
         const cachingResult = cache.set(cacheKey, data)
-        console.log('requestFileInfo: cachingResult', cachingResult)
+        console.log('requestFileInfo: cachingResult', fileTitle, data)
         return data
     },
 
@@ -344,7 +344,6 @@ window.WfWiki = {
 
         function findInCollections(pageTitle) {
             const all = wiki.getCachedCollections()
-            console.log('col', all)
             for (let cid in all) {
                 const col = all[cid]
                 for (let i in col.items) {
@@ -364,6 +363,7 @@ window.WfWiki = {
 
             const fileInfo = await wiki.requestFileInfo(colPerson.photo)
             if (fileInfo) {
+                // TODO: check that photo jpg or png
                 colPerson['photo_orig'] = fileInfo
             }
 

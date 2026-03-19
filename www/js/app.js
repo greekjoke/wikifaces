@@ -77,7 +77,6 @@ window.WfApp = function(settings) {
                 throw new Error(`invalid collection ID: ${id}`)
             const col = collections[id]
             const res = await wiki.requestLaureates(col.page)
-            console.log('laurs', res)
             return res
         },
         selectLayout: function(name, modal, pass) {
@@ -132,7 +131,8 @@ window.WfApp = function(settings) {
 }
 
 class GameBase {
-    constructor(app) {
+    constructor(app, gameId) {
+        this.gameId = gameId
         this.app = app
         this.rootElem = document.querySelector('#content .layout-wrapper')
         if (!this.rootElem)
@@ -144,11 +144,25 @@ class GameBase {
     render() {
         // NOTE: visualize data
     }
+    _getOptionKey(name) {
+        return `game:${this.gameId}:${name}`
+    }
+    saveOption(name, value) {
+        const utils = window.WfUtils
+        const key = this._getOptionKey(name)
+        utils.storageWrite(key, value)
+    }
+    readOption(name, defValue) {
+        const utils = window.WfUtils
+        const key = this._getOptionKey(name)
+        const value = utils.storageRead(key)
+        return value === undefined ? defValue : value
+    }
 }
 
 class GameExplorer extends GameBase {
     constructor(app, collectionId) {
-        super(app)
+        super(app,  'GameExplorer')
         if (!collectionId)
             throw new Error('collection id required')
         const listElem = this.rootElem.querySelector('.faces-list')
@@ -157,18 +171,16 @@ class GameExplorer extends GameBase {
         this.listElem = listElem
         this.collectionId = collectionId
         this.capacitySizes = [1, 2, 4, 8, 16, 24, 32]
-        this.capacityCur = 2
+        this.capacityCur = this.readOption('cap', 2)
         this.facePad = 1.4
         this.pageCur = 0
         this.data = []
         this.dataMixed = undefined
         this.clear()
-        this.orderAsc() // default order
+        this.setOrder(this.readOption('order', 'asc'))
         this.updatePaginator()
         this.updateCapacity()
         this.updateTitle()
-        // TODO: remember/restore last order
-        // TODO: remember/restore last layout size
     }
     get pageSize() {
         return this.capacitySizes[this.capacityCur]
@@ -235,19 +247,23 @@ class GameExplorer extends GameBase {
         })
     }
     getOrder() {
-        return this.rootElem.getAttribute('data-order') || 'asc'
+        return this.rootElem.getAttribute('data-order')
+    }
+    setOrder(value) {
+        const old = this.getOrder()
+        if (old === value) return
+        this.rootElem.setAttribute('data-order', value)
+        this.saveOption('order', value)
+        this.render()
     }
     orderAsc() {
-        this.rootElem.setAttribute('data-order', 'asc')
-        this.render()
+        this.setOrder('asc')
     }
     orderDesc() {
-        this.rootElem.setAttribute('data-order', 'desc')
-        this.render()
+        this.setOrder('desc')
     }
     orderShuffle() {
-        this.rootElem.setAttribute('data-order', 'shuffle')
-        this.render()
+        this.setOrder('shuffle')
     }
     getPagesCount() {
         const ar = (this.data || [])
@@ -306,8 +322,9 @@ class GameExplorer extends GameBase {
     }
     capLess() {
         if (this.capacityCur > 0) {
-            this.capacityCur--
             this.pageCur = 0
+            this.capacityCur--
+            this.saveOption('cap', this.capacityCur)
             this.render()
         }
         this.updateCapacity()
@@ -316,8 +333,9 @@ class GameExplorer extends GameBase {
     capMore() {
         const num = this.capacitySizes.length
         if (this.capacityCur < (num-1)) {
-            this.capacityCur++
             this.pageCur = 0
+            this.capacityCur++
+            this.saveOption('cap', this.capacityCur)
             this.render()
         }
         this.updateCapacity()

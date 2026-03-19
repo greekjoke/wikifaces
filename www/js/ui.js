@@ -43,6 +43,15 @@ window.WfUI = {
                 }
             })
             resizeObserver.observe(view)
+            img.classList.remove('loading')
+            img.classList.add('loaded')
+        }
+
+        img.onerror = function() {
+            if (!img.classList.contains('loading'))
+                return
+            img.classList.remove('loading')
+            img.classList.add('error')
         }
 
         if (!personId)
@@ -56,12 +65,22 @@ window.WfUI = {
         await pers.load()
         const photo = pers.photo
         if (photo) {
+            let url = photo.thumburl || photo.url
+
+            // const fileExt = url.split('.').pop().toLowerCase()
+            // if (['jpeg', 'jpg', 'png', 'gif'].indexOf(fileExt) === -1) {
+            //     url = photo.thumburl || url
+            // }
+
+            img.classList.add('loading')
             img.crossOrigin = 'Anonymous'
-            img.src = photo.url
+            img.src = url
         }
     },
 
     updateImageScale: async function(img, pad) {
+        const utils = window.WfUtils
+
         pad = pad || 1.3
 
         if (!img || !img.src || img.naturalWidth < 1)
@@ -73,14 +92,22 @@ window.WfUI = {
         const atrDiam = img.getAttribute('data-det-diam')
 
         if (atrX === null || atrX === undefined) {
-            const det = window.WfDetector(img)
-            faceInfo = await det.detect()
+            const hash = utils.simpleHash(img.src)
+            const cacheKey = `face-det:${hash}`
+            faceInfo = utils.storageRead(cacheKey)
+
             if (!faceInfo) {
-                faceInfo = {x:0.5, y:0.5, diam:(1.0 / pad)}
-                console.warn('detection failed', img.src)
-            } else {
-                console.log('detection result', faceInfo)
+                const det = window.WfDetector(img)
+                faceInfo = await det.detect()
+                if (!faceInfo) {
+                    faceInfo = {x:0.5, y:0.5, diam:(1.0 / pad)}
+                    console.warn('detection failed', img.src)
+                } else {
+                    // console.log('detection result', faceInfo)
+                }
+                utils.storageWrite(cacheKey, faceInfo)
             }
+
             img.setAttribute('data-det-x', faceInfo.x)
             img.setAttribute('data-det-y', faceInfo.y)
             img.setAttribute('data-det-diam', faceInfo.diam)
@@ -90,7 +117,7 @@ window.WfUI = {
                 y: parseFloat(atrY),
                 diam: parseFloat(atrDiam)
             }
-            console.log('detection in attributes', faceInfo)
+            // console.log('detection in attributes', faceInfo)
         }
 
         const iw = img.naturalWidth

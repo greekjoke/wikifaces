@@ -112,12 +112,11 @@ window.WfUtils = {
         try {
             if (!key)
                 throw new Error('key is required')
-            if (!data) {
+            if (data === undefined) {
                 window.localStorage.removeItem(key)
             } else {
                 const str = JSON.stringify(data)
                 window.localStorage.setItem(key, str)
-                console.debug('storageWrite', key + ' length', str.length)
             }
             return true
         } catch(err) {
@@ -128,16 +127,15 @@ window.WfUtils = {
 
     storageRead: function(key) {
         if (window.localStorage === undefined)
-            return false
+            return
         try {
             if (!key)
                 throw new Error('key is required')
             const data = window.localStorage.getItem(key)
-            console.debug('storageRead', key + ' length', data ? data.length : 'null')
-            return data ? JSON.parse(data) : false
+            return data !== null ? JSON.parse(data) : undefined
         } catch(err) {
             conosle.error('storageRead', err)
-            return false
+            return
         }
     },
 
@@ -153,5 +151,16 @@ window.WfUtils = {
             console.error(err)
         }
     },
+
+    simpleHash: function(str) {
+        let hash = 0;
+        if (str.length === 0) return hash;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char; // Equivalent to hash * 31 + char
+            hash = hash & hash; // Convert to a 32bit integer
+        }
+        return hash;
+    }
 
 }
