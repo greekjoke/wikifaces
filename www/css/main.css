@@ -5,6 +5,18 @@
     padding: 0;
 }
 
+body {
+    height: 100vh;
+    background-image: linear-gradient(rgb(120, 120, 120), rgb(50, 50, 50));
+}
+
+#disclaimer {
+    border-top: 1px solid gray;
+    text-align: center;
+    color: #aaa;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
 button, .button {
     cursor: pointer;
     user-select: none;
@@ -39,6 +51,7 @@ button.disabled, .button.disabled {
 .pav1 { padding: 1em 0; }
 .tal { text-align: left;}
 .tar { text-align: right;}
+.w25 { width: 25%; display: inline-block;}
 .w50 { width: 50%; display: inline-block;}
 .w100 { width: 100%; display: inline-block;}
 .list-none { list-style: none; }
@@ -200,6 +213,10 @@ body[data-layout="main"] #back {
     position: absolute;
     right: 0.18em;
     top: -0.22em;
+}
+
+.toolbar {
+    background-color: #dda;
 }
 
 .layout-wrapper {

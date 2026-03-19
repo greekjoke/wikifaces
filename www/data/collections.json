@@ -2,35 +2,48 @@
     "collections": {
         "lit": {
             "title": "Литература (нобелевские лауреаты)",
-            "page": "List_of_Nobel_laureates_in_Literature"
+            "page": "List_of_Nobel_laureates_in_Literature",
+            "icon": "🏅"
         },
         "phys": {
             "title": "Физика (нобелевские лауреаты)",
-            "page": "List_of_Nobel_laureates_in_Physics"
+            "page": "List_of_Nobel_laureates_in_Physics",
+            "icon": "🏅"
         },
         "chem": {
             "title": "Химия (нобелевские лауреаты)",
-            "page": "List_of_Nobel_laureates_in_Chemistry"
+            "page": "List_of_Nobel_laureates_in_Chemistry",
+            "icon": "🏅"
         },
         "med": {
             "title": "Медицина или Психология (нобелевские лауреаты)",
-            "page": "List_of_Nobel_laureates_in_Physiology_or_Medicine"
+            "page": "List_of_Nobel_laureates_in_Physiology_or_Medicine",
+            "icon": "🏅"
         },
         "econ": {
             "title": "Экономика (нобелевские лауреаты)",
-            "page": "List_of_Nobel_Memorial_Prize_laureates_in_Economic_Sciences"
+            "page": "List_of_Nobel_Memorial_Prize_laureates_in_Economic_Sciences",
+            "icon": "🏅"
         },
         "comp": {
             "title": "Информатика (премия Тьюринга)",
-            "page": "Turing_Award"
+            "page": "Turing_Award",
+            "icon": "🏅"
         },
         "math_abel": {
             "title": "Математика (Абелевская премия)",
-            "page": "Abel_Prize"
+            "page": "Abel_Prize",
+            "icon": "🏅"
         },
         "math_field": {
             "title": "Математика (медаль Филдса)",
-            "page": "Fields_Medal"
+            "page": "Fields_Medal",
+            "icon": "🏅"
+        },
+        "us_presidents": {
+            "title": "Президенты США",
+            "page": "List_of_presidents_of_the_United_States",
+            "icon": "👤"
         }
     }
 }

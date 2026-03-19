@@ -239,26 +239,34 @@ window.WfWiki = {
             return link ? link.split('/wiki/').pop() : undefined
         }
 
+        let rowNum = 0
         tab.querySelectorAll('tr').forEach(tr => {
             const cells = Array.from(tr.querySelectorAll('td, th'))
 
             if (cells.length < 2)
                 return  // skip separators
 
+            rowNum++
+            // console.log('[dev] rowNum', rowNum, tr)
+
             const yearElem = tr.querySelector('td, th')
             if (yearElem) {
                 const yearStr = yearElem.innerText.trim()
                 if (utils.isNumeric(yearStr)) {
+                    const iYear = parseInt(yearStr)
+                    // console.log('[dev] year/number', iYear)
                     out.push({
-                        year: parseInt(yearStr),
+                        year: iYear,
                         person: []
                     })
                 }
             }
 
             const fileLink = tr.querySelector('a.mw-file-description')
-            if (!fileLink)
+            if (!fileLink) {
+                // console.log('[dev] skip no-photo')
                 return // skip rows without photo
+            }
 
             let nameElem = undefined
             const fileElem = fileLink.closest('td')
@@ -273,9 +281,9 @@ window.WfWiki = {
 
             if (fileElem.nextElementSibling) {
                 const pe = fileElem.nextElementSibling
-                if (!pe.hasAttribute('rowspan') && !pe.hasAttribute('cellspan')) {
+                // if (!pe.hasAttribute('rowspan') && !pe.hasAttribute('cellspan')) {
                     fileSibs.push(pe)
-                }
+                // }
             }
 
             if (fileSibs.length == 1) {
@@ -289,8 +297,10 @@ window.WfWiki = {
                 })
             }
 
-            if (!nameElem)
+            if (!nameElem) {
+                // console.log('[dev] skip no-name')
                 return // skip rows without name
+            }
 
             const flagElem = tr.querySelector('span.flagicon')
             if (flagElem) {
@@ -304,8 +314,10 @@ window.WfWiki = {
             const name = nameAnchor.innerText.trim()
             const personPage = receivePageTitle(nameAnchor.href)
 
-            if (photo.toLowerCase().indexOf('no_image') !== -1)
+            if (photo.toLowerCase().indexOf('no_image') !== -1) {
+                // console.log('[dev] skip <no_image>')
                 return // skip persons without photo
+            }
 
             last.person.push({
                 name: name,
@@ -314,6 +326,8 @@ window.WfWiki = {
                 country: lastCountry,
                 flag: lastFlag
             })
+
+            // console.log('[dev] accepted')
         })
 
         return {

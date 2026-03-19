@@ -114,7 +114,8 @@ window.WfApp = function(settings) {
             for (let code in collections) {
                 const item = collections[code]
                 const action = 'collection-explorer'
-                const title = `🏅&nbsp;${item.title}`
+                const icon = (item.icon || '') + (item.icon ? '&nbsp;' : '')
+                const title = `${icon}${item.title}`
                 html += '<li>' +
                     `<button data-action="${action}" data-pass="${code}">${title}</button>` +
                     '</li>'
@@ -318,7 +319,8 @@ class GameExplorer extends GameBase {
         const titleElem = this.rootElem.querySelector('.toolbar .title')
         const colMeta = this.app.getCollectionsInfo()[cid]
         const title = colMeta.title || 'Untitled'
-        titleElem.innerText = `🏅 ${title}`
+        const icon = (colMeta.icon || '') + (colMeta.icon ? ' ' : '')
+        titleElem.innerText = `${icon}${title}`
     }
     capLess() {
         if (this.capacityCur > 0) {
