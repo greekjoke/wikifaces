@@ -243,7 +243,7 @@ class GameExplorer extends GameBase {
         const part = ar.slice(skip, skip + this.pageSize)
 
         for (let i=0; i < part.length; i++) {
-            // await utils.sleep(250)
+            // TODO: why doubles at first loading?
             const p = part[i]
             await ui.addFaceSlot(p.page, {
                 container: that.listElem,

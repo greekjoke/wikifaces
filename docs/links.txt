@@ -4,16 +4,15 @@ Media Wiki / action=parse
 https://en.wikipedia.org/w/api.php?action=help&modules=parse
 Media Wiki / bad files
 https://en.wikipedia.org/wiki/MediaWiki:Bad_image_list
-
 Wikidata Properties
 https://www.wikidata.org/wiki/Special:ListProperties
 Wikidata api
 https://www.wikidata.org/w/api.php
-query
-https://query.wikidata.org/
-
+SPARQL / query
+https://query.wikidata.org/       
+SPARQL / docs
+https://www.w3.org/TR/sparql11-query/
 pupils (face) detection on js
 https://github.com/bronkula/picojs/tree/ham-module
-
 request to wiki api
 https://stackoverflow.com/questions/53127383/how-to-pull-data-from-wikipedia-page

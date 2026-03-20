@@ -73,6 +73,7 @@ window.WfDetector = function(image, options) {
 			}
 			const params = {
 				'shiftfactor': 0.1, // move the detection window by 10% of its size
+                // 'shiftfactor': 0.05,
 				'minsize': 20,      // minimum size of a face (not suitable for real-time detection, set it to 100 in that case)
 				'maxsize': 1000,    // maximum size of a face
 				'scalefactor': 1.1  // for multiscale processing: resize the detection window by 10% when moving to the higher scale
