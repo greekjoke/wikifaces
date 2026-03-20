@@ -1,49 +1,58 @@
 {
     "collections": {
         "lit": {
+            "icon": "🏅",
             "title": "Литература (нобелевские лауреаты)",
-            "page": "List_of_Nobel_laureates_in_Literature",
-            "icon": "🏅"
+            "link": "https://en.wikipedia.org/wiki/List_of_Nobel_laureates_in_Literature",
+            "query": "award|Q37922"
         },
         "phys": {
+            "icon": "🏅",
             "title": "Физика (нобелевские лауреаты)",
-            "page": "List_of_Nobel_laureates_in_Physics",
-            "icon": "🏅"
+            "link": "https://en.wikipedia.org/wiki/List_of_Nobel_laureates_in_Physics",
+            "query": "award|Q38104"
         },
         "chem": {
+            "icon": "🏅",
             "title": "Химия (нобелевские лауреаты)",
-            "page": "List_of_Nobel_laureates_in_Chemistry",
-            "icon": "🏅"
+            "link": "https://en.wikipedia.org/wiki/List_of_Nobel_laureates_in_Chemistry",
+            "query": "award|Q44585"
         },
         "med": {
+            "icon": "🏅",
             "title": "Медицина или Психология (нобелевские лауреаты)",
-            "page": "List_of_Nobel_laureates_in_Physiology_or_Medicine",
-            "icon": "🏅"
+            "link": "https://en.wikipedia.org/wiki/List_of_Nobel_laureates_in_Physiology_or_Medicine",
+            "query": "award|Q80061"
         },
         "econ": {
+            "icon": "🏅",
             "title": "Экономика (нобелевские лауреаты)",
-            "page": "List_of_Nobel_Memorial_Prize_laureates_in_Economic_Sciences",
-            "icon": "🏅"
+            "link": "https://en.wikipedia.org/wiki/List_of_Nobel_Memorial_Prize_laureates_in_Economic_Sciences",
+            "query": "award|Q47170"
         },
         "comp": {
+            "icon": "🏅",
             "title": "Информатика (премия Тьюринга)",
-            "page": "Turing_Award",
-            "icon": "🏅"
+            "link": "https://en.wikipedia.org/wiki/Turing_Award",
+            "query": "award|Q185667"
         },
         "math_abel": {
+            "icon": "🏅",
             "title": "Математика (Абелевская премия)",
-            "page": "Abel_Prize",
-            "icon": "🏅"
+            "link": "https://en.wikipedia.org/wiki/Abel_Prize",
+            "query": "award|Q188184"
         },
         "math_field": {
+            "icon": "🏅",
             "title": "Математика (медаль Филдса)",
-            "page": "Fields_Medal",
-            "icon": "🏅"
+            "link": "https://en.wikipedia.org/wiki/Fields_Medal",
+            "query": "award|Q28835"
         },
         "us_presidents": {
+            "icon": "👤",
             "title": "Президенты США",
-            "page": "List_of_presidents_of_the_United_States",
-            "icon": "👤"
+            "link": "https://en.wikipedia.org/wiki/List_of_presidents_of_the_United_States",
+            "query": "president|Q11696"
         }
     }
 }

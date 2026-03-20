@@ -5,6 +5,7 @@ window.WfApp = function(settings) {
 
     let app = undefined
     const ui = window.WfUI
+    const utils = window.WfUtils
     const wiki = window.WfWiki
     const collections = settings.collections || {}
     let game = undefined
@@ -18,7 +19,7 @@ window.WfApp = function(settings) {
         const con = layoutData.container
         let action = `initLayout_${name}`
         action = action.replaceAll('-', '_');
-        if (action in app && typeof app[action] === 'function') {
+        if (utils.hasMethod(app, action)) {
             app[action].call(app, con, pass)
         }
     }
@@ -49,14 +50,14 @@ window.WfApp = function(settings) {
             return
         if (action.startsWith(':')) { // global/app scape
             action = action.substring(1)
-            if (action in app && typeof app[action] === 'function') {
+            if (utils.hasMethod(app, action)) {
                 app[action].call(elem)
             } else {
                 throw new Error('invalid function name: app.' + action)
             }
         } else if (action.startsWith('.')) { // game method
             action = action.substring(1)
-            if (action in game && typeof game[action] === 'function') {
+            if (utils.hasMethod(game, action)) {
                 game[action].call(game, elem)
             }
         } else if (action.startsWith('*')) { // show modal layout
@@ -75,8 +76,20 @@ window.WfApp = function(settings) {
         loadCollection: async function(id) {
             if (!(id in collections))
                 throw new Error(`invalid collection ID: ${id}`)
+            let res = []
             const col = collections[id]
-            const res = await wiki.requestLaureates(col.page)
+            if (col.query) {
+                const queryParts = col.query.split('|')
+                const method = queryParts.shift()
+                const methodFull = `sparql_${method}`
+                if (utils.hasMethod(wiki, methodFull)) {
+                    res = await wiki[methodFull].apply(wiki, queryParts)
+                } else {
+                    console.error(`unknown wiki method: ${methodFull}`)
+                }
+            } else if (col.page) {
+                res = await wiki.requestLaureates(col.page)
+            }
             return res
         },
         selectLayout: function(name, modal, pass) {
@@ -200,7 +213,7 @@ class GameExplorer extends GameBase {
 
         app.showProgress()
         app.loadCollection(this.collectionId).then(result => {
-            const ar = result.items
+            const ar = result.items || result || []
             const cnt = ar.length
             const all = []
 
@@ -321,12 +334,13 @@ class GameExplorer extends GameBase {
     updateTitle() {
         const cid = this.collectionId
         const titleElem = this.rootElem.querySelector('.toolbar .title')
-        const colMeta = this.app.getCollectionsInfo()[cid]
-        const title = colMeta.title || 'Untitled'
-        const icon = (colMeta.icon || '') + (colMeta.icon ? '&nbsp;' : '')
+        const col = this.app.getCollectionsInfo()[cid]
+        const title = col.title || 'Untitled'
+        const icon = (col.icon || '') + (col.icon ? '&nbsp;' : '')
         const wikiHost = window.WfWiki.site
-        const link = colMeta.link || `${wikiHost}/wiki/${colMeta.page}`
-        titleElem.innerHTML = `${icon}${title} <a class="icon-link" target="_blank" href="${link}">🔗</a>`
+        const link = col.link || `${wikiHost}/wiki/${col.page}`
+        const linkHtml = link ? ` <a class="icon-link" target="_blank" href="${link}">🔗</a>` : ''
+        titleElem.innerHTML = `${icon}${title}${linkHtml}`
     }
     capLess() {
         if (this.capacityCur > 0) {

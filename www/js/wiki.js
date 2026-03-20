@@ -5,6 +5,7 @@ window.WfWiki = {
     site: 'https://en.wikipedia.org',
     siteWikiData: 'https://www.wikidata.org',
     requestCounter: 0,
+    thumbWidth: 500,
 
     request: async function(url) {
         const self = window.WfWiki
@@ -340,6 +341,219 @@ window.WfWiki = {
         }
     },
 
+    sparql: async function(query) {
+        const self = window.WfWiki
+        const utils = window.WfUtils
+        const cache = window.WfLocalCache
+
+        if (!query)
+            throw new Error('sparql query string is required')
+
+        const hashStr = utils.simpleHash(query)
+        const cacheKey = `sparql:${hashStr}`
+        const cachedValue = cache.get(cacheKey, false, cache.Period.Day * 20)
+
+        if (cachedValue) {
+            console.log('sparql: found cached value')
+            return cachedValue
+        }
+
+        query = encodeURIComponent(query);
+        const uri = `https://query.wikidata.org/sparql?format=json&query=${query}`
+        const res = await self.request(uri)
+
+        if (res)
+            cache.set(cacheKey, res)
+
+        return res
+    },
+
+    _sparql_query_wrapper: async function(cacheId, query, handler) {
+        if (typeof handler !== 'function')
+            throw new Error('parser_callback function required')
+
+        const cache = window.WfLocalCache
+        const cacheKey = `wiki.requestLaureates:${cacheId}`
+        const cachedValue = cache.get(cacheKey, false, cache.Period.Day*20)
+
+        if (cachedValue) {
+            console.log(`${cacheId}: found cached value`)
+            return cachedValue
+        }
+
+        const res = await this.sparql(query)
+
+        if (!res || !('head' in res) || !('results' in res))
+            return
+
+        const out = handler(res['results']['bindings'])
+        if (out)
+            cache.set(cacheKey, out)
+        return out
+    },
+
+    sparql_award: async function(prizeId) {
+        const self = window.WfWiki
+        const thumbWidth = self.thumbWidth || 500
+
+        if (!prizeId)
+            throw new Error('sparql_award: prizeId is required')
+
+        const q = `
+SELECT ?winner ?winnerLabel ?prizeLabel ?year
+       ?image ?fileTitle ?url ?thumburl ?size ?width ?height
+WHERE {
+
+  ?winner wdt:P166 ?prize ; # P166 is "award received"
+          wdt:P31 wd:Q5 ;  # EXCLUDE FICTION: Ensure winner is an instance of (P31) human (Q5)
+          wdt:P18 ?image . # has a photo
+
+  BIND(STRAFTER(wikibase:decodeUri(STR(?image)), "http://commons.wikimedia.org/wiki/Special:FilePath/") AS ?fileTitle)
+
+  # Filter to only Nobel Prizes and related awards
+  VALUES ?prize {
+    wd:${prizeId}   # Nobel Prize type
+  }
+
+  # Optional: get the year the award was received
+  # The "point in time" qualifier (P585) on the P166 statement
+  OPTIONAL {
+    ?winner p:P166 ?statement .
+    ?statement ps:P166 ?prize .
+    ?statement pq:P585 ?when .
+    BIND(YEAR(?when) AS ?year)
+  }
+
+  # Fetch human-readable labels
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "en" .
+  }
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint "commons.wikimedia.org";
+                    wikibase:api "Generator";
+                    wikibase:limit "once";
+                    mwapi:generator "allpages";
+                    mwapi:gapfrom ?fileTitle;
+                    mwapi:gapnamespace 6; # NS_FILE
+                    mwapi:gaplimit 1;
+                    mwapi:prop "imageinfo";
+                    mwapi:iiurlwidth ${thumbWidth};
+                    mwapi:iiprop "dimensions|url".
+    ?size wikibase:apiOutput "imageinfo/ii/@size".
+    ?width wikibase:apiOutput "imageinfo/ii/@width".
+    ?height wikibase:apiOutput "imageinfo/ii/@height".
+    ?url wikibase:apiOutput "imageinfo/ii/@url".
+    ?thumburl wikibase:apiOutput "imageinfo/ii/@thumburl"
+  }
+}
+ORDER BY ?year ?winnerLabel`
+
+        const cacheId = `sparql_award:${prizeId}`
+        const out = await this._sparql_query_wrapper(cacheId, q, function(bindings) {
+            const data = {items:[]}
+            const byYear = {}
+
+            for (const item of bindings) {
+                const iYear = parseInt(item.year.value)
+
+                if (!(iYear in byYear))
+                    byYear[iYear] = { year: iYear, person: []}
+
+                byYear[iYear].person.push({
+                    name: item.winnerLabel.value,
+                    page: item.fileTitle.value,
+                    photo: item.thumburl.value,
+                    awardLabel: item.prizeLabel.value,
+                    awardYear: iYear
+                })
+            }
+
+            data.items = Object.values(byYear)
+            return data
+        })
+
+        return out
+    },
+
+    sparql_president: async function(posId) {
+        const self = window.WfWiki
+        const thumbWidth = self.thumbWidth || 500
+
+        if (!posId)
+            throw new Error('sparql_president: posId is required')
+
+        const q = `
+SELECT ?name
+  (SAMPLE(?start) as ?start)
+  (SAMPLE(?order) as ?order)
+  (SAMPLE(?thumburl) as ?thumburl)
+WHERE {
+  # Instance of 'President of the United States'
+  ?president wdt:P39 wd:${posId} ;
+             wdt:P31 wd:Q5 ;  # EXCLUDE FICTION: Ensure person is an instance of (P31) human (Q5)
+             wdt:P1559 ?name ;
+             wdt:P18 ?image . # has a photo
+
+  # Get the term of office
+  ?president p:P39 ?statement .
+  ?statement ps:P39 wd:Q11696 ;
+             pq:P1545 ?order ;    # Order in office
+             pq:P580 ?start . # Start time
+
+  # Label the results in English
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+
+  BIND(STRAFTER(wikibase:decodeUri(STR(?image)), "http://commons.wikimedia.org/wiki/Special:FilePath/") AS ?fileTitle)
+
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint "commons.wikimedia.org";
+                    wikibase:api "Generator";
+                    wikibase:limit "once";
+                    mwapi:generator "allpages";
+                    mwapi:gapfrom ?fileTitle;
+                    mwapi:gapnamespace 6; # NS_FILE
+                    mwapi:gaplimit 1;
+                    mwapi:prop "imageinfo";
+                    mwapi:iiurlwidth ${thumbWidth};
+                    mwapi:iiprop "dimensions|url".
+    ?size wikibase:apiOutput "imageinfo/ii/@size".
+    ?width wikibase:apiOutput "imageinfo/ii/@width".
+    ?height wikibase:apiOutput "imageinfo/ii/@height".
+    ?url wikibase:apiOutput "imageinfo/ii/@url".
+    ?thumburl wikibase:apiOutput "imageinfo/ii/@thumburl"
+  }
+}
+GROUP BY ?name
+ORDER BY ASC(xsd:integer(?order))
+LIMIT 200
+`
+        const cacheId = `sparql_president:${posId}`
+        const out = await this._sparql_query_wrapper(cacheId, q, function(bindings) {
+            const data = {items:[]}
+            const byYear = {}
+
+            for (const item of bindings) {
+                const d = new Date(item.start.value)
+                const iYear = d.getFullYear()
+
+                if (!(iYear in byYear))
+                    byYear[iYear] = { year: iYear, person: []}
+
+                byYear[iYear].person.push({
+                    name: item.name.value,
+                    page: item.name.value,
+                    photo: item.thumburl.value,
+                    start: d
+                })
+            }
+
+            data.items = Object.values(byYear)
+            return data
+        })
+
+        return out
+    },
+
     getCachedCollections: function() {
         const out = {}
         const cache = window.WfLocalCache
@@ -379,16 +593,20 @@ window.WfWiki = {
             if (!needLoad)
                 return
 
-            const fileInfo = await wiki.requestFileInfo(colPerson.photo)
-            if (fileInfo) {
-                // TODO: check that photo jpg or png
-                colPerson['photo_orig'] = fileInfo
+            if (colPerson.photo.indexOf('/File:') !== -1) {
+                const fileInfo = await wiki.requestFileInfo(colPerson.photo)
+                if (fileInfo) {
+                    colPerson['photo_orig'] = fileInfo
+                }
+                // const ext = await wiki.requestClaims(colPerson.page)
+                // if (ext) {
+                //     colPerson['ext'] = ext
+                // }
+            } else {
+                colPerson['photo_orig'] = {
+                    url: colPerson.photo
+                }
             }
-
-            // const ext = await wiki.requestClaims(colPerson.page)
-            // if (ext) {
-            //     colPerson['ext'] = ext
-            // }
 
             cache.set(cacheKey, colPerson)
             needLoad = false

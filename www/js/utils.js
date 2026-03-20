@@ -163,6 +163,11 @@ window.WfUtils = {
         return hash;
     },
 
+    hasMethod: function(obj, method) {
+        if (!obj || !method) return false
+        return (method in obj && typeof obj[method] === 'function')
+    },
+
     sleep: function(ms) {
         return new Promise(resolve => setTimeout(resolve, ms))
     }
