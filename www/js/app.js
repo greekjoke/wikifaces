@@ -427,6 +427,10 @@ class CollectionExplorer extends AppletBase {
             this.pageFirst()
         } else if (keyCode == 'End') {
             this.pageLast()
+        } else if (keyCode == '+') {
+            this.capMore()
+        } else if (keyCode == '-') {
+            this.capLess()
         }
     }
 } // class CollectionExplorer

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta http-equiv="Cache-Control" content="max-age=3600, must-revalidate" />
+        <title>Test face detection</title>
+        <script src="js/picojs/pico.js"></script>
+        <script src="js/utils.js"></script>
+        <script src="js/cache.js"></script>
+        <script src="js/wiki.js"></script>
+        <script src="js/face.js"></script>
+        <script src="js/ui.js"></script>
+        <script src="js/app.js"></script>
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="icon" type="image/ico" href="media/favicon.ico" />
+    </head>
+
+    <script type="text/template" id="tpl-face-slot">
+        <div class="face-slot">
+            <img src="" loading="lazy" />
+        </div>
+    </script>
+
+    <body>
+        <div id="content" style="width: 300px;"></div>
+        <canvas id="canvas" style="display: none;" width=320 height=240></canvas>
+    </body>
+
+    <script>
+
+        // remove old detection data
+        Object.keys(localStorage)
+            .filter(x => x.startsWith('face-det'))
+            .forEach(x => localStorage.removeItem(x))
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const ui = window.WfUI
+            // const link = 'https://upload.wikimedia.org/wikipedia/commons/9/9b/Jos%C3%A9_Echegaray_y_Eizaguirre.jpg'
+            const link = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Peternaur.JPG/500px-Peternaur.JPG'
+            // const link = 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Bob_Tarjan.jpg/500px-Bob_Tarjan.jpg'
+            // const link = 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Gide_1920_cropped.jpg/500px-Gide_1920_cropped.jpg'
+            // const link = 'https://upload.wikimedia.org/wikipedia/commons/1/1a/Judea_Pearl_at_NIPS_2013_%2811781981594%29_%28cropped%29.jpg'
+            // const link = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Dennis_Sullivan_at_MSRI_%28cropped%29.jpg/500px-Dennis_Sullivan_at_MSRI_%28cropped%29.jpg'
+            // const link = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Pat_Hanrahan_Tableau_Customer_Conference_2009.jpg/500px-Pat_Hanrahan_Tableau_Customer_Conference_2009.jpg'
+            // const link = 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Manuel_Blum_1973_%28re-scanned%2C_portioned%29.jpg/500px-Manuel_Blum_1973_%28re-scanned%2C_portioned%29.jpg'
+            // const link = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Paris_-_Salon_du_livre_2012_-_Kenzabur%C5%8D_%C5%8Ce_-_003.jpg/500px-Paris_-_Salon_du_livre_2012_-_Kenzabur%C5%8D_%C5%8Ce_-_003.jpg'
+            // const link = 'https://upload.wikimedia.org/wikipedia/commons/6/66/Nagib_Mahfouz.jpg'
+            const pers = {
+                photo: { url: link },
+                load: async function() {}
+            }
+            ui.addFaceSlot(pers, {
+                container: document.querySelector('#content'),
+                detCustomize: {
+                    dpCustom: {
+                        title: 'custom',
+                        qthresh: 5.0,
+                        iou: 0.2,
+                        params: {
+                            'shiftfactor': 0.02,
+                            'minsize': 10,
+                            'maxsize': 1000,
+                            'scalefactor': 1.1
+                        }
+                    }
+                }
+            })
+        });
+    </script>
+</html>

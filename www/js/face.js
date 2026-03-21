@@ -81,6 +81,15 @@ window.WfDetector = function(image, options) {
         }
     }
 
+    function ffrParamsSmallFace() {
+        return {
+            'shiftfactor': 0.05,
+            'minsize': 10,
+            'maxsize': 1200,
+            'scalefactor': 1.1
+        }
+    }
+
     return {
         detect: async function(allowMultiple) {
             allowMultiple = allowMultiple || false
@@ -91,7 +100,7 @@ window.WfDetector = function(image, options) {
             const h = image.naturalHeight
             const aspect = w / h
             const isPortrait = aspect < 1.0
-            const isSqure = Math.abs(aspect - 1.0) < 0.1
+            const isSquare = Math.abs(aspect - 1.0) < 0.1
             const maxWidth = 500
             const targetWidth = Math.min(w, maxWidth)
             const targetHeight = parseInt(h * (targetWidth / w))
@@ -135,16 +144,25 @@ window.WfDetector = function(image, options) {
                 iou: iouDefault
             }
 
+            const dpSmall = {
+                title: 'small',
+                params: ffrParamsSmallFace(),
+                qthresh: qthresh,
+                iou: iouDefault
+            }
+
             let params, dets
             let best= undefined
             let bestScore = -1
 
-            if (isPortrait) {
-                params = [dpPort, dpLand, dpBig]
-            } else if (isSqure) {
-                params = [dpBig, dpPort, dpLand]
+            if (options.dpCustom) {
+                params = [options.dpCustom]
+            } else if (isPortrait) {
+                params = [dpPort, dpSmall, dpLand, dpBig]
+            } else if (isSquare) {
+                params = [dpBig, dpSmall, dpPort, dpLand]
             } else {
-                params = [dpLand, dpPort, dpBig]
+                params = [dpLand, dpSmall, dpPort, dpBig]
             }
 
             for (let curParamItem of params) {
@@ -170,7 +188,8 @@ window.WfDetector = function(image, options) {
                             score: item[3]
                         }
                         if (item[3] > bestScore) {
-                            image.setAttribute('data-det-set', curParamItem.title)
+                            if (curParamItem.title)
+                                image.setAttribute('data-det-set', curParamItem.title)
                             bestScore = item[3]
                             best = pos
                         }

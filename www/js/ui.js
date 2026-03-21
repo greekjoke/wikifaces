@@ -39,7 +39,7 @@ window.WfUI = {
                     clearTimeout(resizeTimer)
                     resizeTimer = setTimeout(function() {
                         const img = entry.target.querySelector('img')
-                        self.updateImageScale(img, options.pad)
+                        self.updateImageScale(img, options.pad, options)
                     }, 800)
                 }
             })
@@ -58,20 +58,22 @@ window.WfUI = {
         if (!personId)
             return
 
-        const pers = window.WfWiki.Person(personId)
+        let pers
+
+        if (typeof personId === 'object') {
+            pers = personId
+        } else {
+            pers = window.WfWiki.Person(personId)
+        }
 
         if (!pers)
             return
 
         await pers.load()
+
         const photo = pers.photo
         if (photo) {
             let url = photo.thumburl || photo.url
-
-            // const fileExt = url.split('.').pop().toLowerCase()
-            // if (['jpeg', 'jpg', 'png', 'gif'].indexOf(fileExt) === -1) {
-            //     url = photo.thumburl || url
-            // }
 
             if (details) {
                 const persName = pers.name
@@ -91,9 +93,10 @@ window.WfUI = {
         }
     },
 
-    updateImageScale: async function(img, pad) {
+    updateImageScale: async function(img, pad, options) {
         const utils = window.WfUtils
 
+        options = options || {}
         pad = pad || 1.3
 
         if (!img || !img.src || img.naturalWidth < 1)
@@ -110,7 +113,7 @@ window.WfUI = {
             faceInfo = utils.storageRead(cacheKey)
 
             if (!faceInfo) {
-                const det = window.WfDetector(img)
+                const det = window.WfDetector(img, options.detCustomize)
                 faceInfo = await det.detect()
                 if (!faceInfo) {
                     faceInfo = {x:0.5, y:0.5, diam:(1.0 / pad)}
