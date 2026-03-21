@@ -400,8 +400,10 @@ window.WfWiki = {
             throw new Error('sparql_award: prizeId is required')
 
         const q = `
-SELECT ?winner ?winnerLabel ?prizeLabel ?year
-       ?image ?fileTitle ?url ?thumburl ?size ?width ?height
+SELECT ?winnerLabel ?year
+    (SAMPLE(?image) AS ?image)
+    (SAMPLE(?thumburl) AS ?thumburl)
+    (SAMPLE(?fileTitle) AS ?fileTitle)
 WHERE {
 
   ?winner wdt:P166 ?prize ; # P166 is "award received"
@@ -439,13 +441,14 @@ WHERE {
                     mwapi:prop "imageinfo";
                     mwapi:iiurlwidth ${thumbWidth};
                     mwapi:iiprop "dimensions|url".
-    ?size wikibase:apiOutput "imageinfo/ii/@size".
-    ?width wikibase:apiOutput "imageinfo/ii/@width".
-    ?height wikibase:apiOutput "imageinfo/ii/@height".
-    ?url wikibase:apiOutput "imageinfo/ii/@url".
+    # ?size wikibase:apiOutput "imageinfo/ii/@size".
+    # ?width wikibase:apiOutput "imageinfo/ii/@width".
+    # ?height wikibase:apiOutput "imageinfo/ii/@height".
+    # ?url wikibase:apiOutput "imageinfo/ii/@url".
     ?thumburl wikibase:apiOutput "imageinfo/ii/@thumburl"
   }
 }
+GROUP BY ?winnerLabel ?year
 ORDER BY ?year ?winnerLabel`
 
         const cacheId = `sparql_award:${prizeId}`
@@ -462,9 +465,7 @@ ORDER BY ?year ?winnerLabel`
                 byYear[iYear].person.push({
                     name: item.winnerLabel.value,
                     page: item.fileTitle.value,
-                    photo: item.thumburl.value,
-                    awardLabel: item.prizeLabel.value,
-                    awardYear: iYear
+                    photo: item.thumburl.value
                 })
             }
 
@@ -582,7 +583,10 @@ LIMIT 200
                     const item = col.items[i]
                     for (let j in item.person) {
                         if (item.person[j].page === pageTitle) {
-                            return item.person[j]
+                            return {
+                                person: item.person[j],
+                                year: item.year
+                            }
                         }
                     }
                 }
@@ -618,7 +622,13 @@ LIMIT 200
             colPerson = cachedValue
             needLoad = false
         } else {
-            colPerson = findInCollections(pageTitle)
+            const foundPers = findInCollections(pageTitle)
+            if (foundPers) {
+                colPerson = foundPers.person
+                colPerson['year'] = foundPers.year
+            } else {
+                colPerson = undefined
+            }
         }
 
         if (!colPerson) {
@@ -632,8 +642,17 @@ LIMIT 200
             },
             get photo() {
                 return colPerson['photo_orig']
+            },
+            get name() {
+                return colPerson.name
+            },
+            get year() {
+                return colPerson.year
+            },
+            get link() {
+                return wiki.site + '/wiki/' + colPerson.name.replaceAll(' ', '_')
             }
         }
-    }
+    } // Person
 
 }

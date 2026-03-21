@@ -27,6 +27,7 @@ window.WfUI = {
         con.appendChild(div)
 
         const view = div.querySelector('.face-slot')
+        const details = view.querySelector('.details')
         const img = view.querySelector('img')
 
         img.onload = async function() {
@@ -71,6 +72,18 @@ window.WfUI = {
             // if (['jpeg', 'jpg', 'png', 'gif'].indexOf(fileExt) === -1) {
             //     url = photo.thumburl || url
             // }
+
+            if (details) {
+                const persName = pers.name
+                const persLink = pers.link
+                const eventYear = pers.year
+                let s = `<span class="pers-name">${persName}</span>`
+                if (eventYear)
+                    s += `<span class="event-year">${eventYear}</span>`
+                if (persLink)
+                    s = `<a class="pers-link" target="_blank" href="${persLink}">${s}</a>`
+                details.innerHTML = s
+            }
 
             img.classList.add('loading')
             img.crossOrigin = 'Anonymous'

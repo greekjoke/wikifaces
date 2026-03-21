@@ -16,6 +16,15 @@ a.icon-link {
     filter: hue-rotate(260deg) brightness(1.2);
 }
 
+label > input[type="checkbox"] {
+    vertical-align: baseline;
+    margin-right: 0.1em;
+}
+label.user-option {
+    display: inline-block;
+    margin-bottom: 0.5em;
+}
+
 #disclaimer {
     border-top: 1px solid gray;
     text-align: center;
@@ -126,6 +135,28 @@ button.disabled, .button.disabled {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+.face-slot .details {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #eee;
+    padding: 2px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+.face-slot .details .event-year {
+    display: inline-block;
+    margin-left: 0.25em;
+    padding-left: 0.25em;
+    border-left: 1px solid #888;
+}
+.face-slot .details .pers-link {
+    color: #eee;
+    text-decoration: none;
+}
+body:not([data-option-face-details="true"]) .face-slot .details {
+    display: none;
+}
 
 img.error {
     width: 100%;
@@ -223,9 +254,13 @@ body[data-layout="main"] #back {
 }
 
 .toolbar {
-    /* background-color: #dda; */
     background: radial-gradient(circle at center, #dda, #553);
     border-bottom: 1px solid #555;
+    font-size: 1.4em;
+    padding: 0.2em
+}
+.toolbar .button {
+    letter-spacing: -0.25em;
 }
 
 .layout-wrapper {
@@ -239,14 +274,21 @@ body[data-layout="main"] #back {
     padding: 0.25em 3em;
 }
 
-/* game "collection explorer" */
+/* collection explorer */
+.layout-wrapper .bn-order-asc,
+.layout-wrapper .bn-order-desc,
+.layout-wrapper .bn-order-shuffle
+{
+    opacity: 0.5;
+}
 .layout-wrapper[data-order="asc"] .bn-order-asc,
 .layout-wrapper[data-order="desc"] .bn-order-desc,
 .layout-wrapper[data-order="shuffle"] .bn-order-shuffle
 {
-    border: 2px solid red;
+    /* border: 2px solid red;
     border-radius: 3px;
-    padding: 1px 0;
+    padding: 1px 0; */
+    opacity: 1;
 }
 .bn-page-prev, .bn-page-next, .bn-page-first, .bn-page-last {
     filter: hue-rotate(260deg) brightness(1.2);
@@ -275,3 +317,22 @@ body[data-layout="main"] #back {
 .layout-wrapper[data-capv="24"] .face-slot-wrapper { flex-basis: 9vw; }
 .layout-wrapper[data-capv="32"] .face-slot-wrapper { flex-basis: 8vw; }
 
+.progress-container {
+    width: 50%;
+    background-color: #e0e0e0;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 4px;
+    margin-bottom: 1em;
+}
+.progress-bar {
+    height: 100%;
+    width: 30%;
+    background-color: #4caf50;
+    position: relative;
+    animation: indeterminate-progress 1.5s infinite linear;
+}
+@keyframes indeterminate-progress {
+  0% { left: -30%; }
+  100% { left: 100%; }
+}

@@ -8,14 +8,11 @@ window.WfApp = function(settings) {
     const utils = window.WfUtils
     const wiki = window.WfWiki
     const collections = settings.collections || {}
-    let game = undefined
+    let applet = undefined
 
-    function showLayout(name, pass) {
-        const opt = { pass: pass }
-        const layoutData = ui.selectLayout(name, opt)
+    function initLayout(name, pass, layoutData) {
         if (!layoutData)
             return
-        game = undefined // reset
         const con = layoutData.container
         let action = `initLayout_${name}`
         action = action.replaceAll('-', '_');
@@ -24,17 +21,34 @@ window.WfApp = function(settings) {
         }
     }
 
+    function showLayout(name, pass) {
+        const opt = { pass: pass }
+        const layoutData = ui.selectLayout(name, opt)
+        applet = undefined // reset
+        initLayout(name, pass, layoutData)
+    }
+
     function showModal(name, pass) {
-        ui.selectLayout(name, {
+        const layoutData = ui.selectLayout(name, {
             modal: true,
             pass: pass
         })
+        initLayout(name, pass, layoutData)
     }
 
     function setProgressText(text) {
         const elem = document.querySelector('.layout-wrapper[data-layout="progress"] .progress-text')
         if (elem) {
             elem.innerText = text || 'Загрузка...'
+        }
+    }
+
+    function updateUserOptions() {
+        const globalApplet = new AppletBase(app)
+        const all = globalApplet.readOption('user-options') || {}
+        for (let key in all) {
+            const value = all[key]
+            document.body.setAttribute(`data-option-${key}`, value)
         }
     }
 
@@ -55,10 +69,10 @@ window.WfApp = function(settings) {
             } else {
                 throw new Error('invalid function name: app.' + action)
             }
-        } else if (action.startsWith('.')) { // game method
+        } else if (action.startsWith('.')) { // applet method
             action = action.substring(1)
-            if (utils.hasMethod(game, action)) {
-                game[action].call(game, elem)
+            if (utils.hasMethod(applet, action)) {
+                applet[action].call(applet, elem)
             }
         } else if (action.startsWith('*')) { // show modal layout
             action = action.substring(1)
@@ -68,8 +82,16 @@ window.WfApp = function(settings) {
         }
     })
 
+    document.body.addEventListener('keyup', function(event) {
+        // console.log('keyup', event.key)
+        const action = 'onKeyup'
+        if (utils.hasMethod(applet, action)) {
+            applet[action].call(applet, event.key, event)
+        }
+    })
+
     app = {
-        GameBase: GameBase,
+        AppletBase: AppletBase,
         getCollectionsInfo: function() {
             return collections
         },
@@ -119,6 +141,26 @@ window.WfApp = function(settings) {
             localStorage.clear()
             document.location.href = ''
         },
+        changeUserOption: function() {
+            const optName = this.getAttribute('data-name')
+            if (!optName) return
+            const globalApplet = new AppletBase(app)
+            const all = globalApplet.readOption('user-options') || {}
+            all[optName] = !!this.checked
+            globalApplet.saveOption('user-options', all)
+            updateUserOptions()
+        },
+        initLayout_settings: function(con) {
+            con.querySelectorAll('[data-name]').forEach(elem => {
+                const name = elem.getAttribute('data-name')
+                let value = document.body.getAttribute(`data-option-${name}`) || undefined
+                if (value === 'true') value = true
+                if (value === 'false') value = false
+                if (elem.tagName == 'INPUT') {
+                    elem.checked = !!value
+                }
+            });
+        },
         initLayout_collections: function(con) {
             const list = con.querySelector('.collections-list')
             if (!list)
@@ -136,20 +178,21 @@ window.WfApp = function(settings) {
             list.innerHTML = html
         },
         initLayout_collection_explorer: function(con, cid) {
-            game = new GameExplorer(app, cid)
-            game.load()
+            applet = new CollectionExplorer(app, cid)
+            applet.load()
         },
     }
 
+    updateUserOptions()
     return app
 }
 
-class GameBase {
-    constructor(app, gameId) {
-        this.gameId = gameId
+class AppletBase {
+    constructor(app, appletId) {
+        this.appletId = appletId || 'default'
         this.app = app
         this.rootElem = document.querySelector('#content .layout-wrapper')
-        if (!this.rootElem)
+        if (!this.rootElem && this.appletId !== 'default')
             throw new Error('content container not found')
     }
     load() {
@@ -159,7 +202,7 @@ class GameBase {
         // NOTE: visualize data
     }
     _getOptionKey(name) {
-        return `game:${this.gameId}:${name}`
+        return `applet:${this.appletId}:${name}`
     }
     saveOption(name, value) {
         const utils = window.WfUtils
@@ -172,11 +215,13 @@ class GameBase {
         const value = utils.storageRead(key)
         return value === undefined ? defValue : value
     }
+    // onKeyup(keyCode) {
+    // }
 }
 
-class GameExplorer extends GameBase {
+class CollectionExplorer extends AppletBase {
     constructor(app, collectionId) {
-        super(app,  'GameExplorer')
+        super(app,  'CollectionExplorer')
         if (!collectionId)
             throw new Error('collection id required')
         const listElem = this.rootElem.querySelector('.faces-list')
@@ -191,7 +236,7 @@ class GameExplorer extends GameBase {
         this.data = []
         this.dataMixed = undefined
         this.clear()
-        this.setOrder(this.readOption('order', 'asc'))
+        this.setOrder(this.readOption('order', 'desc'))
         this.updatePaginator()
         this.updateCapacity()
         this.updateTitle()
@@ -373,4 +418,15 @@ class GameExplorer extends GameBase {
             this.rootElem.setAttribute('data-cap', '')
         this.rootElem.setAttribute('data-capv', this.pageSize)
     }
-} // class GameExplorer
+    onKeyup(keyCode) {
+        if (keyCode == 'ArrowLeft') {
+            this.pagePrev()
+        } else if (keyCode == 'ArrowRight') {
+            this.pageNext()
+        } else if (keyCode == 'Home') {
+            this.pageFirst()
+        } else if (keyCode == 'End') {
+            this.pageLast()
+        }
+    }
+} // class CollectionExplorer

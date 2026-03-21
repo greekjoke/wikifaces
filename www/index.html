@@ -21,6 +21,7 @@
     <script type="text/template" id="tpl-face-slot">
         <div class="face-slot">
             <img src="" loading="lazy" />
+            <div class="details">some info about photo</div>
         </div>
     </script>
 
@@ -41,13 +42,22 @@
     <!-- settings menu -->
     <script type="text/template" id="tpl-layout-settings" data-title="Настройки">
         <div class="pa1">
-            <button data-action=":resetCache">⚠️&nbsp;Сбор настроек</button>
+            <label class="user-option">
+                <input type="checkbox" class="button" data-action=":changeUserOption" data-name="face-details" />
+                <span>Показывать подписи к фото</span>
+            </label>
+            <div style="margin-top: 1em;">
+                <button data-action=":resetCache">⚠️&nbsp;Сбор настроек</button>
+            </div>
         </div>
     </script>
 
     <!-- progress info -->
     <script type="text/template" id="tpl-layout-progress">
         <div class="pa1 progress-text">Загрузка...</div>
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
     </script>
 
     <!-- collections menu -->

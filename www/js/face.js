@@ -45,6 +45,42 @@ window.WfDetector = function(image, options) {
         return gray
     }
 
+    function ffrParamsDefault() {
+        return {
+            'shiftfactor': 0.1, // move the detection window by 10% of its size
+            'minsize': 20,      // minimum size of a face (not suitable for real-time detection, set it to 100 in that case)
+            'maxsize': 1000,    // maximum size of a face
+            'scalefactor': 1.1  // for multiscale processing: resize the detection window by 10% when moving to the higher scale
+        }
+    }
+
+    function ffrParamsPortrait() {
+        return {
+            'shiftfactor': 0.05,
+            'minsize': 80,
+            'maxsize': 1200,
+            'scalefactor': 1.1
+        }
+    }
+
+    function ffrParamsLandscape() {
+        return {
+            'shiftfactor': 0.02,
+            'minsize': 10,
+            'maxsize': 800,
+            'scalefactor': 1.1
+        }
+    }
+
+    function ffrParamsBigFace() {
+        return {
+            'shiftfactor': 0.2,
+            'minsize': 120,
+            'maxsize': 1500,
+            'scalefactor': 1.1
+        }
+    }
+
     return {
         detect: async function(allowMultiple) {
             allowMultiple = allowMultiple || false
@@ -53,6 +89,9 @@ window.WfDetector = function(image, options) {
             const clsReg = await touchClsRegion()
             const w = image.naturalWidth
             const h = image.naturalHeight
+            const aspect = w / h
+            const isPortrait = aspect < 1.0
+            const isSqure = Math.abs(aspect - 1.0) < 0.1
             const maxWidth = 500
             const targetWidth = Math.min(w, maxWidth)
             const targetHeight = parseInt(h * (targetWidth / w))
@@ -71,44 +110,77 @@ window.WfDetector = function(image, options) {
 				'ncols': canvas.width,
 				'ldim': canvas.width
 			}
-			const params = {
-				'shiftfactor': 0.1, // move the detection window by 10% of its size
-                // 'shiftfactor': 0.05,
-				'minsize': 20,      // minimum size of a face (not suitable for real-time detection, set it to 100 in that case)
-				'maxsize': 1000,    // maximum size of a face
-				'scalefactor': 1.1  // for multiscale processing: resize the detection window by 10% when moving to the higher scale
-			}
 
-            // run the cascade over the image
-			// dets is an array that contains (r, c, s, q) quadruplets
-			// (representing row, column, scale and detection score)
-			let dets = pico.run_cascade(desc, clsReg, params)
-            // cluster the obtained detections
-			dets = pico.cluster_detections(dets, 0.2) // set IoU threshold to 0.2
-            // draw results
-			const qthresh = 5.0 // this constant is empirical: other cascades might require a different one
+            const qthresh = 5.0 // this constant is empirical: other cascades might require a different one
+            const iouDefault = 0.2
 
+            const dpPort = {
+                title: 'portrait',
+                params: ffrParamsPortrait(),
+                qthresh: qthresh,
+                iou: iouDefault
+            }
+
+            const dpLand = {
+                title: 'landscape',
+                params: ffrParamsLandscape(),
+                qthresh: qthresh,
+                iou: iouDefault
+            }
+
+            const dpBig = {
+                title: 'big',
+                params: ffrParamsBigFace(),
+                qthresh: qthresh,
+                iou: iouDefault
+            }
+
+            let params, dets
             let best= undefined
             let bestScore = -1
 
-            for (let i=0; i < dets.length; ++i) {
-                const item = dets[i]
-				// check the detection score
-				// if it's above the threshold, take it
-				if (item[3] > qthresh) {
-                    const pos = {
-                        x: item[1] / canvas.width,
-                        y: item[0] / canvas.height,
-                        diam: item[2] / canvas.width,
-                        score: item[3]
+            if (isPortrait) {
+                params = [dpPort, dpLand, dpBig]
+            } else if (isSqure) {
+                params = [dpBig, dpPort, dpLand]
+            } else {
+                params = [dpLand, dpPort, dpBig]
+            }
+
+            for (let curParamItem of params) {
+                const thr = curParamItem.qthresh || qthresh
+                const iou = curParamItem.iou || 0.2
+
+                // run the cascade over the image
+                // dets is an array that contains (r, c, s, q) quadruplets
+                // (representing row, column, scale and detection score)
+                dets = pico.run_cascade(desc, clsReg, curParamItem.params)
+                // cluster the obtained detections
+                dets = pico.cluster_detections(dets, iou) // set IoU threshold to 0.2
+
+                for (let i=0; i < dets.length; ++i) {
+                    const item = dets[i]
+                    // check the detection score
+                    // if it's above the threshold, take it
+                    if (item[3] > thr) {
+                        const pos = {
+                            x: item[1] / canvas.width,
+                            y: item[0] / canvas.height,
+                            diam: item[2] / canvas.width,
+                            score: item[3]
+                        }
+                        if (item[3] > bestScore) {
+                            image.setAttribute('data-det-set', curParamItem.title)
+                            bestScore = item[3]
+                            best = pos
+                        }
+                        out.push(pos)
                     }
-                    if (item[3] > bestScore) {
-                        bestScore = item[3]
-                        best = pos
-                    }
-                    out.push(pos)
-				}
-		    }
+                }
+
+                if (best)
+                    break
+            }
 
             return allowMultiple ? out : best
         }
