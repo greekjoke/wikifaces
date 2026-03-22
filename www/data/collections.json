@@ -36,17 +36,22 @@
             "link": "https://en.wikipedia.org/wiki/Turing_Award",
             "query": "award|Q185667"
         },
-        "math_abel": {
+        "math_all": {
             "icon": "🏅",
-            "title": "Математика (Абелевская премия)",
-            "link": "https://en.wikipedia.org/wiki/Abel_Prize",
-            "query": "award|Q188184"
+            "title": "Математика (медаль Филдса + Абелевская премия)",
+            "query": "award|Q28835|Q188184"
         },
-        "math_field": {
-            "icon": "🏅",
-            "title": "Математика (медаль Филдса)",
-            "link": "https://en.wikipedia.org/wiki/Fields_Medal",
-            "query": "award|Q28835"
+        "oscar": {
+            "icon": "👤",
+            "title": "Премия Oscar за лучшую роль",
+            "link": "https://en.wikipedia.org/wiki/Academy_Award_for_Best_Actor",
+            "query": "award|Q103916|Q103618"
+        },
+        "grammy": {
+            "icon": "🎵",
+            "title": "Премия Грэмми",
+            "link": "https://en.wikipedia.org/wiki/Big_Four_(Grammy_Awards)",
+            "query": "award|Q41254"
         },
         "usa_presidents": {
             "icon": "media/flags/us.svg",
@@ -56,9 +61,15 @@
         },
         "richest": {
             "icon": "💰",
-            "title": "Богатейшие",
+            "title": "Богатейшие (top 100)",
             "link": "https://en.wikipedia.org/wiki/The_World%27s_Billionaires",
             "query": "richest"
+        },
+        "serial_killer": {
+            "icon": "💀",
+            "title": "Серийные убийцы",
+            "link": "https://en.wikipedia.org/wiki/List_of_serial_killers_by_number_of_victims",
+            "query": "serial_killer"
         }
     }
 }

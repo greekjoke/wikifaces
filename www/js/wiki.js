@@ -368,8 +368,9 @@ window.WfWiki = {
         return res
     },
 
-    _sparql_query_wrapper: async function(cacheId, query, handler) {
+    _sparql_query_wrapper: async function(cacheId, query, handler, options) {
         handler = handler || {}
+        options = options || {}
 
         const cache = window.WfLocalCache
         const cacheKey = `wiki.requestLaureates:${cacheId}`
@@ -424,13 +425,18 @@ window.WfWiki = {
             out = handler(res['results']['bindings'])
         }
 
+        if (options.reversePerson && out && out.items) {
+            out.items.forEach(x => { x.person.reverse() })
+        }
+
         if (out)
             cache.set(cacheKey, out)
+
         return out
     },
 
     _sparql_label_code: function(lang) {
-        lang = lang || 'en'
+        lang = lang || '[AUTO_LANGUAGE],en'
         return `SERVICE wikibase:label { bd:serviceParam wikibase:language "${lang}" . }`
     },
 
@@ -460,11 +466,13 @@ SERVICE wikibase:mwapi {
     sparql_award: async function(prizeId) {
         if (!prizeId)
             throw new Error('sparql_award: prizeId is required')
-
+        const args = [...arguments]
+        prizeId = args.map(x => `wd:${x}`).join(' ')
         const codeLang = this._sparql_label_code()
         const codeThumb = this._sparql_thumb_code()
         const q = `
-SELECT ?winnerLabel ?year
+SELECT ?winnerLabel
+    (SAMPLE(?year) AS ?year)
     (SAMPLE(?thumburl) AS ?thumburl)
     (SAMPLE(?fileTitle) AS ?fileTitle)
 WHERE {
@@ -472,7 +480,7 @@ WHERE {
           wdt:P31 wd:Q5 ;  # EXCLUDE FICTION: Ensure winner is an instance of (P31) human (Q5)
           wdt:P18 ?image . # has a photo
   # Filter to prize type and related awards
-  VALUES ?prize { wd:${prizeId} }  # prize type
+  VALUES ?prize { ${prizeId} }  # prize type
   # Optional: get the year the award was received
   # The "point in time" qualifier (P585) on the P166 statement
   OPTIONAL {
@@ -484,7 +492,7 @@ WHERE {
   ${codeLang}
   ${codeThumb}
 }
-GROUP BY ?winnerLabel ?year
+GROUP BY ?winnerLabel
 ORDER BY ?year ?winnerLabel
 LIMIT 500
 `
@@ -495,8 +503,6 @@ LIMIT 500
     sparql_president: async function(posId) {
         if (!posId)
             throw new Error('sparql_president: posId is required')
-
-        const codeLang = this._sparql_label_code()
         const codeThumb = this._sparql_thumb_code()
         const q = `
 SELECT ?name
@@ -514,8 +520,7 @@ WHERE {
   ?statement ps:P39 wd:${posId} ;
              pq:P1545 ?order ;    # Order in office
              pq:P580 ?start . # Start time
-  ${codeLang}
-  ${codeThumb}
+    ${codeThumb}
 }
 GROUP BY ?name
 ORDER BY ASC(xsd:integer(?order))
@@ -530,32 +535,60 @@ LIMIT 500
 
     sparql_richest: async function() {
         const codeThumb = this._sparql_thumb_code()
+        const codeLang = this._sparql_label_code()
         const q = `
-SELECT ?name
+SELECT ?personLabel
   (SAMPLE(?netWorth) as ?netWorth)
   (SAMPLE(?thumburl) as ?thumburl)
 WHERE {
-  ?person wdt:P31 wd:Q5 ;  # Instance of human
-          wdt:P1559 ?name ;
+  ?person wdt:P31 wd:Q5 ;  # instance of human
+          wdt:P1559 ?name ;  # has name
           wdt:P18 ?image ; # has a photo
-          wdt:P2218 ?netWorth. # Has net worth property
+          wdt:P2218 ?netWorth. # has net worth property
+  ${codeLang}
   ${codeThumb}
 }
-GROUP BY ?name
+GROUP BY ?personLabel
 ORDER BY DESC(?netWorth)
 LIMIT 100
 `
         const cacheId = `sparql_richest:0`
-        const out = await this._sparql_query_wrapper(cacheId, q, {
-            page: 'name'
-        })
-        if (out && out.items) {
-            const ar = out.items[0].person
-            if (ar) {
-                ar.reverse()
-            }
-        }
-        return out
+        return await this._sparql_query_wrapper(cacheId, q, {
+            name: 'personLabel',
+            page: 'personLabel'
+        }, { reversePerson: true })
+    },
+
+    sparql_serial_killer: async function() {
+        const codeLang = this._sparql_label_code()
+        const codeThumb = this._sparql_thumb_code()
+        q = `
+SELECT ?personLabel
+    (SAMPLE(?victimCount) as ?victimCount)
+    (SAMPLE(?thumburl) as ?thumburl)
+    (SAMPLE(?year) as ?year)
+WHERE {
+  ?person wdt:P31 wd:Q5; # is human
+          wdt:P18 ?image; # has a photo
+          wdt:P569 ?birthDate;
+          wdt:P106 ?occupation; # has occupation info
+          wdt:P1345 ?victimCount. # number of victims
+  BIND(YEAR(?birthDate) AS ?year)
+  FILTER(?year > 1870)
+  VALUES ?occupation { wd:Q484188 }  # occupation is "serial killer"
+  FILTER(?victimCount > 1)
+  ${codeLang}
+  ${codeThumb}
+}
+GROUP BY ?personLabel
+ORDER BY DESC(?victimCount) ?personLabel
+LIMIT 100
+`
+        const cacheId = `sparql_serial_killer:0`
+        return await this._sparql_query_wrapper(cacheId, q, {
+            name: 'personLabel',
+            page: 'personLabel'
+        }, { reversePerson: true })
     },
 
     getCachedCollections: function() {

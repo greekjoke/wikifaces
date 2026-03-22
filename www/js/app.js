@@ -39,7 +39,7 @@ window.WfApp = function(settings) {
     function setProgressText(text) {
         const elem = document.querySelector('.layout-wrapper[data-layout="progress"] .progress-text')
         if (elem) {
-            elem.innerText = text || 'Загрузка...'
+            elem.innerText = text || 'Загрузка данных может занять некоторое время. Пожалуйста, подождите...'
         }
     }
 
