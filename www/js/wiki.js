@@ -369,8 +369,7 @@ window.WfWiki = {
     },
 
     _sparql_query_wrapper: async function(cacheId, query, handler) {
-        if (typeof handler !== 'function')
-            throw new Error('parser_callback function required')
+        handler = handler || {}
 
         const cache = window.WfLocalCache
         const cacheKey = `wiki.requestLaureates:${cacheId}`
@@ -386,51 +385,60 @@ window.WfWiki = {
         if (!res || !('head' in res) || !('results' in res))
             return
 
-        const out = handler(res['results']['bindings'])
+        let out = {items:[]}
+
+        if (typeof handler === 'object') {
+            const byYear = {}
+            const colYear = handler.year || 'year'
+            const colName = handler.name || 'name'
+            const colPage = handler.page || 'fileTitle'
+            const colPhoto = handler.photo || 'thumburl'
+
+            for (const item of res['results']['bindings']) {
+                let iYear
+
+                if (colYear === '*' || !(colYear in item)) {
+                    iYear = (new Date()).getFullYear()
+                } else {
+                    const col = item[colYear]
+                    if (col.type === 'literal') {
+                        const d = new Date(col.value)
+                        iYear = d.getFullYear()
+                    } else {
+                        iYear = parseInt(col.value)
+                    }
+                }
+
+                if (!(iYear in byYear))
+                    byYear[iYear] = { year: iYear, person: []}
+
+                byYear[iYear].person.push({
+                    name: item[colName].value,
+                    page: item[colPage].value,
+                    photo: item[colPhoto].value
+                })
+            }
+
+            out['items'] = Object.values(byYear)
+        } else if (typeof handler === 'function') {
+            out = handler(res['results']['bindings'])
+        }
+
         if (out)
             cache.set(cacheKey, out)
         return out
     },
 
-    sparql_award: async function(prizeId) {
-        const self = window.WfWiki
-        const thumbWidth = self.thumbWidth || 500
+    _sparql_label_code: function(lang) {
+        lang = lang || 'en'
+        return `SERVICE wikibase:label { bd:serviceParam wikibase:language "${lang}" . }`
+    },
 
-        if (!prizeId)
-            throw new Error('sparql_award: prizeId is required')
-
-        const q = `
-SELECT ?winnerLabel ?year
-    (SAMPLE(?image) AS ?image)
-    (SAMPLE(?thumburl) AS ?thumburl)
-    (SAMPLE(?fileTitle) AS ?fileTitle)
-WHERE {
-
-  ?winner wdt:P166 ?prize ; # P166 is "award received"
-          wdt:P31 wd:Q5 ;  # EXCLUDE FICTION: Ensure winner is an instance of (P31) human (Q5)
-          wdt:P18 ?image . # has a photo
-
-  BIND(STRAFTER(wikibase:decodeUri(STR(?image)), "http://commons.wikimedia.org/wiki/Special:FilePath/") AS ?fileTitle)
-
-  # Filter to only Nobel Prizes and related awards
-  VALUES ?prize {
-    wd:${prizeId}   # Nobel Prize type
-  }
-
-  # Optional: get the year the award was received
-  # The "point in time" qualifier (P585) on the P166 statement
-  OPTIONAL {
-    ?winner p:P166 ?statement .
-    ?statement ps:P166 ?prize .
-    ?statement pq:P585 ?when .
-    BIND(YEAR(?when) AS ?year)
-  }
-
-  # Fetch human-readable labels
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language "en" .
-  }
-  SERVICE wikibase:mwapi {
+    _sparql_thumb_code: function(width) {
+        width = width || this.thumbWidth || 500
+        return `
+BIND(STRAFTER(wikibase:decodeUri(STR(?image)), "http://commons.wikimedia.org/wiki/Special:FilePath/") AS ?fileTitle)
+SERVICE wikibase:mwapi {
     bd:serviceParam wikibase:endpoint "commons.wikimedia.org";
                     wikibase:api "Generator";
                     wikibase:limit "once";
@@ -439,50 +447,57 @@ WHERE {
                     mwapi:gapnamespace 6; # NS_FILE
                     mwapi:gaplimit 1;
                     mwapi:prop "imageinfo";
-                    mwapi:iiurlwidth ${thumbWidth};
+                    mwapi:iiurlwidth ${width};
                     mwapi:iiprop "dimensions|url".
     # ?size wikibase:apiOutput "imageinfo/ii/@size".
     # ?width wikibase:apiOutput "imageinfo/ii/@width".
     # ?height wikibase:apiOutput "imageinfo/ii/@height".
     # ?url wikibase:apiOutput "imageinfo/ii/@url".
     ?thumburl wikibase:apiOutput "imageinfo/ii/@thumburl"
+}`
+    },
+
+    sparql_award: async function(prizeId) {
+        if (!prizeId)
+            throw new Error('sparql_award: prizeId is required')
+
+        const codeLang = this._sparql_label_code()
+        const codeThumb = this._sparql_thumb_code()
+        const q = `
+SELECT ?winnerLabel ?year
+    (SAMPLE(?thumburl) AS ?thumburl)
+    (SAMPLE(?fileTitle) AS ?fileTitle)
+WHERE {
+  ?winner wdt:P166 ?prize ; # P166 is "award received"
+          wdt:P31 wd:Q5 ;  # EXCLUDE FICTION: Ensure winner is an instance of (P31) human (Q5)
+          wdt:P18 ?image . # has a photo
+  # Filter to prize type and related awards
+  VALUES ?prize { wd:${prizeId} }  # prize type
+  # Optional: get the year the award was received
+  # The "point in time" qualifier (P585) on the P166 statement
+  OPTIONAL {
+    ?winner p:P166 ?statement .
+    ?statement ps:P166 ?prize .
+    ?statement pq:P585 ?when .
+    BIND(YEAR(?when) AS ?year)
   }
+  ${codeLang}
+  ${codeThumb}
 }
 GROUP BY ?winnerLabel ?year
-ORDER BY ?year ?winnerLabel`
-
+ORDER BY ?year ?winnerLabel
+LIMIT 500
+`
         const cacheId = `sparql_award:${prizeId}`
-        const out = await this._sparql_query_wrapper(cacheId, q, function(bindings) {
-            const data = {items:[]}
-            const byYear = {}
-
-            for (const item of bindings) {
-                const iYear = parseInt(item.year.value)
-
-                if (!(iYear in byYear))
-                    byYear[iYear] = { year: iYear, person: []}
-
-                byYear[iYear].person.push({
-                    name: item.winnerLabel.value,
-                    page: item.fileTitle.value,
-                    photo: item.thumburl.value
-                })
-            }
-
-            data.items = Object.values(byYear)
-            return data
-        })
-
-        return out
+        return await this._sparql_query_wrapper(cacheId, q, {name: 'winnerLabel'})
     },
 
     sparql_president: async function(posId) {
-        const self = window.WfWiki
-        const thumbWidth = self.thumbWidth || 500
-
         if (!posId)
             throw new Error('sparql_president: posId is required')
 
+        const codeLang = this._sparql_label_code()
+        const codeThumb = this._sparql_thumb_code()
         const q = `
 SELECT ?name
   (SAMPLE(?start) as ?start)
@@ -494,64 +509,52 @@ WHERE {
              wdt:P31 wd:Q5 ;  # EXCLUDE FICTION: Ensure person is an instance of (P31) human (Q5)
              wdt:P1559 ?name ;
              wdt:P18 ?image . # has a photo
-
   # Get the term of office
   ?president p:P39 ?statement .
-  ?statement ps:P39 wd:Q11696 ;
+  ?statement ps:P39 wd:${posId} ;
              pq:P1545 ?order ;    # Order in office
              pq:P580 ?start . # Start time
-
-  # Label the results in English
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
-
-  BIND(STRAFTER(wikibase:decodeUri(STR(?image)), "http://commons.wikimedia.org/wiki/Special:FilePath/") AS ?fileTitle)
-
-  SERVICE wikibase:mwapi {
-    bd:serviceParam wikibase:endpoint "commons.wikimedia.org";
-                    wikibase:api "Generator";
-                    wikibase:limit "once";
-                    mwapi:generator "allpages";
-                    mwapi:gapfrom ?fileTitle;
-                    mwapi:gapnamespace 6; # NS_FILE
-                    mwapi:gaplimit 1;
-                    mwapi:prop "imageinfo";
-                    mwapi:iiurlwidth ${thumbWidth};
-                    mwapi:iiprop "dimensions|url".
-    ?size wikibase:apiOutput "imageinfo/ii/@size".
-    ?width wikibase:apiOutput "imageinfo/ii/@width".
-    ?height wikibase:apiOutput "imageinfo/ii/@height".
-    ?url wikibase:apiOutput "imageinfo/ii/@url".
-    ?thumburl wikibase:apiOutput "imageinfo/ii/@thumburl"
-  }
+  ${codeLang}
+  ${codeThumb}
 }
 GROUP BY ?name
 ORDER BY ASC(xsd:integer(?order))
-LIMIT 200
+LIMIT 500
 `
         const cacheId = `sparql_president:${posId}`
-        const out = await this._sparql_query_wrapper(cacheId, q, function(bindings) {
-            const data = {items:[]}
-            const byYear = {}
-
-            for (const item of bindings) {
-                const d = new Date(item.start.value)
-                const iYear = d.getFullYear()
-
-                if (!(iYear in byYear))
-                    byYear[iYear] = { year: iYear, person: []}
-
-                byYear[iYear].person.push({
-                    name: item.name.value,
-                    page: item.name.value,
-                    photo: item.thumburl.value,
-                    start: d
-                })
-            }
-
-            data.items = Object.values(byYear)
-            return data
+        return await this._sparql_query_wrapper(cacheId, q, {
+            year: 'start',
+            page: 'name'
         })
+    },
 
+    sparql_richest: async function() {
+        const codeThumb = this._sparql_thumb_code()
+        const q = `
+SELECT ?name
+  (SAMPLE(?netWorth) as ?netWorth)
+  (SAMPLE(?thumburl) as ?thumburl)
+WHERE {
+  ?person wdt:P31 wd:Q5 ;  # Instance of human
+          wdt:P1559 ?name ;
+          wdt:P18 ?image ; # has a photo
+          wdt:P2218 ?netWorth. # Has net worth property
+  ${codeThumb}
+}
+GROUP BY ?name
+ORDER BY DESC(?netWorth)
+LIMIT 100
+`
+        const cacheId = `sparql_richest:0`
+        const out = await this._sparql_query_wrapper(cacheId, q, {
+            page: 'name'
+        })
+        if (out && out.items) {
+            const ar = out.items[0].person
+            if (ar) {
+                ar.reverse()
+            }
+        }
         return out
     },
 

@@ -114,6 +114,15 @@ window.WfApp = function(settings) {
             }
             return res
         },
+        getCollectionIcon: function(cid) {
+            if (!(cid in collections))
+                throw new Error(`invalid collection id: ${cid}`)
+            const col = collections[cid]
+            if (!col.icon) return
+            if (col.icon.startsWith('media/') || col.icon.startsWith('http'))
+                return `<img class="icon" src="${col.icon}" />`
+            return col.icon
+        },
         selectLayout: function(name, modal, pass) {
             if (modal) {
                 showModal(name, pass)
@@ -169,7 +178,8 @@ window.WfApp = function(settings) {
             for (let code in collections) {
                 const item = collections[code]
                 const action = 'collection-explorer'
-                const icon = (item.icon || '') + (item.icon ? '&nbsp;' : '')
+                const iconHtml = app.getCollectionIcon(code)
+                const icon = (iconHtml || '') + (iconHtml ? '&nbsp;' : '')
                 const title = `${icon}${item.title}`
                 html += '<li>' +
                     `<button data-action="${action}" data-pass="${code}">${title}</button>` +
@@ -381,7 +391,8 @@ class CollectionExplorer extends AppletBase {
         const titleElem = this.rootElem.querySelector('.toolbar .title')
         const col = this.app.getCollectionsInfo()[cid]
         const title = col.title || 'Untitled'
-        const icon = (col.icon || '') + (col.icon ? '&nbsp;' : '')
+        const iconHtml = this.app.getCollectionIcon(cid)
+        const icon = (iconHtml || '') + (iconHtml ? '&nbsp;' : '')
         const wikiHost = window.WfWiki.site
         const link = col.link || `${wikiHost}/wiki/${col.page}`
         const linkHtml = link ? ` <a class="icon-link" target="_blank" href="${link}">🔗</a>` : ''

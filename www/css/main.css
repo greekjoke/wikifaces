@@ -57,6 +57,13 @@ button.disabled, .button.disabled {
     color: #ccc !important;
 }
 
+img.icon
+{
+    width: auto;
+    height: 1em;
+    vertical-align: text-bottom;
+}
+
 .pa1 { padding: 1em; }
 .pa2 { padding: 2em; }
 .pa3 { padding: 3em; }
