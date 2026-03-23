@@ -170,6 +170,30 @@ window.WfUtils = {
 
     sleep: function(ms) {
         return new Promise(resolve => setTimeout(resolve, ms))
+    },
+
+    escapeHTML: function(str) {
+        const div = document.createElement('div')
+        div.textContent = str
+        return div.innerHTML
+    },
+
+    toBase64: function(str) {
+        const encoder = new TextEncoder()
+        const bytes = encoder.encode(str)
+        let binaryString = ''
+        for (let i = 0; i < bytes.length; i++)
+            binaryString += String.fromCharCode(bytes[i]);
+        return btoa(binaryString)
+    },
+
+    fromBase64: function(base64) {
+        const binaryString = atob(base64)
+        const bytes = new Uint8Array(binaryString.length)
+        for (let i = 0; i < binaryString.length; i++)
+            bytes[i] = binaryString.charCodeAt(i);
+        const decoder = new TextDecoder();
+        return decoder.decode(bytes);
     }
 
 }

@@ -14,6 +14,7 @@ window.WfUI = {
         options = options || {}
 
         const self = window.WfUI
+        const utils = window.WfUtils
         const tplId = 'tpl-face-slot'
         const tpl = document.getElementById(tplId)
 
@@ -88,13 +89,26 @@ window.WfUI = {
             }
 
             img.classList.add('loading')
+            img.setAttribute('data-pass', 'base64:' + utils.toBase64(personId))
             img.crossOrigin = 'Anonymous'
             img.src = url
         }
+
+        return img
+    },
+
+    getImageDetHashKey: function(img) {
+        const utils = window.WfUtils
+        if (!img)
+            throw new Error('image required')
+        const hash = utils.simpleHash(img.src)
+        const cacheKey = `face-det:${hash}`
+        return cacheKey
     },
 
     updateImageScale: async function(img, pad, options) {
         const utils = window.WfUtils
+        const self = window.WfUI
 
         options = options || {}
         pad = pad || 1.3
@@ -108,8 +122,7 @@ window.WfUI = {
         const atrDiam = img.getAttribute('data-det-diam')
 
         if (atrX === null || atrX === undefined) {
-            const hash = utils.simpleHash(img.src)
-            const cacheKey = `face-det:${hash}`
+            const cacheKey = self.getImageDetHashKey(img)
             faceInfo = utils.storageRead(cacheKey)
 
             if (!faceInfo) {
@@ -139,8 +152,11 @@ window.WfUI = {
         const iw = img.naturalWidth
         const ih = img.naturalHeight
         const view = img.closest('.face-slot')
-        const vw = view.clientWidth
-        const vh = view.clientHeight
+        // const vw = view.clientWidth
+        // const vh = view.clientHeight
+        const rc = view.getBoundingClientRect()
+        const vw = rc.width
+        const vh = rc.height
         const viewScale = vw / iw
 
         const detScale = 1.0 / (faceInfo.diam * pad)
@@ -149,17 +165,97 @@ window.WfUI = {
         let oy = Math.round(0.5 * vh - faceInfo.y * ih * scale)
 
         // snap to view border
-        const iRight = Math.round(vw - iw * scale)
-        const iBottom = Math.round(vh - ih * scale)
-        ox = Math.min(0, ox) // snap to left border
-        oy = Math.min(0, oy) // snap to top border
-        ox = Math.max(iRight, ox) // snap to right border
-        oy = Math.max(iBottom, oy) // snap to bottom border
+        let st = {x:ox, y:oy, z:scale}
+        st = self.validateImagePosition(img, st, {
+            minPad: 0.1,
+            zoomStep: 0.1,
+        })
 
         // update image style & etc
-        img.style.transform = `scale(${scale})`
-        img.style.left = `${ox}px`
-        img.style.top = `${oy}px`
+        img.setAttribute('data-pad', pad)
+        img.style.transform = `scale(${st.z})`
+        img.style.left = `${st.x}px`
+        img.style.top = `${st.y}px`
+    },
+
+    getImageTransformState(img) {
+        if (!img) return
+        let z = 1.0
+        const s = img.style.transform
+        if (s.startsWith('scale('))
+            z = parseFloat(s.substring(6))
+        return {
+            x: parseInt(img.style.left),
+            y: parseInt(img.style.top),
+            z: z
+        }
+    },
+
+    validateImagePosition(img, st, options) {
+        if (!img || img.naturalWidth < 1) return
+        const view = img.closest('.face-slot')
+        if (!view) return
+
+        options = options || {}
+
+        const minPad = options.minPad || 0.1
+        const zoomStep = options.zoomStep || 0.1
+        const zoomMax = options.zoomMax || 5
+
+        const iw = img.naturalWidth * st.z
+        const ih = img.naturalHeight * st.z
+        const rc = view.getBoundingClientRect()
+        const px = minPad * rc.width
+        const py = minPad * rc.height
+        const pz = zoomStep * 2
+
+        st.x = Math.min(rc.width - px, st.x)
+        st.y = Math.min(rc.height - py, st.y)
+        st.x = Math.max(px - iw, st.x)
+        st.y = Math.max(py - ih, st.y)
+        st.z = Math.max(Math.min(st.z, zoomMax), pz)
+
+        return st
+    },
+
+    receiveImageDetParams: function(img, save) {
+        const self = window.WfUI
+        const utils = window.WfUtils
+
+        if (!img || img.naturalWidth < 1) return
+        const view = img.closest('.face-slot')
+        if (!view) return
+
+        const pad = parseFloat(img.getAttribute('data-pad'))
+        const iw = img.naturalWidth
+        const ih = img.naturalHeight
+        const rc = view.getBoundingClientRect()
+        const vw = rc.width
+        const vh = rc.height
+        const st = self.getImageTransformState(img)
+        const viewScale = vw / iw
+
+        const scale = st.z
+        const detScale = scale / viewScale
+        const diamPad = 1.0 / detScale
+        const diam = diamPad / pad
+
+        const ox = st.x
+        const tx = 0.5 * vw - ox
+        const x = tx / (iw * scale)
+
+        const oy = st.y
+        const ty = 0.5 * vh - oy
+        const y = ty / (ih * scale)
+
+        const faceInfo = {x:x, y:y, diam:diam}
+
+        if (save) {
+            const cacheKey = self.getImageDetHashKey(img)
+            utils.storageWrite(cacheKey, faceInfo)
+        }
+
+        return faceInfo
     },
 
     selectLayout: function(name, options) {
@@ -220,8 +316,18 @@ window.WfUI = {
     hideModal: function() {
         const w = document.getElementById('modal-wrapper')
         if (w) {
-            w.style.display = 'none'
+            if (w.style.display !== 'none') {
+                w.style.display = 'none'
+                return true
+            }
         }
+    },
+
+    bindImageViewer: function(img) {
+        if (!img) return
+        img.classList.add('button')
+        img.setAttribute('data-action', '*viewer')
+        // img.setAttribute('data-pass', img.src)
     }
 
 }

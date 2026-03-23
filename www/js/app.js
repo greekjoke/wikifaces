@@ -8,7 +8,8 @@ window.WfApp = function(settings) {
     const utils = window.WfUtils
     const wiki = window.WfWiki
     const collections = settings.collections || {}
-    let applet = undefined
+    let applet = []
+    let globalApplet = undefined
 
     function initLayout(name, pass, layoutData) {
         if (!layoutData)
@@ -24,7 +25,7 @@ window.WfApp = function(settings) {
     function showLayout(name, pass) {
         const opt = { pass: pass }
         const layoutData = ui.selectLayout(name, opt)
-        applet = undefined // reset
+        applet = [] // reset
         initLayout(name, pass, layoutData)
     }
 
@@ -44,12 +45,15 @@ window.WfApp = function(settings) {
     }
 
     function updateUserOptions() {
-        const globalApplet = new AppletBase(app)
         const all = globalApplet.readOption('user-options') || {}
         for (let key in all) {
             const value = all[key]
             document.body.setAttribute(`data-option-${key}`, value)
         }
+    }
+
+    function getTopApplet() {
+        return applet ? applet.at(-1) : undefined
     }
 
     console.log('app starts...')
@@ -71,8 +75,9 @@ window.WfApp = function(settings) {
             }
         } else if (action.startsWith('.')) { // applet method
             action = action.substring(1)
-            if (utils.hasMethod(applet, action)) {
-                applet[action].call(applet, elem)
+            const topApplet = getTopApplet()
+            if (utils.hasMethod(topApplet, action)) {
+                topApplet[action].call(topApplet, elem)
             }
         } else if (action.startsWith('*')) { // show modal layout
             action = action.substring(1)
@@ -85,10 +90,19 @@ window.WfApp = function(settings) {
     document.body.addEventListener('keyup', function(event) {
         // console.log('keyup', event.key)
         const action = 'onKeyup'
-        if (utils.hasMethod(applet, action)) {
-            applet[action].call(applet, event.key, event)
+        const topApplet = getTopApplet()
+        if (utils.hasMethod(topApplet, action)) {
+            topApplet[action].call(topApplet, event.key, event)
         }
     })
+
+    document.body.addEventListener('wheel', function(event) {
+        const action = 'onWheel'
+        const topApplet = getTopApplet()
+        if (utils.hasMethod(topApplet, action)) {
+            topApplet[action].call(topApplet, event.deltaY, event)
+        }
+    }, { passive: true });
 
     app = {
         AppletBase: AppletBase,
@@ -134,7 +148,12 @@ window.WfApp = function(settings) {
             showLayout('main')
         },
         close: function() {
-            ui.hideModal()
+            if (ui.hideModal()) {
+                const a = getTopApplet()
+                if (a && a.isModal()) {
+                    applet.pop() // remove top
+                }
+            }
         },
         showProgress: function(text) {
             showModal('progress')
@@ -153,7 +172,6 @@ window.WfApp = function(settings) {
         changeUserOption: function() {
             const optName = this.getAttribute('data-name')
             if (!optName) return
-            const globalApplet = new AppletBase(app)
             const all = globalApplet.readOption('user-options') || {}
             all[optName] = !!this.checked
             globalApplet.saveOption('user-options', all)
@@ -188,11 +206,28 @@ window.WfApp = function(settings) {
             list.innerHTML = html
         },
         initLayout_collection_explorer: function(con, cid) {
-            applet = new CollectionExplorer(app, cid)
-            applet.load()
+            const a = new CollectionExplorer(app, cid)
+            applet.push(a)
+            a.load()
+        },
+        initLayout_viewer: async function(con, personId) {
+            const target = con.querySelector('#image-viewer')
+            if (personId.startsWith('base64:')) {
+                personId = utils.fromBase64(personId.substring(7))
+            }
+            target.innerHTML = '' // clear
+            const img = await ui.addFaceSlot(personId, { container: target })
+            if (!img) return
+            const view = img.closest('.face-slot')
+            const tools = con.querySelector('.image-editor-sidebar')
+            if (!view || !tools) return
+            view.appendChild(tools) // move toolbar to the face slot
+            const a = new ImageViewer(app, view)
+            applet.push(a)
         },
     }
 
+    globalApplet = new AppletBase(app)
     updateUserOptions()
     return app
 }
@@ -225,8 +260,8 @@ class AppletBase {
         const value = utils.storageRead(key)
         return value === undefined ? defValue : value
     }
-    // onKeyup(keyCode) {
-    // }
+    isModal() { return false }
+    onKeyup(keyCode) { }
 }
 
 class CollectionExplorer extends AppletBase {
@@ -311,12 +346,12 @@ class CollectionExplorer extends AppletBase {
         const part = ar.slice(skip, skip + this.pageSize)
 
         for (let i=0; i < part.length; i++) {
-            // TODO: why doubles at first loading?
             const p = part[i]
-            await ui.addFaceSlot(p.page, {
+            const img = await ui.addFaceSlot(p.page, {
                 container: that.listElem,
                 pad: that.facePad
             })
+            ui.bindImageViewer(img)
         }
     }
     getOrder() {
@@ -445,3 +480,123 @@ class CollectionExplorer extends AppletBase {
         }
     }
 } // class CollectionExplorer
+
+class ImageViewer extends AppletBase {
+    constructor(app, viewElem) {
+        super(app,  'ImageViewer')
+        this.viewElem = viewElem
+        this.img = viewElem.querySelector('img')
+        this.zoomStep = 0.1
+        this.moveStep = 20
+        this.oldState = undefined
+        // TODO: prepare for drug&drop
+    }
+    isModal() { return true }
+    isEditMode() {
+        return this.viewElem.classList.contains('edit-mode')
+    }
+    edit() {
+        if (!this.isEditMode()) {
+            this.viewElem.classList.add('edit-mode')
+            this.oldState = this._getImageState()
+        }
+    }
+    _getImagePad() {
+        return parseFloat(this.img.getAttribute('data-pad') || '1.0')
+    }
+    _getImageState() {
+        const ui = window.WfUI
+        return ui.getImageTransformState(this.img)
+    }
+    _setImageState(st) {
+        const ui = window.WfUI
+
+        ui.validateImagePosition(this.img, st, {
+            zoomStep: this.zoomStep
+        })
+
+        this.img.style.left = `${st.x}px`
+        this.img.style.top = `${st.y}px`
+        this.img.style.transform = `scale(${st.z})`
+    }
+    orig() {
+        this._setImageState({x:0, y:0, z:1})
+    }
+    fit() {
+        const iw = this.img.naturalWidth
+        const ih = this.img.naturalHeight
+        const rc = this.viewElem.getBoundingClientRect()
+        const z = Math.min(rc.width / iw, rc.height / ih)
+        this._setImageState({x:0, y:0, z:z})
+    }
+    zoomIn() {
+        const st = this._getImageState()
+        st.z += this.zoomStep
+        this._setImageState(st)
+    }
+    zoomOut() {
+        const st = this._getImageState()
+        st.z -= this.zoomStep
+        this._setImageState(st)
+    }
+    movePos(ox, oy) {
+        const st = this._getImageState()
+        st.x += ox
+        st.y += oy
+        this._setImageState(st)
+    }
+    save() {
+        const ui = window.WfUI
+        if (!this.isEditMode()) return
+        this.viewElem.classList.remove('edit-mode')
+        // receive det values & save changes
+        const det = ui.receiveImageDetParams(this.img, true)
+        // refresh all slots
+        const facePad = this._getImagePad()
+        const pass = this.img.getAttribute('data-pass')
+        document.querySelectorAll(`img[data-pass="${pass}"]`).forEach(elem => {
+            elem.setAttribute('data-det-x', det.x)
+            elem.setAttribute('data-det-y', det.y)
+            elem.setAttribute('data-det-diam', det.diam)
+            ui.updateImageScale(elem, facePad)
+        })
+    }
+    cancel() {
+        if (!this.isEditMode()) return
+        this.viewElem.classList.remove('edit-mode')
+        if (this.oldState) {
+            this._setImageState(this.oldState)
+        }
+    }
+    onKeyup(keyCode) {
+        if (!this.isEditMode())
+            return
+        const mv = this.moveStep
+        if (keyCode == 'ArrowLeft') {
+            this.movePos(-mv, 0)
+        } else if (keyCode == 'ArrowRight') {
+            this.movePos(mv, 0)
+        } else if (keyCode == 'ArrowUp') {
+            this.movePos(0, -mv)
+        } else if (keyCode == 'ArrowDown') {
+            this.movePos(0, mv)
+        } else if (keyCode == '+') {
+            this.zoomIn()
+        } else if (keyCode == '-') {
+            this.zoomOut()
+        } else if (keyCode == 'Home') {
+            this.fit()
+        } else if (keyCode == 'End') {
+            this.orig()
+        }
+    }
+    onWheel(delta) {
+        if (!this.isEditMode())
+            return
+        if (delta > 0) {
+            this.zoomOut()
+        } else if (delta < 0) {
+            this.zoomIn()
+        }
+    }
+} // class ImageViewer

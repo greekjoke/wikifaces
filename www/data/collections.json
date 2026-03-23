@@ -39,6 +39,7 @@
         "math_all": {
             "icon": "🏅",
             "title": "Математика (медаль Филдса + Абелевская премия)",
+            "link": "https://en.wikipedia.org/wiki/Abel_Prize",
             "query": "award|Q28835|Q188184"
         },
         "oscar": {
