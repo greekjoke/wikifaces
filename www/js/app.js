@@ -104,6 +104,45 @@ window.WfApp = function(settings) {
         }
     }, { passive: true });
 
+    document.body.addEventListener('mousedown', function(event) {
+        const elem = event.target
+        if (!elem.classList.contains('draggable'))
+            return
+        const ox = event.clientX - parseInt(elem.style.left)
+        const oy = event.clientY - parseInt(elem.style.top)
+        elem.setAttribute('data-drag-ox', ox)
+        elem.setAttribute('data-drag-oy', oy)
+        elem.classList.add('dragging')
+    })
+
+    document.body.addEventListener('mousemove', function(event) {
+        const elem = event.target
+        if (!elem.classList.contains('dragging'))
+            return
+        const ox = parseInt(elem.getAttribute('data-drag-ox') || 0)
+        const oy = parseInt(elem.getAttribute('data-drag-oy') || 0)
+        const nx = event.clientX - ox;
+        const ny = event.clientY - oy;
+        const pos = {x:nx, y:ny}
+
+        const action = 'onDragging'
+        const topApplet = getTopApplet()
+        if (utils.hasMethod(topApplet, action)) {
+            const res = topApplet[action].call(topApplet, elem, pos)
+            if (res === false)
+                return // prevent to change position
+        }
+
+        elem.style.left = `${pos.x}px`;
+        elem.style.top = `${pos.y}px`;
+    })
+
+    document.body.addEventListener('mouseup', function(event) {
+        document.querySelectorAll('.dragging').forEach(x => {
+            x.classList.remove('dragging')
+        })
+    })
+
     app = {
         AppletBase: AppletBase,
         getCollectionsInfo: function() {
@@ -499,7 +538,12 @@ class ImageViewer extends AppletBase {
         if (!this.isEditMode()) {
             this.viewElem.classList.add('edit-mode')
             this.oldState = this._getImageState()
+            this.img.classList.add('draggable')
         }
+    }
+    _editEnd() {
+        this.viewElem.classList.remove('edit-mode')
+        this.img.classList.remove('draggable')
     }
     _getImagePad() {
         return parseFloat(this.img.getAttribute('data-pad') || '1.0')
@@ -539,16 +583,22 @@ class ImageViewer extends AppletBase {
         st.z -= this.zoomStep
         this._setImageState(st)
     }
-    movePos(ox, oy) {
+    movePos(ox, oy, absolute) {
+        absolute = absolute || false
         const st = this._getImageState()
-        st.x += ox
-        st.y += oy
+        if (absolute) {
+            st.x = ox
+            st.y = oy
+        } else {
+            st.x += ox
+            st.y += oy
+        }
         this._setImageState(st)
     }
     save() {
         const ui = window.WfUI
         if (!this.isEditMode()) return
-        this.viewElem.classList.remove('edit-mode')
+        this._editEnd()
         // receive det values & save changes
         const det = ui.receiveImageDetParams(this.img, true)
         // refresh all slots
@@ -563,23 +613,22 @@ class ImageViewer extends AppletBase {
     }
     cancel() {
         if (!this.isEditMode()) return
-        this.viewElem.classList.remove('edit-mode')
-        if (this.oldState) {
+        this._editEnd()
+        if (this.oldState)
             this._setImageState(this.oldState)
-        }
     }
     onKeyup(keyCode) {
         if (!this.isEditMode())
             return
         const mv = this.moveStep
         if (keyCode == 'ArrowLeft') {
-            this.movePos(-mv, 0)
-        } else if (keyCode == 'ArrowRight') {
             this.movePos(mv, 0)
+        } else if (keyCode == 'ArrowRight') {
+            this.movePos(-mv, 0)
         } else if (keyCode == 'ArrowUp') {
-            this.movePos(0, -mv)
-        } else if (keyCode == 'ArrowDown') {
             this.movePos(0, mv)
+        } else if (keyCode == 'ArrowDown') {
+            this.movePos(0, -mv)
         } else if (keyCode == '+') {
             this.zoomIn()
         } else if (keyCode == '-') {
@@ -598,5 +647,9 @@ class ImageViewer extends AppletBase {
         } else if (delta < 0) {
             this.zoomIn()
         }
+    }
+    onDragging(elem, pos) {
+        this.movePos(pos.x, pos.y, true)
+        return false // pos already changed
     }
 } // class ImageViewer
