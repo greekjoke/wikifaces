@@ -169,12 +169,16 @@ window.WfDetector = function(image, options) {
                 const thr = curParamItem.qthresh || qthresh
                 const iou = curParamItem.iou || 0.2
 
-                // run the cascade over the image
-                // dets is an array that contains (r, c, s, q) quadruplets
-                // (representing row, column, scale and detection score)
-                dets = pico.run_cascade(desc, clsReg, curParamItem.params)
-                // cluster the obtained detections
-                dets = pico.cluster_detections(dets, iou) // set IoU threshold to 0.2
+                const doit = async function(params) {
+                    // run the cascade over the image
+                    // dets is an array that contains (r, c, s, q) quadruplets
+                    // (representing row, column, scale and detection score)
+                    const dets = pico.run_cascade(desc, clsReg, params)
+                    // cluster the obtained detections
+                    return pico.cluster_detections(dets, iou) // set IoU threshold to 0.2
+                }
+
+                const dets = await doit(curParamItem.params)
 
                 for (let i=0; i < dets.length; ++i) {
                     const item = dets[i]

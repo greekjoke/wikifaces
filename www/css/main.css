@@ -175,7 +175,7 @@ img.icon
     text-decoration: none;
 }
 .face-slot.face-detection {
-    border: 2px solid yellow;
+    border: 2px solid blue;
 }
 
 body:not([data-option-face-details="true"]) .face-slot .details {
