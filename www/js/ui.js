@@ -117,6 +117,7 @@ window.WfUI = {
             return
 
         let faceInfo = undefined
+        const view = img.closest('.face-slot')
         const atrX = img.getAttribute('data-det-x')
         const atrY = img.getAttribute('data-det-y')
         const atrDiam = img.getAttribute('data-det-diam')
@@ -126,15 +127,15 @@ window.WfUI = {
             faceInfo = utils.storageRead(cacheKey)
 
             if (!faceInfo) {
+                view.classList.add('face-detection')
                 const det = window.WfDetector(img, options.detCustomize)
                 faceInfo = await det.detect()
                 if (!faceInfo) {
                     faceInfo = {x:0.5, y:0.5, diam:(1.0 / pad)}
                     console.warn('detection failed', img.src)
-                } else {
-                    // console.log('detection result', faceInfo)
                 }
                 utils.storageWrite(cacheKey, faceInfo)
+                view.classList.remove('face-detection')
             }
 
             img.setAttribute('data-det-x', faceInfo.x)
@@ -146,14 +147,10 @@ window.WfUI = {
                 y: parseFloat(atrY),
                 diam: parseFloat(atrDiam)
             }
-            // console.log('detection in attributes', faceInfo)
         }
 
         const iw = img.naturalWidth
         const ih = img.naturalHeight
-        const view = img.closest('.face-slot')
-        // const vw = view.clientWidth
-        // const vh = view.clientHeight
         const rc = view.getBoundingClientRect()
         const vw = rc.width
         const vh = rc.height
@@ -200,7 +197,7 @@ window.WfUI = {
 
         const minPad = options.minPad || 0.1
         const zoomStep = options.zoomStep || 0.1
-        const zoomMax = options.zoomMax || 5
+        const zoomMax = options.zoomMax || 8
 
         const iw = img.naturalWidth * st.z
         const ih = img.naturalHeight * st.z

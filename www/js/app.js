@@ -342,6 +342,12 @@ class CollectionExplorer extends AppletBase {
 
         app.showProgress()
         app.loadCollection(this.collectionId).then(result => {
+            if (!result) {
+                alert('Ошибка при получении данных.')
+                app.hideProgress()
+                return
+            }
+
             const ar = result.items || result || []
             const cnt = ar.length
             const all = []

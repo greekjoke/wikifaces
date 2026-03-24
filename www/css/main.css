@@ -112,7 +112,6 @@ img.icon
     align-items: center;
 }
 .face-slot {
-    /* border: 2px solid blue; */
     overflow: hidden;
     width: 100%;
     max-width: 24vw;
@@ -120,6 +119,7 @@ img.icon
     position: relative;
     background-color: gray;
     box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+    border: 2px solid transparent;
 }
 .face-slot > img {
     position: absolute;
@@ -168,6 +168,10 @@ img.icon
     color: #eee;
     text-decoration: none;
 }
+.face-slot.face-detection {
+    border: 2px solid yellow;
+}
+
 body:not([data-option-face-details="true"]) .face-slot .details {
     display: none;
 }
@@ -242,7 +246,7 @@ body[data-layout="main"] #back {
     padding-top: 120px;
 }
 #modal-box {
-    min-width: 300px;
+    min-width: 320px;
     min-height: 50px;
     width: 300px;
     margin-left: -150px;
@@ -460,9 +464,9 @@ body[data-layout="main"] #back {
 }
 #image-viewer .bn-save {
     background-image: url('../media/icon-ok.svg');
-    background-color: rgba(180, 255, 180, 0.4);
+    background-color: rgba(180, 255, 180, 0.5);
 }
 #image-viewer .bn-cancel {
     background-image: url('../media/icon-cancel.svg');
-    background-color: rgba(255, 180, 180, 0.4);
+    background-color: rgba(255, 180, 180, 0.5);
 }
