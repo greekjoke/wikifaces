@@ -325,6 +325,84 @@ window.WfUI = {
         img.classList.add('button')
         img.setAttribute('data-action', '*viewer')
         // img.setAttribute('data-pass', img.src)
+    },
+
+    calcGridSize: function(gridWidth, gridHeight, numItems, aspect) {
+        const gridSquare = gridWidth * gridHeight
+
+        if (!gridSquare || !numItems)
+            return
+
+        numItems = numItems || 1
+        aspect = aspect || (3 / 4)
+
+        const fit = function(stitch, sideA, sideB, asp) {
+            let elemA = sideA / stitch
+            let elemB = elemA / asp
+            let parts = Math.floor(numItems / stitch)
+            if (numItems % stitch) parts++
+            if (elemB * parts > sideB) {
+                elemB = sideB / parts
+                elemA = elemB * asp
+            }
+            return {
+                square: elemA * elemB * numItems,
+                stitch: stitch,
+                parts: parts,
+                elemA: elemA,
+                elemB: elemB
+            }
+        }
+
+        const fitByCols = function(cols) {
+             const res = fit(cols, gridWidth, gridHeight, aspect)
+             return {
+                square: res.square,
+                cols: res.stitch,
+                rows: res.parts,
+                width: res.elemA,
+                height: res.elemB,
+                factor: 'cols',
+             }
+        }
+
+        const fitByRows = function(rows) {
+            const res = fit(rows, gridHeight, gridWidth, 1.0 / aspect)
+            return {
+                square: res.square,
+                cols: res.parts,
+                rows: res.stitch,
+                width: res.elemB,
+                height: res.elemA,
+                factor: 'rows',
+             }
+        }
+
+        let best = undefined
+        let maxSquare = -1
+        let res
+
+        for (let i=1; i <= numItems; i++) {
+        // for (let i=numItems; i > 0; i--) {
+            res = fitByCols(i)
+            if (res.square > maxSquare) {
+                maxSquare = res.square
+                best = res
+            }
+            // res = fitByRows(i)
+            // if (res.square > maxSquare) {
+            //     maxSquare = res.square
+            //     best = res
+            // }
+        }
+
+        if (best) {
+            if (best.square > gridSquare)
+                throw new Error('unkown error')
+            best.free = 1.0 - best.square / gridSquare
+        }
+
+        return best
     }
 
 }

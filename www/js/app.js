@@ -390,6 +390,8 @@ class CollectionExplorer extends AppletBase {
         const skip = this.pageSize * this.pageCur
         const part = ar.slice(skip, skip + this.pageSize)
 
+        this.setupGrid(part.length)
+
         for (let i=0; i < part.length; i++) {
             const p = part[i]
             const img = await ui.addFaceSlot(p.page, {
@@ -397,6 +399,22 @@ class CollectionExplorer extends AppletBase {
                 pad: that.facePad
             })
             ui.bindImageViewer(img)
+        }
+    }
+    setupGrid(numItems) {
+        const pad = 18 // HACK: magic number
+        const ui = window.WfUI
+        const num = numItems || this.pageSize
+        const grid = this.listElem
+        const gw = grid.clientWidth - pad * 2
+        const gh = grid.clientHeight - pad * 2
+        const aspect = 2 / 3
+        const res = ui.calcGridSize(gw, gh, num, aspect)
+        if (res) {
+            const w = Math.floor(res.width) - pad * 0
+            const h = Math.floor(res.height) - pad * 0
+            grid.style.gridTemplateColumns = `repeat(${res.cols}, ${w}px)`
+            grid.style.gridTemplateRows = `repeat(${res.rows}, ${h}px)`
         }
     }
     getOrder() {

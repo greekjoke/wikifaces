@@ -6,8 +6,6 @@
 }
 
 body {
-    height: 100vh;
-    /* background-image: linear-gradient(rgb(120, 120, 120), rgb(50, 50, 50)); */
     background: radial-gradient(ellipse at top, #ddd, #333);
 }
 
@@ -25,11 +23,15 @@ label.user-option {
     margin-bottom: 0.5em;
 }
 
+#content {
+    height: calc(100vh - 70px);
+    position: relative;
+}
 #disclaimer {
     border-top: 1px solid gray;
     text-align: center;
     color: #555;
-    /* text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); */
+    min-width: 320px;
 }
 
 button, .button {
@@ -96,25 +98,29 @@ img.icon
 
 .faces-list {
     box-sizing: border-box;
-    display: flex;
-    flex-wrap: wrap;
-    height: 80vh;
     width: 100%;
-    gap: 0px;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(2, 48%);
+    justify-content: center;
+    align-items: center;
+    gap: 0;
 }
 .face-slot-wrapper {
+    /* grid-row: span 20; */
     box-sizing: border-box;
     margin: 5px;
     display: flex;
     flex: 1 1 10vw;
-    align-self: stretch;
+    align-self: start;
     justify-content: center;
     align-items: center;
 }
 .face-slot {
     overflow: hidden;
     width: 100%;
-    max-width: 24vw;
+    /* max-width: 24vw; */
     aspect-ratio: 2 / 3;
     position: relative;
     background-color: gray;
@@ -197,6 +203,7 @@ img.error:after {
 #top-sidebar {
     padding-left: 50%;
     background-color: darkslategray;
+    height: 70px;
 }
 #back {
     font-size: 2em;
@@ -286,7 +293,7 @@ body[data-layout="main"] #back {
 
 .layout-wrapper {
     display: flex;
-    justify-content: center;
+    /* justify-content: center; */
     align-items: center;
     flex-direction: column;
     height: 100%;
@@ -334,10 +341,34 @@ body[data-layout="main"] #back {
     opacity: 0.5;
 }
 
-
-.layout-wrapper[data-capv="16"] .face-slot-wrapper { flex-basis: 9vw; }
-.layout-wrapper[data-capv="24"] .face-slot-wrapper { flex-basis: 9vw; }
-.layout-wrapper[data-capv="32"] .face-slot-wrapper { flex-basis: 8vw; }
+.layout-wrapper[data-capv="1"] .faces-list {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(1, 100%);
+}
+.layout-wrapper[data-capv="2"] .faces-list {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(1, 100%);
+}
+.layout-wrapper[data-capv="4"] .faces-list {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(1, 100%);
+}
+.layout-wrapper[data-capv="8"] .faces-list {
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(2, 50%);
+}
+.layout-wrapper[data-capv="16"] .faces-list {
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(2, 50%);
+}
+.layout-wrapper[data-capv="24"] .faces-list {
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(3, 33%);
+}
+.layout-wrapper[data-capv="32"] .faces-list {
+    grid-template-columns: repeat(11, 1fr);
+    grid-template-rows: repeat(3, 33%);
+}
 
 .progress-container {
     width: 50%;

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta http-equiv="Cache-Control" content="max-age=3600, must-revalidate" />
+        <title>Test grid fit</title>
+        <script src="js/utils.js"></script>
+        <script src="js/ui.js"></script>
+    </head>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        #toolbar {
+            position: absolute;
+            z-index: 1;
+            padding: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        button {
+            padding: 2px 5px;
+        }
+        #status {
+            color: yellow;
+        }
+        #content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            margin: 5px;
+            border: 2px solid blue;
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(2, 1fr);
+            justify-content: center;
+            align-items: center;
+        }
+        .item {
+            display: inline-block;
+            background-color: lightgreen;
+            aspect-ratio: 2 / 3;
+            min-width: 30px;
+            min-height: 40px;
+            box-sizing: border-box;
+            border: 1px solid black;
+            margin: 2px;
+        }
+    </style>
+
+    <body>
+        <div id="toolbar">
+            <button id="add">add</button>
+            <button id="remove">remove</button>
+            <span id="status">--</span>
+        </div>
+        <div id="content"></div>
+    </body>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ui = window.WfUI
+            const grid = document.getElementById('content')
+            const status = document.getElementById('status')
+            const aspect = 2 / 3  // aspect of item rect
+
+            const updateFit = function() {
+                const num = grid.children.length
+                const rc = { width: grid.clientWidth, height: grid.clientHeight }
+                const res = ui.calcGridSize(rc.width, rc.height, num, aspect)
+                console.log('updateFit', num, rc, res)
+                if (res) {
+                    const w = Math.floor(res.width)
+                    const h = Math.floor(res.height)
+                    grid.style.gridTemplateColumns = `repeat(${res.cols}, ${w}px)`
+                    grid.style.gridTemplateRows = `repeat(${res.rows}, ${h}px)`
+                    status.innerText = `Item size: ${w} x ${h}`
+                } else {
+                    status.innerText = '--'
+                }
+            }
+
+            document.getElementById('add').onclick = function() {
+                const elem = document.createElement('div')
+                elem.classList.add('item')
+                grid.appendChild(elem)
+                updateFit()
+            }
+
+            document.getElementById('remove').onclick = function() {
+                if (!grid.lastElementChild) return
+                grid.removeChild(grid.lastElementChild);
+                updateFit()
+            }
+
+            let resizeTimer = undefined
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer)
+                resizeTimer = setTimeout(function() {
+                    updateFit()
+                }, 500)
+            });
+
+            updateFit()
+        });
+    </script>
+</html>
