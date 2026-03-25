@@ -10,13 +10,16 @@
 .layout-wrapper[data-order="desc"] .bn-order-desc,
 .layout-wrapper[data-order="shuffle"] .bn-order-shuffle
 {
-    /* border: 2px solid red;
-    border-radius: 3px;
-    padding: 1px 0; */
     opacity: 1;
 }
+.bn-order-asc, .bn-order-desc, .bn-order-shuffle {
+    color: brown;
+}
 .bn-page-prev, .bn-page-next, .bn-page-first, .bn-page-last {
-    filter: hue-rotate(260deg) brightness(1.2);
+    color: darkgreen;
+}
+.bn-cap-less, .bn-cap-more {
+    color: darkblue;
 }
 .layout-wrapper[data-pag="noless"] .bn-page-prev,
 .layout-wrapper[data-pag="noless"] .bn-page-first,
@@ -31,9 +34,7 @@
 {
     cursor: inherit;
     pointer-events: none;
-    filter: grayscale(100%);
-    font-variant-emoji: text;
-    color: #ccc;
+    color: gray;
     opacity: 0.5;
 }
 

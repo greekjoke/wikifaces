@@ -17,6 +17,7 @@
         <link rel="stylesheet" href="css/face.css">
         <link rel="stylesheet" href="css/explorer.css">
         <link rel="stylesheet" href="css/viewer.css">
+        <link rel="stylesheet" href="libs/fontawesome/css/all.min.css">
         <link rel="icon" type="image/ico" href="media/favicon.ico" />
     </head>
 
@@ -91,19 +92,19 @@
     <script type="text/template" id="tpl-layout-collection-explorer">
         <div class="pa1 toolbar w100 flex-center">
             <div class="w50 tar pah1">
-                <span class="button bn-order-asc" data-action=".orderAsc" title="Сортировка по возрастанию">🔼</span>
-                <span class="button bn-order-desc" data-action=".orderDesc" title="Сортировка по убыванию">🔽</span>
-                <span class="button bn-order-shuffle" data-action=".orderShuffle"title="Перемешать">🔀</span>
+                <i data-action=".orderAsc" class="button bn-order-asc fa-solid fa-arrow-up-short-wide" title="Сортировка по возрастанию"></i>
+                <i data-action=".orderDesc" class="button bn-order-desc fa-solid fa-arrow-down-wide-short" title="Сортировка по убыванию"></i>
+                <i data-action=".orderShuffle" class="button bn-order-shuffle fa-solid fa-shuffle" title="Перемешать"></i>
                 &nbsp;
                 &nbsp;
-                <span class="button bn-page-first" data-action=".pageFirst" title="Первая страница">⏮️</span>
-                <span class="button bn-page-prev" data-action=".pagePrev" title="Предыдущая страница">⬅️</span>
-                <span class="button bn-page-next" data-action=".pageNext" title="Следующая страница">➡️</span>
-                <span class="button bn-page-last" data-action=".pageLast" title="Последняя страница">⏭️</span>
+                <i data-action=".pageFirst" class="button bn-page-first fa-solid fa-backward-step" title="Первая страница"></i>
+                <i data-action=".pagePrev" class="button bn-page-prev fa-solid fa-angle-left" title="Предыдущая страница"></i>
+                <i data-action=".pageNext" class="button bn-page-next fa-solid fa-angle-right" title="Следующая страница"></i>
+                <i data-action=".pageLast" class="button bn-page-last fa-solid fa-forward-step" title="Последняя страница"></i>
                 &nbsp;
                 &nbsp;
-                <span class="button bn-cap-less" data-action=".capLess" title="Меньше картинок">➖</span>
-                <span class="button bn-cap-more" data-action=".capMore" title="Больше картинок">➕</span>
+                <i data-action=".capLess" class="button bn-cap-less fa-solid fa-minus" title="Меньше картинок"></i>
+                <i data-action=".capMore" class="button bn-cap-more fa-solid fa-plus" title="Больше картинок"></i>
             </div>
             <div class="w50 pah1">
                 <span class="title">Title</span>

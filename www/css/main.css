@@ -198,11 +198,7 @@ body[data-layout="main"] #back {
 .toolbar {
     background: radial-gradient(circle at center, #dda, #553);
     border-bottom: 1px solid #555;
-    font-size: 1.4em;
     padding: 0.2em
-}
-.toolbar .button {
-    letter-spacing: -0.25em;
 }
 
 .layout-wrapper {

@@ -14,7 +14,7 @@
 .face-slot-wrapper {
     /* grid-row: span 20; */
     box-sizing: border-box;
-    margin: 5px;
+    margin: 3px;
     display: flex;
     flex: 1 1 10vw;
     align-self: start;
