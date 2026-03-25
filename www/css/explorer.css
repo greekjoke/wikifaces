@@ -1,0 +1,67 @@
+/* Collection explorer customization */
+
+.layout-wrapper .bn-order-asc,
+.layout-wrapper .bn-order-desc,
+.layout-wrapper .bn-order-shuffle
+{
+    opacity: 0.5;
+}
+.layout-wrapper[data-order="asc"] .bn-order-asc,
+.layout-wrapper[data-order="desc"] .bn-order-desc,
+.layout-wrapper[data-order="shuffle"] .bn-order-shuffle
+{
+    /* border: 2px solid red;
+    border-radius: 3px;
+    padding: 1px 0; */
+    opacity: 1;
+}
+.bn-page-prev, .bn-page-next, .bn-page-first, .bn-page-last {
+    filter: hue-rotate(260deg) brightness(1.2);
+}
+.layout-wrapper[data-pag="noless"] .bn-page-prev,
+.layout-wrapper[data-pag="noless"] .bn-page-first,
+.layout-wrapper[data-cap="noless"] .bn-cap-less,
+.layout-wrapper[data-pag="nomore"] .bn-page-next,
+.layout-wrapper[data-pag="nomore"] .bn-page-last,
+.layout-wrapper[data-cap="nomore"] .bn-cap-more,
+.layout-wrapper[data-pag="empty"] .bn-page-prev,
+.layout-wrapper[data-pag="empty"] .bn-page-next,
+.layout-wrapper[data-pag="empty"] .bn-page-first,
+.layout-wrapper[data-pag="empty"] .bn-page-last
+{
+    cursor: inherit;
+    pointer-events: none;
+    filter: grayscale(100%);
+    font-variant-emoji: text;
+    color: #ccc;
+    opacity: 0.5;
+}
+
+.layout-wrapper[data-capv="1"] .faces-list {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(1, 100%);
+}
+.layout-wrapper[data-capv="2"] .faces-list {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(1, 100%);
+}
+.layout-wrapper[data-capv="4"] .faces-list {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(1, 100%);
+}
+.layout-wrapper[data-capv="8"] .faces-list {
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(2, 50%);
+}
+.layout-wrapper[data-capv="16"] .faces-list {
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(2, 50%);
+}
+.layout-wrapper[data-capv="24"] .faces-list {
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(3, 33%);
+}
+.layout-wrapper[data-capv="32"] .faces-list {
+    grid-template-columns: repeat(11, 1fr);
+    grid-template-rows: repeat(3, 33%);
+}
