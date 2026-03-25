@@ -70,16 +70,19 @@ window.WfApp = function(settings) {
         const elem = event.target
         if (elem.tagName !== 'BUTTON' && !elem.classList.contains('button'))
             return
+
         const pass = elem.getAttribute('data-pass')
         let action = elem.getAttribute('data-action')
         if (!action)
             return
+
         const args = action.split('|')
         action = args.shift()
+        args.push(elem)
+
         if (action.startsWith(':')) { // global/app scape
             action = action.substring(1)
             if (utils.hasMethod(app, action)) {
-                args.push(elem)
                 app[action].apply(app, args)
             } else {
                 throw new Error('invalid function name: app.' + action)
@@ -88,7 +91,6 @@ window.WfApp = function(settings) {
             action = action.substring(1)
             const topApplet = getTopApplet()
             if (utils.hasMethod(topApplet, action)) {
-                args.push(elem)
                 topApplet[action].apply(topApplet, args)
             }
         } else if (action.startsWith('*')) { // show modal layout

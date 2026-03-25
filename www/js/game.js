@@ -14,7 +14,7 @@ class RoundBase {
     get testIndex() { return this.cur }
     get passedTestsCount() { return this.passed }
     get totalTestsCount() { return this.numTests }
-    get hasTests() { return this.cur < this.numTests - 1 }
+    get hasTests() { return this.cur < this.numTests }
     get duration() {
         const t = new Date()
         return (t - this.created) // in milliseconds
@@ -34,24 +34,25 @@ class RoundBase {
     }
     finalize() {
         const score = this._resultScore()
+        console.log('FINALIZE', this.cur, this.passed)
         if (score > 0) {
             this.game.addScore(score)
         }
     }
     next() {
-        if (this.hasTests()) {
+        if (this.hasTests) {
             this.cur++
             return true
         }
     }
-    agreeSkip() {
+    acceptSkip() {
         this.skipped++
         this.next()
     }
-    agreeFailed() {
+    acceptFailed() {
         this.next()
     }
-    agreePassed() {
+    acceptPassed() {
         this.passed++
         this.next()
     }
@@ -174,6 +175,29 @@ class GameBase extends AppletBase {
             this.slider.select('summary')
         this.round = undefined
     }
+    answer(value) {
+        if (!this.isOn())
+            return
+
+        if (value === undefined) {
+            this.round.acceptSkip()
+        } else if (this._validate(value)) {
+            this.round.acceptPassed()
+        } else {
+            this.round.acceptFailed()
+        }
+
+        if (!this.round.hasTests) {
+            this.finish()
+        }
+    }
+    skip() {
+        this.answer() // call without value
+    }
+    _validate(value) {
+        // NOTE: implement this logic in extends
+        return false
+    }
     _refreshStat() {
         const utils = WfUtils
         let out = []
@@ -224,7 +248,9 @@ class GameAliveOrDead extends GameBase {
     constructor(app, desc) {
         super(app, 'GameAliveOrDead', desc)
     }
-
+    _validate(value) {
+        return value === 'yes'
+    }
 } // class GameAliveOrDead
 
 window['GameAliveOrDead'] = GameAliveOrDead // register
