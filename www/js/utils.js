@@ -194,6 +194,31 @@ window.WfUtils = {
             bytes[i] = binaryString.charCodeAt(i);
         const decoder = new TextDecoder();
         return decoder.decode(bytes);
+    },
+
+    durationToText: function(seconds, long) {
+        const value = Math.round(seconds)
+        const sec = value % 60
+        const min = Math.floor(value / 60) % 60
+        const hour = Math.floor(value / 3600) % 24
+        const day = Math.floor(value / 86400)
+        const out = []
+
+        if (!long) {
+            if (day)
+                out.push(day.toString() + ' ')
+            out.push(hour.toString().padStart(2, '0'))
+            out.push(':' + min.toString().padStart(2, '0'))
+            out.push(':' + sec.toString().padStart(2, '0'))
+        } else {
+            if (day)
+                out.push(`${day} дней`)
+            out.push(`${hour} часов`)
+            out.push(`${min} мин.`)
+            out.push(`${sec} сек.`)
+        }
+
+        return out.join('')
     }
 
 }

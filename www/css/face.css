@@ -24,7 +24,6 @@
 .face-slot {
     overflow: hidden;
     width: 100%;
-    /* max-width: 24vw; */
     aspect-ratio: 2 / 3;
     position: relative;
     background-color: gray;

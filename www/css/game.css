@@ -1,0 +1,50 @@
+/* game styles */
+
+.slide .top-block {
+    display: flex;
+    flex-direction: row;
+}
+.slide .top-block > div {
+    flex: 1;
+}
+.slide .top-block > div:nth-child(2) {
+    flex: 2;
+}
+.slide .logo {
+    float: left;
+    display: inline;
+    width: 20%;
+}
+.slide .logo > img {
+    width: 100%;
+    height: auto;
+}
+.slide .info {
+    margin-bottom: 1em;
+    font-size: 1.24em;
+    color: darkblue;
+}
+.slide .stat {
+    margin-bottom: 1em;
+    color: #555;
+}
+.stat-line {
+    text-align: center;
+}
+.stat-line > .text {
+    text-align: right;
+    display: inline-block;
+    box-sizing: border-box;
+    width: 60%;
+}
+.stat-line > .num {
+    text-align: left;
+    display: inline-block;
+    box-sizing: border-box;
+    padding-left: 1em;
+    vertical-align: top;
+    width: 40%;
+}
+.slide .buttons {
+    width: 50%;
+}

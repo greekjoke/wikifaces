@@ -403,6 +403,55 @@ window.WfUI = {
         }
 
         return best
+    },
+
+    Slider: function(con, options) {
+        options = options || {}
+
+        const slides = con.querySelectorAll('.slide')
+        const byName = {}
+        const byOrder = []
+
+        slides.forEach(elem => {
+            elem.classList.add('hide')
+            const index = byOrder.length
+            const s = elem.getAttribute('data-name') || index
+            byOrder.push(s)
+            byName[s] = elem
+        })
+
+        return {
+            select(name) {
+                if (typeof name === 'string') {
+                    this.selectByName(name)
+                } else {
+                    this.selectByIndex(name)
+                }
+            },
+            selectByName(name) {
+                if (!(name in byName))
+                    throw new Error('unkown slide name: ' + name)
+                const slide = byName[name]
+                const trans = options.transit_class || 'transit-right2left'
+                const delay = options.transit_delay || 550
+                slide.classList.remove('hide')
+                slide.classList.add(trans)
+                setTimeout(function() {
+                    Object.values(byName).forEach(x => {
+                        if (!x.classList.contains(trans))
+                            x.classList.add('hide')
+                    })
+                    slide.classList.remove(trans)
+                }, delay)
+            },
+            selectByIndex(index) {
+                const name = byOrder[index]
+                this.selectByName(name)
+            },
+            first() {
+                this.select(0)
+            }
+        }
     }
 
 }

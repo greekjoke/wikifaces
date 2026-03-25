@@ -8,6 +8,7 @@ window.WfApp = function(settings) {
     const utils = window.WfUtils
     const wiki = window.WfWiki
     const collections = settings.collections || {}
+    const games = settings.games || {}
     let applet = []
     let globalApplet = undefined
 
@@ -56,6 +57,13 @@ window.WfApp = function(settings) {
         return applet ? applet.at(-1) : undefined
     }
 
+    function buildIconHtml(desc) {
+        if (!desc) return
+        if (desc.startsWith('media/') || desc.startsWith('http'))
+            return `<img class="icon" src="${desc}" />`
+        return desc
+    }
+
     console.log('app starts...')
 
     document.body.addEventListener('click', function(event) {
@@ -66,10 +74,13 @@ window.WfApp = function(settings) {
         let action = elem.getAttribute('data-action')
         if (!action)
             return
+        const args = action.split('|')
+        action = args.shift()
         if (action.startsWith(':')) { // global/app scape
             action = action.substring(1)
             if (utils.hasMethod(app, action)) {
-                app[action].call(elem)
+                args.push(elem)
+                app[action].apply(app, args)
             } else {
                 throw new Error('invalid function name: app.' + action)
             }
@@ -77,7 +88,8 @@ window.WfApp = function(settings) {
             action = action.substring(1)
             const topApplet = getTopApplet()
             if (utils.hasMethod(topApplet, action)) {
-                topApplet[action].call(topApplet, elem)
+                args.push(elem)
+                topApplet[action].apply(topApplet, args)
             }
         } else if (action.startsWith('*')) { // show modal layout
             action = action.substring(1)
@@ -147,9 +159,8 @@ window.WfApp = function(settings) {
 
     app = {
         AppletBase: AppletBase,
-        getCollectionsInfo: function() {
-            return collections
-        },
+        getCollectionsInfo: function() { return collections },
+        getGamesInfo: function() { return games },
         loadCollection: async function(id) {
             if (!(id in collections))
                 throw new Error(`invalid collection ID: ${id}`)
@@ -173,10 +184,7 @@ window.WfApp = function(settings) {
             if (!(cid in collections))
                 throw new Error(`invalid collection id: ${cid}`)
             const col = collections[cid]
-            if (!col.icon) return
-            if (col.icon.startsWith('media/') || col.icon.startsWith('http'))
-                return `<img class="icon" src="${col.icon}" />`
-            return col.icon
+            return buildIconHtml(col.icon)
         },
         selectLayout: function(name, modal, pass) {
             if (modal) {
@@ -201,7 +209,7 @@ window.WfApp = function(settings) {
             setProgressText(text)
         },
         hideProgress: function() {
-            app.close()
+            this.close()
         },
         setProgressText: setProgressText,
         resetCache: function() {
@@ -237,7 +245,7 @@ window.WfApp = function(settings) {
             for (let code in collections) {
                 const item = collections[code]
                 const action = 'collection-explorer'
-                const iconHtml = app.getCollectionIcon(code)
+                const iconHtml = this.getCollectionIcon(code)
                 const icon = (iconHtml || '') + (iconHtml ? '&nbsp;' : '')
                 const title = `${icon}${item.title}`
                 html += '<li>' +
@@ -266,6 +274,34 @@ window.WfApp = function(settings) {
             const a = new ImageViewer(app, view)
             applet.push(a)
         },
+        initLayout_playground: async function(con) {
+            const list = con.querySelector('.games-list')
+            if (!list)
+                return
+            html = ''
+            for (let code in games) {
+                const item = games[code]
+                const action = item.layout || 'game-launcher'
+                const iconHtml = buildIconHtml(item.icon)
+                const icon = (iconHtml || '') + (iconHtml ? '&nbsp;' : '')
+                const title = `${icon}${item.title}`
+                html += '<li>' +
+                    `<button data-action="${action}" data-pass="${code}">${title}</button>` +
+                    '</li>'
+            }
+            list.innerHTML = html
+        },
+        initLayout_game_launcher: async function(con, code) {
+            if (!(code in games))
+                throw new Error('unknown game code: ' + code)
+            const item = games[code]
+            const cls = item.class || 'GameBase'
+            if (!(cls in window))
+                throw new Error('unknown game class: ' + cls)
+            const inst = new window[cls](app, item)
+            applet.push(inst)
+            inst.load()
+        }
     }
 
     globalApplet = new AppletBase(app)
@@ -302,7 +338,7 @@ class AppletBase {
         return value === undefined ? defValue : value
     }
     isModal() { return false }
-    onKeyup(keyCode) { }
+    // onKeyup(keyCode) { }
 }
 
 class CollectionExplorer extends AppletBase {
@@ -554,7 +590,6 @@ class ImageViewer extends AppletBase {
         this.zoomStep = 0.1
         this.moveStep = 20
         this.oldState = undefined
-        // TODO: prepare for drug&drop
     }
     isModal() { return true }
     isEditMode() {

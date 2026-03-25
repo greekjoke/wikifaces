@@ -8,6 +8,11 @@
 body {
     background: radial-gradient(ellipse at top, #ddd, #333);
 }
+h2 {
+    color: #555;
+    font-family: monospace;
+    font-size: 1.42rem;
+}
 
 a.icon-link {
     text-decoration: none;
@@ -73,6 +78,8 @@ img.icon
     cursor: grab;
 }
 
+.pa25f { padding: 0.25em; }
+.pa5f { padding: 0.5em; }
 .pa1 { padding: 1em; }
 .pa2 { padding: 2em; }
 .pa3 { padding: 3em; }
@@ -80,6 +87,7 @@ img.icon
 .pa5 { padding: 5em; }
 .pah1 { padding: 0 1em; }
 .pav1 { padding: 1em 0; }
+.pot1 { padding: 1em; padding-top: 0; }
 .tal { text-align: left;}
 .tar { text-align: right;}
 .w25 { width: 25%; display: inline-block;}
@@ -88,6 +96,9 @@ img.icon
 .list-none { list-style: none; }
 .list-none > li { margin: 0.5em 0; }
 .inline { display: inline; }
+.hide { display: none; }
+.sept { border-top: 1px solid #555; }
+.sepb { border-bottom: 1px solid #555; }
 
 .flex-center {
     display: flex;
@@ -232,3 +243,30 @@ body[data-layout="main"] #back {
   100% { left: 100%; }
 }
 
+/* slider */
+.slider {
+    width: 35vw;
+    min-width: 320px;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
+}
+.slide {
+    position: absolute;
+    box-sizing: border-box;
+    background-color: #aaa;
+    border: 1px solid #555;
+    border-radius: 5px;
+    width: 100%;
+    height: 100%;
+    padding: 1em;
+}
+.slide.transit-right2left {
+    animation: right2left 0.5s 1 ease-in-out;
+    z-index: 1;
+}
+@keyframes right2left {
+  0% { left: 100%; }
+  100% { left: 0%; }
+}

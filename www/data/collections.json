@@ -72,5 +72,14 @@
             "link": "https://en.wikipedia.org/wiki/List_of_serial_killers_by_number_of_victims",
             "query": "serial_killer"
         }
+    },
+    "games": {
+        "alive": {
+            "icon": "💀",
+            "title": "Жив или мёртв?",
+            "class": "GameAliveOrDead",
+            "intro": "В этой игре нужно по фотографии человека определить, жив он сейчас или уже нет. Один раунд состоит из {numTests} тестов. Время не ограничено. Удачи!",
+            "logo": "media/rip.png"
+        }
     }
 }

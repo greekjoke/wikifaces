@@ -13,10 +13,12 @@
         <script src="js/face.js"></script>
         <script src="js/ui.js"></script>
         <script src="js/app.js"></script>
+        <script src="js/game.js"></script>
         <link rel="stylesheet" href="css/main.css">
         <link rel="stylesheet" href="css/face.css">
         <link rel="stylesheet" href="css/explorer.css">
         <link rel="stylesheet" href="css/viewer.css">
+        <link rel="stylesheet" href="css/game.css">
         <link rel="stylesheet" href="libs/fontawesome/css/all.min.css">
         <link rel="icon" type="image/ico" href="media/favicon.ico" />
     </head>
@@ -83,7 +85,8 @@
 
     <!-- collections menu -->
     <script type="text/template" id="tpl-layout-collections">
-        <div class="pa1">
+        <h2 class="pa25f">Все коллекции</h2>
+        <div class="pot1">
             <ul class="list-none collections-list"></ul>
         </div>
     </script>
@@ -115,8 +118,38 @@
 
     <!-- playground menu -->
     <script type="text/template" id="tpl-layout-playground">
-        <div class="pa1">
-            TODO: playground
+        <h2 class="pa25f">Все игры</h2>
+        <div class="pot1">
+            <ul class="list-none games-list"></ul>
+        </div>
+    </script>
+
+    <!-- game launcher -->
+    <script type="text/template" id="tpl-layout-game-launcher">
+        <h2 class="pa25f game-title">Untitled</h2>
+        <div class="slider">
+            <div class="slide" data-name="intro">
+                <div class="top-block">
+                    <div class="logo"></div>
+                    <div>
+                        <div class="info">describe game rule here</div>
+                        <div class="stat">some statistics for this game type</div>
+                    </div>
+                </div>
+                <div class="flex-center sept pa1">
+                    <div class="buttons w50">
+                        <button data-action=".start">Старт</button>
+                    </div>
+                </div>
+            </div>
+            <div class="slide" data-name="round">
+                round
+                <button data-action=".finish">OK</button>
+            </div>
+            <div class="slide" data-name="summary">
+                summary
+                <button data-action=".intro">К началу</button>
+            </div>
         </div>
     </script>
 
