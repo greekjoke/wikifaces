@@ -197,7 +197,7 @@ window.WfUI = {
 
         const minPad = options.minPad || 0.1
         const zoomStep = options.zoomStep || 0.1
-        const zoomMax = options.zoomMax || 8
+        const zoomMax = options.zoomMax || 50
 
         const iw = img.naturalWidth * st.z
         const ih = img.naturalHeight * st.z

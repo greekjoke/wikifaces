@@ -39,8 +39,8 @@ window.WfApp = function(settings) {
 
     function setProgressText(text) {
         const elem = document.querySelector('.layout-wrapper[data-layout="progress"] .progress-text')
-        if (elem) {
-            elem.innerText = text || 'Загрузка данных может занять некоторое время. Пожалуйста, подождите...'
+        if (elem && text) {
+            elem.innerText = text
         }
     }
 
@@ -82,6 +82,8 @@ window.WfApp = function(settings) {
         } else if (action.startsWith('*')) { // show modal layout
             action = action.substring(1)
             showModal(action, pass)
+        } else if (action.startsWith('http:') || action.startsWith('https:')) {
+            window.open(action, '_blank').focus();
         } else { // show layout
             showLayout(action, pass)
         }
@@ -203,7 +205,7 @@ window.WfApp = function(settings) {
         },
         setProgressText: setProgressText,
         resetCache: function() {
-            if (!confirm('Все настройки будут сборшены в значения по умолчанию. Продолжить?'))
+            if (!confirm('Все настройки будут сброшены в значения по умолчанию. Продолжить?'))
                 return
             localStorage.clear()
             document.location.href = ''
