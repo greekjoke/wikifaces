@@ -48,3 +48,48 @@
 .slide .buttons {
     width: 50%;
 }
+
+/* card */
+.slide.card {
+    display: flex;
+    flex-direction: column;
+}
+.slide.card.hide {
+    display: none;
+}
+.slide.card .content {
+    flex: 1;
+    align-self: center;
+    width: 100%;
+}
+.slide.card .buttons {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex: 0 0 0%;
+}
+.slide.card button {
+    display: inline-block;
+    margin: 0.25em 0.5em;
+    width: auto;
+    flex: 1;
+}
+.slide.card:not([data-state="ask"]) button {
+    /* prevent button double click */
+    cursor: inherit;
+    pointer-events: none;
+}
+.slide.card[data-state="valid"][data-button="1"] button[data-id="1"],
+.slide.card[data-state="valid"][data-button="2"] button[data-id="2"],
+.slide.card[data-state="valid"][data-button="3"] button[data-id="3"],
+.slide.card[data-state="valid"][data-button="4"] button[data-id="4"]
+{
+    background-color: #5d5;
+}
+.slide.card[data-state="invalid"][data-button="1"] button[data-id="1"],
+.slide.card[data-state="invalid"][data-button="2"] button[data-id="2"],
+.slide.card[data-state="invalid"][data-button="3"] button[data-id="3"],
+.slide.card[data-state="invalid"][data-button="4"] button[data-id="4"]
+{
+    background-color: #d55;
+}

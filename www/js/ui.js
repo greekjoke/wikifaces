@@ -408,19 +408,30 @@ window.WfUI = {
     Slider: function(con, options) {
         options = options || {}
 
-        const slides = con.querySelectorAll('.slide')
+        const slides = []
         const byName = {}
         const byOrder = []
+        let last = undefined
 
-        slides.forEach(elem => {
+        con.querySelectorAll('.slide').forEach(elem => {
             elem.classList.add('hide')
             const index = byOrder.length
             const s = elem.getAttribute('data-name') || index
             byOrder.push(s)
             byName[s] = elem
+            slides.push(elem)
         })
 
         return {
+            getByName(name) {
+                if (!(name in byName))
+                    throw new Error('unkown slide name: ' + name)
+                return byName[name]
+            },
+            getByIndex(index) {
+                const name = byOrder[index]
+                return this.getByName(name)
+            },
             select(name) {
                 if (typeof name === 'string') {
                     this.selectByName(name)
@@ -429,13 +440,12 @@ window.WfUI = {
                 }
             },
             selectByName(name) {
-                if (!(name in byName))
-                    throw new Error('unkown slide name: ' + name)
-                const slide = byName[name]
+                const slide = this.getByName(name)
                 const trans = options.transit_class || 'transit-right2left'
                 const delay = options.transit_delay || 550
                 slide.classList.remove('hide')
                 slide.classList.add(trans)
+                last = slide
                 setTimeout(function() {
                     Object.values(byName).forEach(x => {
                         if (!x.classList.contains(trans))
@@ -450,6 +460,25 @@ window.WfUI = {
             },
             first() {
                 this.select(0)
+            },
+            get count() {
+                return byOrder.length
+            },
+            get currentIndex() {
+                return slides.indexOf(last)
+            },
+            get currentSlide() {
+                return last
+            },
+            next() {
+                const num = this.count
+                const i = this.currentIndex
+                if (i < 0)
+                    throw new Error('wrong slider index')
+                if (i < num - 1) {
+                    this.selectByIndex(i + 1)
+                    return true
+                }
             }
         }
     }

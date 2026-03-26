@@ -34,7 +34,6 @@ class RoundBase {
     }
     finalize() {
         const score = this._resultScore()
-        console.log('FINALIZE', this.cur, this.passed)
         if (score > 0) {
             this.game.addScore(score)
         }
@@ -59,8 +58,15 @@ class RoundBase {
 } // class RoundBase
 
 class GameBase extends AppletBase {
-    constructor(app, gameId, desc) {
+    static CARD_STATE = {
+        ask: 'ask',
+        valid: 'valid',
+        invalid: 'invalid',
+    }
+    constructor(app, gameId, desc, options) {
         super(app,  gameId || 'GameBase')
+
+        this.options = options || {}
         this.desc = desc || {}
         this.title = this.desc.title || 'Безымянная игра'
         this.logo = this.desc.logo || undefined
@@ -78,7 +84,7 @@ class GameBase extends AppletBase {
             elemLogo.appendChild(img)
         }
 
-        this.maxTests = 5
+        this.maxTests = this.options.maxTests || 5
         this.score = this.readOption('score', 0)
         this.scoreLast = this.readOption('scoreLast', 0)
         this.started = this.readOption('started', 0)
@@ -98,14 +104,69 @@ class GameBase extends AppletBase {
         this.intro()
     }
     _initSlider() {
-        let sld
+        let con
+
         if (this.rootElem.classList.contains('slider')) {
-            sld = this.rootElem
+            con = this.rootElem
         } else {
-            sld = this.rootElem.querySelector('.slider')
+            con = this.rootElem.querySelector('.slider')
         }
-        if (!sld) return
-        this.slider = WfUI.Slider(sld)
+
+        if (!con)
+            return
+
+        const cardElem = con.querySelector('.slide[data-name="card"]')
+        const items = [cardElem]
+        let lastElem = cardElem
+
+        for (let i=2; i <= this.maxTests; i++) {
+            const newElem = cardElem.cloneNode(true)
+            newElem.setAttribute('data-name', `card${i}`)
+            lastElem.after(newElem)
+            lastElem = newElem
+            items.push(lastElem)
+        }
+
+        con.querySelectorAll('.slide.card').forEach(elem => {
+            this._initCard(elem)
+        });
+
+        this.slider = WfUI.Slider(con)
+    }
+    _createButton(text, action, id) {
+        id = id || '0'
+        const bn = document.createElement('button')
+        bn.innerHTML = text || 'Кнопка'
+        bn.setAttribute('data-action', action || '.skip')
+        bn.setAttribute('data-id', id.toString())
+        return bn
+    }
+    _initCardButtons(con, card) {
+        con.innerHTML = '' // clear
+        con.appendChild(this._createButton('Да', '.answer|yes', 1))
+        con.appendChild(this._createButton('Нет', '.answer|no', 2))
+    }
+    _initCardContent(con, card) {
+        con.innerHTML = card.getAttribute('data-name')
+    }
+    _initCard(elem) {
+        let con = elem.querySelector('.buttons')
+        this._initCardButtons(con, elem)
+        con = elem.querySelector('.content')
+        this._initCardContent(con, elem)
+    }
+    _resetCards() {
+        this.rootElem.querySelectorAll('.slide.card').forEach(elem => {
+            this._setCardState(GameBase.CARD_STATE.ask, '', elem)
+        });
+    }
+    _setCardState(state, byButton, cardElem) {
+        if (!this.slider) return
+        byButton = byButton || ''
+        state = state || GameBase.CARD_STATE.ask
+        cardElem = cardElem || this.slider.currentSlide
+        cardElem.setAttribute('data-button', byButton)
+        cardElem.setAttribute('data-state', state)
     }
     _newRoundInstance() {
         return new RoundBase(this, this.maxTests)
@@ -149,9 +210,11 @@ class GameBase extends AppletBase {
         return !!this.round
     }
     intro() {
+        this._resetCards()
         this._refreshStat()
-        if (this.slider)
+        if (this.slider) {
             this.slider.first()
+        }
     }
     start() {
         if (this.isOn())
@@ -159,44 +222,53 @@ class GameBase extends AppletBase {
         this.round = this._newRoundInstance()
         this.round.init()
         this.setRoundsStarted(this.started + 1)
-        if (this.slider)
-            this.slider.select('round')
+        if (this.slider) {
+            this.slider.select('card')
+        }
     }
     finish() {
         if (!this.isOn())
             return
+
         const scoreOld = this.score
         this.round.finalize()
         this.setScoreLast(this.score - scoreOld)
         this.setRoundsFinished(this.finished + 1)
         const ms = this.round.duration
         this.setRoundsTime(this.duration + ms)
+
         if (this.slider)
             this.slider.select('summary')
+
         this.round = undefined
     }
-    answer(value) {
+    answer(value, bnElem) {
         if (!this.isOn())
             return
+
+        const bnId = bnElem ? bnElem.getAttribute('data-id') : ''
 
         if (value === undefined) {
             this.round.acceptSkip()
         } else if (this._validate(value)) {
+            this._setCardState(GameBase.CARD_STATE.valid, bnId)
             this.round.acceptPassed()
         } else {
+            this._setCardState(GameBase.CARD_STATE.invalid, bnId)
             this.round.acceptFailed()
         }
 
         if (!this.round.hasTests) {
             this.finish()
+        } else if (this.slider) {
+            this.slider.next()
         }
     }
     skip() {
         this.answer() // call without value
     }
     _validate(value) {
-        // NOTE: implement this logic in extends
-        return false
+        return false // implement logic in extends
     }
     _refreshStat() {
         const utils = WfUtils
@@ -244,12 +316,16 @@ class GameBase extends AppletBase {
 window['GameBase'] = GameBase // register
 
 class GameAliveOrDead extends GameBase {
-    // age from 5 to 90 yo
     constructor(app, desc) {
-        super(app, 'GameAliveOrDead', desc)
+        super(app, 'GameAliveOrDead', desc, {maxTests:5})
     }
     _validate(value) {
+        // TODO:
         return value === 'yes'
+    }
+    load() {
+        super.load()
+        // TODO: age from 5 to 90 yo
     }
 } // class GameAliveOrDead
 
