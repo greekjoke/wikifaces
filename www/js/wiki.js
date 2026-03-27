@@ -353,6 +353,19 @@ window.WfWiki = {
         }
     },
 
+    collectPeople(result, shuffle) {
+        const utils = window.WfUtils
+        let ar = []
+        if ('items' in result)
+            ar = result.items
+        else if (Array.isArray(result))
+            ar = result
+        ar = ar.map(x => x.person).flat()
+        if (shuffle)
+            ar = utils.shuffle(ar)
+        return ar
+    },
+
     sparql: async function(query, options) {
         const self = window.WfWiki
         const utils = window.WfUtils
@@ -741,11 +754,10 @@ ORDER BY ?randValue
 
         // final query
         const q = `
-SELECT ?personLabel ?birthDate ?deathDate ?thumburl
+SELECT ?personLabel ?birthDate ?deathDate ?thumburl ?year
 WHERE {
     { ${qRand} }
-    # OPTIONAL { ?person wdt:P569 ?birthDate } .
-    # OPTIONAL { ?person wdt:P570 ?deathDate } .
+    BIND(YEAR(?birthDate) AS ?year)
     ${codeLang}
     ${codeThumb}
 }

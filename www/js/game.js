@@ -405,23 +405,25 @@ class GameAliveOrDead extends GameBase {
     load(onReady) {
         const that = this
         const ui = window.WfUI
+        const wiki = window.WfWiki
         const cards = this.cards
         const superFunc = super.load
 
         WfWiki.sparql_person_live_or_dead(this.maxTests, this.ageMin, this.ageMax)
             .then(async result => {
-                if (!result) {
+                if (!result || !result.items) {
                     alert('Ошибка при получении данных.')
                     superFunc.call(that, onReady)
                     return
                 }
-                if (!result.items || result.items[0].person.length < cards.length) {
+
+                const list = wiki.collectPeople(result.items, true)
+
+                if (list.length < cards.length) {
                     alert('Получено недостаточно данных.')
                     superFunc.call(that, onReady)
                     return
                 }
-
-                const list = result.items[0].person
 
                 for (let i=0; i < cards.length; i++) {
                     const item = list[i]
