@@ -28,6 +28,9 @@
         <div class="face-slot">
             <img src="" loading="lazy" />
             <div class="details">some info about this photo</div>
+            <div class="image-toolbar">
+                <span class="button bn-fit" data-action=":fit_mode" title="Вписать в область просмотра">🔲</span>
+            </div>
         </div>
     </script>
 
@@ -70,7 +73,7 @@
     <!-- image viewer menu -->
     <script type="text/template" id="tpl-layout-viewer" data-title="Просмотр">
         <div id="image-viewer" class="pa1">show image here...</div>
-        <div class="image-editor-sidebar">
+        <div class="image-editor-sidebar image-toolbar">
             <span class="button bn-edit" data-action=".edit" title="Редактировать">⚙️</span>
             <span class="button bn-orig" data-action=".orig" title="Оригинальный размер">🔳</span>
             <span class="button bn-fit" data-action=".fit" title="Вписать в область просмотра">🔲</span>
@@ -157,6 +160,7 @@
                         <button data-action=".intro">К началу</button>
                     </div>
                 </div>
+                <div class="results-log"></div>
             </div>
         </div>
     </script>

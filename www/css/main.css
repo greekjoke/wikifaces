@@ -43,6 +43,9 @@ button, .button {
     cursor: pointer;
     user-select: none;
 }
+button img, .button img {
+    pointer-events: none;
+}
 
 button {
     padding: 2px 5px;
@@ -176,6 +179,7 @@ body[data-layout="main"] #back {
     background-color: rgba(0, 0, 0, 0.4);
     padding-left: 50%;
     padding-top: 120px;
+    z-index: 99;
 }
 #modal-box {
     min-width: 320px;

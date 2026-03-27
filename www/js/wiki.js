@@ -90,7 +90,7 @@ window.WfWiki = {
 
         const cache = window.WfLocalCache
         const cacheKey = self.getFileCacheKey(fileNameOrUri)
-        const cachedValue = cache.get(cacheKey, undefined, cache.Period.Infinite)
+        const cachedValue = cache.get(cacheKey)
 
         return cachedValue
     },
@@ -102,7 +102,7 @@ window.WfWiki = {
             info['extra'] = data
             const cache = window.WfLocalCache
             const cacheKey = self.getFileCacheKey(fileNameOrUri)
-            const cachingResult = cache.set(cacheKey, info)
+            const cachingResult = cache.set(cacheKey, info, cache.Period.Infinite)
             return true
         }
     },
@@ -119,7 +119,7 @@ window.WfWiki = {
         const url = `${self.site}/w/api.php?action=query&origin=*&prop=imageinfo&format=json&titles=File:${title}&iiprop=url|size|mime|bitdepth&iiurlwidth=500`
         const cache = window.WfLocalCache
         const cacheKey = self.getFileCacheKey(fileTitle)
-        const cachedValue = cache.get(cacheKey, false, cache.Period.Infinite)
+        const cachedValue = cache.get(cacheKey)
 
         if (cachedValue) {
             console.log('requestFileInfo: found cached value')
@@ -130,8 +130,7 @@ window.WfWiki = {
         if (!data)
             return
 
-        const cachingResult = cache.set(cacheKey, data)
-        console.log('requestFileInfo: cachingResult', fileTitle, data)
+        cache.set(cacheKey, data, cache.Period.Infinite)
         return data
     },
 
@@ -139,7 +138,7 @@ window.WfWiki = {
         const self = window.WfWiki
         const cache = window.WfLocalCache
         const cacheKey = `wiki.requestLaureates:${page}`
-        const cachedValue = cache.get(cacheKey, false, cache.Period.Day*20)
+        const cachedValue = cache.get(cacheKey)
 
         if (cachedValue) {
             console.log('requestLaureates: found cached value')
@@ -160,7 +159,7 @@ window.WfWiki = {
             if (headerSize >= 5) {
                 const res = self.parseTable(tab)
                 if (res) {
-                    const cachingResult = cache.set(cacheKey, res)
+                    const cachingResult = cache.set(cacheKey, res, cache.Period.Day*20)
                     console.log('requestLaureates: cachingResult', cachingResult)
                     return res
                 }
@@ -368,7 +367,7 @@ window.WfWiki = {
         const cacheKey = options.noCache ? false : `sparql:${hashStr}`
 
         if (cacheKey) {
-            const cachedValue = cache.get(cacheKey, false, cache.Period.Day * 20)
+            const cachedValue = cache.get(cacheKey)
             if (cachedValue) {
                 console.log('sparql: found cached value')
                 return cachedValue
@@ -380,7 +379,7 @@ window.WfWiki = {
         const res = await self.request(uri)
 
         if (res && cacheKey)
-            cache.set(cacheKey, res)
+            cache.set(cacheKey, res, cache.Period.Day*20)
 
         return res
     },
@@ -393,8 +392,7 @@ window.WfWiki = {
         const cacheKey = `wiki.requestLaureates:${cacheId}`
 
         if (cacheId) {
-            const cacheExpireIn = options.cacheExpireIn || (cache.Period.Day * 20)
-            const cachedValue = cache.get(cacheKey, false, cacheExpireIn)
+            const cachedValue = cache.get(cacheKey)
             if (cachedValue) {
                 console.log(`${cacheId}: found cached value`)
                 return cachedValue
@@ -459,8 +457,10 @@ window.WfWiki = {
             out.items.forEach(x => { x.person.reverse() })
         }
 
-        if (out && cacheId)
-            cache.set(cacheKey, out)
+        if (out && cacheId) {
+            const cacheExpireIn = options.cacheExpireIn || (cache.Period.Day*20)
+            cache.set(cacheKey, out, cacheExpireIn)
+        }
 
         return out
     },
@@ -579,25 +579,39 @@ LIMIT 500
         })
     },
 
-    sparql_richest: async function() {
+    sparql_richest: async function(num) {
         const codeThumb = this._sparql_thumb_code()
         const codeLang = this._sparql_label_code()
-        const q = `
-SELECT ?personLabel
-  (SAMPLE(?netWorth) as ?netWorth)
-  (SAMPLE(?thumburl) as ?thumburl)
+        num = num || 100
+
+        // subquery
+        const qSub = `
+SELECT ?person
+    (SAMPLE(?netWorth) as ?netWorth)
+    (SAMPLE(?image) as ?image)
 WHERE {
   ?person wdt:P31 wd:Q5 ;  # instance of human
           wdt:P1559 ?name ;  # has name
+          wdt:P27 ?ctz;
           wdt:P18 ?image ; # has a photo
           wdt:P2218 ?netWorth. # has net worth property
-  ${codeLang}
-  ${codeThumb}
 }
-GROUP BY ?personLabel
+GROUP BY ?person
 ORDER BY DESC(?netWorth)
-LIMIT 100
+LIMIT ${num}
 `
+
+        // final query
+        const q = `
+SELECT ?personLabel ?netWorth ?thumburl
+WHERE {
+    { ${qSub} }
+    ${codeLang}
+    ${codeThumb}
+}
+ORDER BY DESC(?netWorth)
+`
+
         const cacheId = `sparql_richest:0`
         return await this._sparql_query_wrapper(cacheId, q, {
             name: 'personLabel',
@@ -608,10 +622,12 @@ LIMIT 100
     sparql_serial_killer: async function() {
         const codeLang = this._sparql_label_code()
         const codeThumb = this._sparql_thumb_code()
-        const q = `
-SELECT ?personLabel
+
+        // subquery
+        const qSub = `
+SELECT ?person
+    (SAMPLE(?image) as ?image)
     (SAMPLE(?victimCount) as ?victimCount)
-    (SAMPLE(?thumburl) as ?thumburl)
     (SAMPLE(?year) as ?year)
 WHERE {
   ?person wdt:P31 wd:Q5; # is human
@@ -619,17 +635,26 @@ WHERE {
           wdt:P569 ?birthDate;
           wdt:P106 ?occupation; # has occupation info
           wdt:P1345 ?victimCount. # number of victims
-  BIND(YEAR(?birthDate) AS ?year)
-  FILTER(?year > 1870)
   VALUES ?occupation { wd:Q484188 }  # occupation is "serial killer"
-  FILTER(?victimCount > 1)
-  ${codeLang}
-  ${codeThumb}
+  BIND(YEAR(?birthDate) AS ?year)
+  FILTER(?year > 1870 && ?victimCount > 1)
 }
-GROUP BY ?personLabel
+GROUP BY ?person
 ORDER BY DESC(?victimCount) ?personLabel
 LIMIT 100
 `
+
+        // final query
+        const q = `
+SELECT ?personLabel ?victimCount ?thumburl ?year
+WHERE {
+    { ${qSub} }
+    ${codeLang}
+    ${codeThumb}
+}
+ORDER BY DESC(?victimCount) ?personLabel
+`
+
         const cacheId = `sparql_serial_killer:0`
         return await this._sparql_query_wrapper(cacheId, q, {
             name: 'personLabel',
@@ -652,7 +677,7 @@ LIMIT 100
         const codeRand = this._sparql_rand_code()
         const countries = this._sparql_countries({
             shuffle: true,
-            take: 20
+            take: 10
         })
         const codeCountries = countries.join(' ')
         const pastDate = new Date(tCur)
@@ -759,6 +784,7 @@ LIMIT ${num}
         const wiki = window.WfWiki
         const cache = window.WfLocalCache
         const cacheKey = `wiki.Person:${pageTitle}`
+        const cacheExpire = cache.Period.Day * 15
         let colPerson = {}
         let needLoad = true
 
@@ -799,12 +825,12 @@ LIMIT ${num}
                 }
             }
 
-            cache.set(cacheKey, colPerson)
+            cache.set(cacheKey, colPerson, cacheExpire)
             needLoad = false
             return true
         }
 
-        const cachedValue = cache.get(cacheKey, false, cache.Period.Day*15)
+        const cachedValue = cache.get(cacheKey)
         if (cachedValue) {
             colPerson = cachedValue
             needLoad = false

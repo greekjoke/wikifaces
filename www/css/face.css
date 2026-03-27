@@ -92,3 +92,43 @@ body:not([data-option-face-details="true"]) .face-slot .details {
 .photo-prefer-height .face-slot-wrapper {
     height: 100%;
 }
+
+.image-toolbar {
+    position: absolute;
+    z-index: 1;
+    left: -3em;
+    transition-property: left;
+    transition-duration: 0.25s;
+    transition-timing-function: ease-out;
+}
+.face-slot:hover .image-toolbar {
+    left: 0;
+}
+.image-toolbar .button {
+    width: 2em;
+    height: 2em;
+    text-indent: -999px;
+    background-size: 2em 2em;
+    background-repeat: no-repeat;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: inline-block;
+}
+.image-toolbar .button:hover {
+    background-color: rgba(255, 255, 180, 0.5) !important;
+}
+
+.bn-fit {
+    background-image: url('../media/icon-frame-outer.svg');
+}
+.bn-edit {
+    background-image: url('../media/icon-edit.svg');
+}
+.bn-orig {
+    background-image: url('../media/icon-frame.svg');
+}
+.bn-zoom-in {
+    background-image: url('../media/icon-zoom-in.svg');
+}
+.bn-zoom-out {
+    background-image: url('../media/icon-zoom-out.svg');
+}

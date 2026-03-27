@@ -220,13 +220,34 @@ window.WfApp = function(settings) {
             localStorage.clear()
             document.location.href = ''
         },
-        changeUserOption: function() {
-            const optName = this.getAttribute('data-name')
+        changeUserOption: function(bn) {
+            const optName = bn.getAttribute('data-name')
             if (!optName) return
             const all = globalApplet.readOption('user-options') || {}
-            all[optName] = !!this.checked
+            all[optName] = !!bn.checked
             globalApplet.saveOption('user-options', all)
             updateUserOptions()
+        },
+        fit_mode(bn) {
+            const ui = window.WfUI
+            const view = bn.closest('.face-slot')
+            if (!view) return
+            const img = view.querySelector('img')
+            if (!img) return
+            if (img.classList.contains('fit-mode')) {
+                const pad = parseFloat(img.getAttribute('data-pad'))
+                img.classList.remove('fit-mode')
+                ui.updateImageScale(img, pad)
+            } else {
+                const iw = img.naturalWidth
+                const ih = img.naturalHeight
+                const rc = view.getBoundingClientRect()
+                const z = Math.min(rc.width / iw, rc.height / ih)
+                img.style.left = `0px`
+                img.style.top = `0px`
+                img.style.transform = `scale(${z})`
+                img.classList.add('fit-mode')
+            }
         },
         initLayout_settings: function(con) {
             con.querySelectorAll('[data-name]').forEach(elem => {

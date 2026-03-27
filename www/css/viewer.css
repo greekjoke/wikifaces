@@ -30,13 +30,15 @@
 .image-editor-sidebar {
     display: none;
 }
+#image-viewer .image-toolbar {
+    display: none;
+}
 #image-viewer .image-editor-sidebar {
     position: absolute;
     display: block;
-    /* width: 2em; */
-    /* background: rgba(0, 0, 0, 0.2); */
-    /* border-bottom-right-radius: 5px; */
     padding: 4px;
+    transition-property: none;
+    left: 0;
 }
 .image-editor-sidebar .button {
     display: block;
@@ -76,37 +78,11 @@
 #image-viewer .face-slot.edit-mode > img.dragging {
     cursor: grab;
 }
-.image-editor-sidebar .button {
-    width: 2em;
-    height: 2em;
-    text-indent: -999px;
-    background-size: 2em 2em;
-    background-repeat: no-repeat;
-    background-color: rgba(255, 255, 255, 0.2);
-}
-.image-editor-sidebar .button:hover {
-    background-color: rgba(255, 255, 180, 0.5) !important;
-}
-#image-viewer .bn-edit {
-    background-image: url('../media/icon-edit.svg');
-}
-#image-viewer .bn-orig {
-    background-image: url('../media/icon-frame.svg');
-}
-#image-viewer .bn-fit {
-    background-image: url('../media/icon-frame-outer.svg');
-}
-#image-viewer .bn-zoom-in {
-    background-image: url('../media/icon-zoom-in.svg');
-}
-#image-viewer .bn-zoom-out {
-    background-image: url('../media/icon-zoom-out.svg');
-}
-#image-viewer .bn-save {
+.bn-save {
     background-image: url('../media/icon-ok.svg');
     background-color: rgba(180, 255, 180, 0.5);
 }
-#image-viewer .bn-cancel {
+.bn-cancel {
     background-image: url('../media/icon-cancel.svg');
     background-color: rgba(255, 180, 180, 0.5);
 }
