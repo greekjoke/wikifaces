@@ -386,7 +386,7 @@ class GameAliveOrDead extends GameBase {
         con.innerHTML = '' // clear
         con.appendChild(this._createButton('☘️ Жив', '.answer|live', 1))
         con.appendChild(this._createButton('💀 Мёртв', '.answer|dead', 2))
-        con.appendChild(this._createButton('➡️ Дальше'))
+        con.appendChild(this._createButton('Дальше ➡️'))
     }
     _validate(value) {
         const card = this.slider.currentSlide

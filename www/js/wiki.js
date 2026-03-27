@@ -729,8 +729,8 @@ LIMIT ${num}
 
         const cache = window.WfLocalCache
         const hashStr = utils.simpleHash(q)
-        // const cacheId = `sparql_person_live_or_dead:0` // DEBUG
-        const cacheId = `sparql_person_live_or_dead:${hashStr}`
+        const cacheId = `sparql_person_live_or_dead:0` // DEBUG
+        // const cacheId = `sparql_person_live_or_dead:${hashStr}`
 
         return await this._sparql_query_wrapper(cacheId, q, {
             name: 'personLabel',
