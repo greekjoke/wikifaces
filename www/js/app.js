@@ -302,7 +302,6 @@ window.WfApp = function(settings) {
                 throw new Error('unknown game class: ' + cls)
             const inst = new window[cls](app, item)
             applet.push(inst)
-            inst.load()
         }
     }
 
@@ -319,8 +318,11 @@ class AppletBase {
         if (!this.rootElem && this.appletId !== 'default')
             throw new Error('content container not found')
     }
-    load() {
+    load(onReady) {
         // NOTE: load some data
+        if (onReady) {
+            onReady.call(this)
+        }
     }
     render() {
         // NOTE: visualize data
@@ -371,8 +373,8 @@ class CollectionExplorer extends AppletBase {
     clear() {
         this.listElem.innerHTML = '' // clear view
     }
-    load() {
-        super.load();
+    load(onReady) {
+        // super.load()
 
         const app = this.app
         const that = this
@@ -406,6 +408,7 @@ class CollectionExplorer extends AppletBase {
             that.updatePaginator()
 
             app.hideProgress()
+            super.load(onReady)
         })
     }
     async render() {

@@ -15,6 +15,12 @@
     display: inline;
     width: 20%;
 }
+.slide .top-pic {
+    text-align: center;
+}
+.slide .top-pic img {
+    width: 300px;
+}
 .slide .logo > img {
     width: 100%;
     height: auto;
@@ -24,9 +30,19 @@
     font-size: 1.24em;
     color: darkblue;
 }
+.slide .results-block .info {
+    text-align: center;
+    font-size: 1.74em;
+    color: darkgreen;
+    background-image: radial-gradient(circle at center, gold, #aaa);
+}
 .slide .stat {
     margin-bottom: 1em;
     color: #555;
+}
+.slide .results-block .stat {
+    color: darkblue;
+    font-size: 1.24em;
 }
 .stat-line {
     text-align: center;
@@ -44,6 +60,11 @@
     padding-left: 1em;
     vertical-align: top;
     width: 40%;
+}
+.results-block .stat-line > .text,
+.results-block .stat-line > .num
+{
+    width: 50%;
 }
 .slide .buttons {
     width: 50%;
@@ -92,4 +113,9 @@
 .slide.card[data-state="invalid"][data-button="4"] button[data-id="4"]
 {
     background-color: #d55;
+}
+
+/* face images */
+[data-layout="game-launcher"] .face-slot-wrapper {
+    padding-bottom: 1em;
 }

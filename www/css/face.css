@@ -84,3 +84,11 @@
 body:not([data-option-face-details="true"]) .face-slot .details {
     display: none;
 }
+
+.photo-prefer-height .face-slot {
+    width: auto;
+    height: 100%;
+}
+.photo-prefer-height .face-slot-wrapper {
+    height: 100%;
+}

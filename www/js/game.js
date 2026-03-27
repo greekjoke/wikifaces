@@ -10,6 +10,7 @@ class RoundBase {
         this.passed = 0 // passed tests
         this.skipped = 0 // skipped test
         this.cur = 0 // cur test index
+        this.score = 0
     }
     get testIndex() { return this.cur }
     get passedTestsCount() { return this.passed }
@@ -33,9 +34,9 @@ class RoundBase {
         this.created = new Date()
     }
     finalize() {
-        const score = this._resultScore()
-        if (score > 0) {
-            this.game.addScore(score)
+        this.score = this._resultScore()
+        if (this.score > 0) {
+            this.game.addScore(this.score)
         }
     }
     next() {
@@ -92,6 +93,7 @@ class GameBase extends AppletBase {
         this.duration = this.readOption('duration', 0)
         this.round = undefined // RoundBase
         this.slider = undefined
+        this.beforeSlideDelay = 1500
 
         const tmp = this._newRoundInstance()
         const numTests = tmp.numTests || 'бесконечного числа'
@@ -116,7 +118,6 @@ class GameBase extends AppletBase {
             return
 
         const cardElem = con.querySelector('.slide[data-name="card"]')
-        const items = [cardElem]
         let lastElem = cardElem
 
         for (let i=2; i <= this.maxTests; i++) {
@@ -124,7 +125,6 @@ class GameBase extends AppletBase {
             newElem.setAttribute('data-name', `card${i}`)
             lastElem.after(newElem)
             lastElem = newElem
-            items.push(lastElem)
         }
 
         con.querySelectorAll('.slide.card').forEach(elem => {
@@ -132,6 +132,13 @@ class GameBase extends AppletBase {
         });
 
         this.slider = WfUI.Slider(con)
+    }
+    get cards() {
+        const items = []
+        this.rootElem.querySelectorAll('.slide.card').forEach(elem => {
+            items.push(elem)
+        });
+        return items
     }
     _createButton(text, action, id) {
         id = id || '0'
@@ -172,13 +179,19 @@ class GameBase extends AppletBase {
         return new RoundBase(this, this.maxTests)
     }
     setIntroInfo(text) {
-        const elem = this.rootElem.querySelector('.slide[data-name="intro"] > .info, .info')
+        const elem = this.rootElem.querySelector('.slide[data-name="intro"] .info')
         if (elem) {
             elem.innerHTML = text
         }
     }
     setIntroStat(text) {
-        const elem = this.rootElem.querySelector('.slide[data-name="intro"] > .stat, .stat')
+        const elem = this.rootElem.querySelector('.slide[data-name="intro"] .stat')
+        if (elem) {
+            elem.innerHTML = text
+        }
+    }
+    setSummaryStat(text) {
+        const elem = this.rootElem.querySelector('.slide[data-name="summary"] .stat')
         if (elem) {
             elem.innerHTML = text
         }
@@ -210,7 +223,6 @@ class GameBase extends AppletBase {
         return !!this.round
     }
     intro() {
-        this._resetCards()
         this._refreshStat()
         if (this.slider) {
             this.slider.first()
@@ -219,12 +231,18 @@ class GameBase extends AppletBase {
     start() {
         if (this.isOn())
             return
-        this.round = this._newRoundInstance()
-        this.round.init()
-        this.setRoundsStarted(this.started + 1)
-        if (this.slider) {
-            this.slider.select('card')
-        }
+        const app = this.app
+        app.showProgress()
+        this._resetCards()
+        this.load(function() {
+            this.round = this._newRoundInstance()
+            this.round.init()
+            this.setRoundsStarted(this.started + 1)
+            if (this.slider)
+                this.slider.select('card')
+            this.render()
+            app.hideProgress()
+        })
     }
     finish() {
         if (!this.isOn())
@@ -236,6 +254,7 @@ class GameBase extends AppletBase {
         this.setRoundsFinished(this.finished + 1)
         const ms = this.round.duration
         this.setRoundsTime(this.duration + ms)
+        this._refreshSummary()
 
         if (this.slider)
             this.slider.select('summary')
@@ -246,9 +265,11 @@ class GameBase extends AppletBase {
         if (!this.isOn())
             return
 
+        const that = this
         const bnId = bnElem ? bnElem.getAttribute('data-id') : ''
+        const skip = value === undefined
 
-        if (value === undefined) {
+        if (skip) {
             this.round.acceptSkip()
         } else if (this._validate(value)) {
             this._setCardState(GameBase.CARD_STATE.valid, bnId)
@@ -258,11 +279,16 @@ class GameBase extends AppletBase {
             this.round.acceptFailed()
         }
 
-        if (!this.round.hasTests) {
-            this.finish()
-        } else if (this.slider) {
-            this.slider.next()
-        }
+        const showNext = that.round.hasTests
+        const delay = skip ? 0 : (this.beforeSlideDelay || 0)
+
+        setTimeout(function() {
+            if (!showNext) {
+                that.finish()
+            } else if (that.slider) {
+                that.slider.next()
+            }
+        }, delay)
     }
     skip() {
         this.answer() // call without value
@@ -270,17 +296,22 @@ class GameBase extends AppletBase {
     _validate(value) {
         return false // implement logic in extends
     }
+    _createStatLine(text, value) {
+        if (typeof value === 'number') {
+            value = Math.round(value)
+        }
+        return '<div class="stat-line">' +
+            `<span class="text">${text}</span><span class="num">${value}</span>` +
+            '</div>'
+    }
     _refreshStat() {
         const utils = WfUtils
+        const that = this
         let out = []
 
         const line = function(text, value) {
-            if (typeof value === 'number') {
-                value = Math.round(value)
-            }
-            out.push('<div class="stat-line">' +
-                `<span class="text">${text}</span><span class="num">${value}</span>` +
-                '</div>')
+            const s = that._createStatLine(text, value)
+            out.push(s)
         }
 
         if (this.score) {
@@ -311,6 +342,36 @@ class GameBase extends AppletBase {
             this.setIntroStat('')
         }
     }
+    _refreshSummary() {
+        const utils = WfUtils
+        const that = this
+        const r = this.round
+        const sec = 0.001 * r.duration
+        let out = []
+
+        const line = function(text, value) {
+            const s = that._createStatLine(text, value)
+            out.push(s)
+        }
+
+        line('Ответы', `${r.passedTestsCount} / ${r.totalTestsCount}`)
+        if (r.passedTestsCount === r.totalTestsCount) {
+            const bonus = RoundBase.PRIZE_PER_ROUND
+            const cleanScore = r.score - bonus
+            line('Очки за ответы', cleanScore)
+            line('Бонус', bonus)
+        } else {
+            line('Очки за ответы', r.score)
+        }
+        line('Итоговые очки', `+${r.score}`)
+        line('Затраченное время', utils.durationToText(sec))
+
+        if (out) {
+            this.setSummaryStat(out.join(''))
+        } else {
+            this.setSummaryStat('')
+        }
+    }
 } // class GameBase
 
 window['GameBase'] = GameBase // register
@@ -318,14 +379,69 @@ window['GameBase'] = GameBase // register
 class GameAliveOrDead extends GameBase {
     constructor(app, desc) {
         super(app, 'GameAliveOrDead', desc, {maxTests:5})
+        this.ageMin = 25
+        this.ageMax = 95
+    }
+    _initCardButtons(con, card) {
+        con.innerHTML = '' // clear
+        con.appendChild(this._createButton('☘️ Жив', '.answer|live', 1))
+        con.appendChild(this._createButton('💀 Мёртв', '.answer|dead', 2))
+        con.appendChild(this._createButton('➡️ Дальше'))
     }
     _validate(value) {
-        // TODO:
-        return value === 'yes'
+        const card = this.slider.currentSlide
+        if (!card.gameData) {
+            console.warn('game data not found in current card')
+            return false
+        }
+        const isDead = !!card.gameData.deathDate
+        if ((value == 'live' && !isDead) ||
+            (value == 'dead' && isDead))
+        {
+            return true
+        }
+        return false
     }
-    load() {
-        super.load()
-        // TODO: age from 5 to 90 yo
+    load(onReady) {
+        const that = this
+        const ui = window.WfUI
+        const cards = this.cards
+        const superFunc = super.load
+
+        WfWiki.sparql_person_live_or_dead(this.maxTests, this.ageMin, this.ageMax)
+            .then(async result => {
+                if (!result) {
+                    alert('Ошибка при получении данных.')
+                    superFunc.call(that, onReady)
+                    return
+                }
+                if (!result.items || result.items[0].person.length < cards.length) {
+                    alert('Получено недостаточно данных.')
+                    superFunc.call(that, onReady)
+                    return
+                }
+
+                const list = result.items[0].person
+
+                for (let i=0; i < cards.length; i++) {
+                    const item = list[i]
+                    const card = cards[i]
+                    const con = card.querySelector('.content')
+
+                    card.gameData = item // save into the card
+                    con.innerHTML = '' // clear
+
+                    const opt = {
+                        container: con,
+                        pad: 1.6
+                    }
+
+                    const img = await ui.addFaceSlot(item.page, opt)
+                    ui.bindImageViewer(img)
+                }
+
+                superFunc.call(that, onReady)
+            })
     }
 } // class GameAliveOrDead
 

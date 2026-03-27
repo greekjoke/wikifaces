@@ -141,7 +141,7 @@ window.WfUtils = {
 
     loadDataFile: async function(url) {
         try {
-            console.log('load data file', url)
+            console.log('load data file:', url)
             const response = await fetch(url)
             if (!response.ok)
                 throw new Error(`http status: ${response.status}`)
