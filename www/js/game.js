@@ -343,10 +343,12 @@ class GameBase extends AppletBase {
         }
     }
     _refreshSummary() {
-        const utils = WfUtils
         const that = this
+        const utils = WfUtils
+        const sumElem = this.rootElem.querySelector('.slide[data-name="summary"]')
         const r = this.round
         const sec = 0.001 * r.duration
+        let grade = 0
         let out = []
 
         const line = function(text, value) {
@@ -360,11 +362,15 @@ class GameBase extends AppletBase {
             const cleanScore = r.score - bonus
             line('Очки за ответы', cleanScore)
             line('Бонус', bonus)
+            grade = 2
         } else {
             line('Очки за ответы', r.score)
+            grade = r.score > 0 ? 1 : 0
         }
         line('Итоговые очки', `+${r.score}`)
         line('Затраченное время', utils.durationToText(sec))
+
+        sumElem.setAttribute('data-grade', grade)
 
         if (out) {
             this.setSummaryStat(out.join(''))
@@ -373,12 +379,12 @@ class GameBase extends AppletBase {
         }
 
         // collapse details
-        this.rootElem.querySelectorAll('details').forEach(elem => {
+        sumElem.querySelectorAll('details').forEach(elem => {
             elem.removeAttribute('open')
         })
 
         // refresh details
-        const logElem = this.rootElem.querySelector('.slide[data-name="summary"] .results-tab')
+        const logElem = sumElem.querySelector('.results-tab')
         if (logElem) {
             this._refreshLog(logElem)
         }
@@ -521,7 +527,7 @@ class GameAliveOrDead extends GameBase {
         }
 
         if (img) img.src = data.photo
-        if (imgLink) imgLink.href = pers.link
+        if (imgLink) imgLink.href = data.photo
         if (personBio) {
             const a = 'Дата рождения: ' + dateFmt(data.birthDate)
             const b = data.deathDate ?

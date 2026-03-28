@@ -120,6 +120,14 @@
     background-color: #d55;
 }
 
+/* grade */
+.slide[data-name="summary"][data-grade="1"] .top-pic img {
+    filter: hue-rotate(50deg) brightness(1.0);
+}
+.slide[data-name="summary"][data-grade="2"] .top-pic img {
+    filter: hue-rotate(170deg) brightness(1.0);
+}
+
 /* face images */
 [data-layout="game-launcher"] .face-slot-wrapper {
     padding-bottom: 1em;
