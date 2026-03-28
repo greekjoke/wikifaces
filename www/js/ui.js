@@ -128,6 +128,8 @@ window.WfUI = {
 
             if (!faceInfo) {
                 view.classList.add('face-detection')
+                await utils.sleep(50) // wait for render
+
                 const det = window.WfDetector(img, options.detCustomize)
                 faceInfo = await det.detect()
                 if (!faceInfo) {
