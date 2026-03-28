@@ -140,7 +140,7 @@
                     </div>
                 </div>
                 <div class="flex-center sept pa1">
-                    <div class="buttons w50">
+                    <div class="buttons w50 tac">
                         <button data-action=".start">Старт</button>
                     </div>
                 </div>
@@ -156,12 +156,32 @@
                     <div class="stat">some statistics</div>
                 </div>
                 <div class="flex-center sept pa1">
-                    <div class="buttons w50">
+                    <div class="buttons w50 tac">
                         <button data-action=".intro">К началу</button>
                     </div>
                 </div>
-                <div class="results-log"></div>
+                <div class="results-log">
+                    <details>
+                        <summary>Детали раунда</summary>
+                        <div class="results-tab">cards & answers details...</div>
+                    </details>
+                </div>
             </div>
+        </div>
+    </script>
+
+    <script type="text/template" id="tpl-game-log-person">
+        <div class="game-log-item flex-row">
+            <div class="person-icon flex-center">
+                <a href="" class="icon-link"><img src="" target="_blank" /></a>
+            </div>
+            <div class="person-info flex-column">
+                <div class="person-name">
+                    <span>Name</span><a href="#" target="_blank" class="icon-link">🔗</a>
+                </div>
+                <div class="person-bio"></div>
+            </div>
+            <div class="answer-info"></div>
         </div>
     </script>
 

@@ -371,12 +371,35 @@ class GameBase extends AppletBase {
         } else {
             this.setSummaryStat('')
         }
+
+        const logElem = this.rootElem.querySelector('.slide[data-name="summary"] .results-tab')
+        if (logElem) {
+            this._refreshLog(logElem)
+        }
+    }
+    _refreshLog(con) {
+        con.innerHTML = '' // clear
+    }
+    _createLogItem(tplId) {
+        tplId = tplId || 'tpl-game-log-person'
+        const tpl = document.getElementById(tplId)
+        if (!tpl)
+            throw new Error('invalid log item template id: ' + tplId)
+        const div = document.createElement('div')
+        div.classList.add('game-log-item-wrapper')
+        div.innerHTML = tpl.innerHTML
+        return div
     }
 } // class GameBase
 
 window['GameBase'] = GameBase // register
 
 class GameAliveOrDead extends GameBase {
+    static BUTTONS = {
+        0: '--',
+        1: '☘️ Жив',
+        2: '💀 Мёртв',
+    }
     constructor(app, desc) {
         super(app, 'GameAliveOrDead', desc, {maxTests:5})
         this.ageMin = 25
@@ -384,8 +407,10 @@ class GameAliveOrDead extends GameBase {
     }
     _initCardButtons(con, card) {
         con.innerHTML = '' // clear
-        con.appendChild(this._createButton('☘️ Жив', '.answer|live', 1))
-        con.appendChild(this._createButton('💀 Мёртв', '.answer|dead', 2))
+        const text1 = GameAliveOrDead.BUTTONS[1]
+        const text2 = GameAliveOrDead.BUTTONS[2]
+        con.appendChild(this._createButton(text1, '.answer|live', 1))
+        con.appendChild(this._createButton(text2, '.answer|dead', 2))
         con.appendChild(this._createButton('Дальше ➡️'))
     }
     _validate(value) {
@@ -409,7 +434,7 @@ class GameAliveOrDead extends GameBase {
         const cards = this.cards
         const superFunc = super.load
 
-        WfWiki.sparql_person_live_or_dead(this.maxTests, this.ageMin, this.ageMax)
+        wiki.sparql_person_live_or_dead(this.maxTests, this.ageMin, this.ageMax)
             .then(async result => {
                 if (!result || !result.items) {
                     alert('Ошибка при получении данных.')
@@ -419,7 +444,7 @@ class GameAliveOrDead extends GameBase {
 
                 const list = wiki.collectPeople(result.items, true)
 
-                if (list.length < cards.length) {
+                if (!list || list.length < cards.length) {
                     alert('Получено недостаточно данных.')
                     superFunc.call(that, onReady)
                     return
@@ -445,6 +470,67 @@ class GameAliveOrDead extends GameBase {
                 superFunc.call(that, onReady)
             })
     }
+    _refreshLog(con) {
+        super._refreshLog(con)
+
+        const that = this
+        const wiki = window.WfWiki
+
+        this.cards.forEach(card => {
+            const data = card.gameData
+            const pers = wiki.Person(data.page)
+            const itemElem = that._createLogItem()
+            that._initLogItem(card, itemElem, pers)
+            con.appendChild(itemElem)
+        })
+    }
+    _initLogItem(card, elem, pers) {
+        const utils = window.WfUtils
+        const data = card.gameData
+        const img = elem.querySelector('.person-icon img')
+        const imgLink = elem.querySelector('.person-icon a')
+        const personName = elem.querySelector('.person-name > span')
+        const personLink = elem.querySelector('.person-name > a')
+        const personBio = elem.querySelector('.person-bio')
+        const answerInfo = elem.querySelector('.answer-info')
+        const st = card.getAttribute('data-state')
+        const answerId = parseInt(card.getAttribute('data-button') || 0)
+
+        const dateFmt = function(s) {
+            return s ? s.substring(0, 10) : '--'
+        }
+
+        const yoFmt = function(birthDate) {
+            const now = new Date()
+            const birth = new Date(birthDate)
+            const years = now.getFullYear() - birth.getFullYear()
+            const w = utils.yoSuffix(years)
+            return `${years} ${w}`
+        }
+
+        if (st == GameBase.CARD_STATE.valid) {
+            elem.classList.add('answer-valid')
+        } else if (st == GameBase.CARD_STATE.invalid) {
+            elem.classList.add('answer-invalid')
+        }
+
+        if (img) img.src = data.photo
+        if (imgLink) imgLink.href = pers.link
+        if (personBio) {
+            const a = 'Дата рождения: ' + dateFmt(data.birthDate)
+            const b = data.deathDate ?
+                ('Дата смерти: ' + dateFmt(data.deathDate)) : yoFmt(data.birthDate)
+            personBio.innerHTML =
+                `<span class="birth-date">${a}</span>` +
+                `<span class="death-date">${b}</span>`
+        }
+        if (personName) personName.innerHTML = pers.name
+        if (personLink) personLink.href = pers.link
+        if (answerInfo) {
+            answerInfo.innerHTML = 'Ответ: ' + GameAliveOrDead.BUTTONS[answerId]
+        }
+    }
+
 } // class GameAliveOrDead
 
 window['GameAliveOrDead'] = GameAliveOrDead // register

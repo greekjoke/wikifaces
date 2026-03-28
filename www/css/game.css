@@ -1,5 +1,9 @@
 /* game styles */
 
+.slide .buttons.w50 { width: 50%; }
+.slide .buttons.w75 { width: 75%; }
+.slide button.w50 { width: 49%; }
+
 .slide .top-block {
     display: flex;
     flex-direction: row;
@@ -118,4 +122,54 @@
 /* face images */
 [data-layout="game-launcher"] .face-slot-wrapper {
     padding-bottom: 1em;
+}
+
+/* game log */
+.slide details {
+    color: #555;
+}
+.slide details > div {
+    width: 100%;
+}
+.slide summary {
+    cursor: pointer;
+    margin-bottom: 0.5em;
+}
+.birth-date,
+.death-date {
+    display: inline-block;
+    margin-right: 0.5em;
+}
+.death-date::before {
+    content: ' | ';
+}
+.game-log-item {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+.game-log-item .person-icon {
+    margin: 2px;
+    width: 2em;
+    height: 100%;
+}
+.game-log-item .person-info {
+    margin: 2px;
+    margin-left: 0.5em;
+    flex: 1;
+}
+.game-log-item .answer-info {
+    margin: 2px;
+    width: 20%;
+    border-left: 1px solid rgba(0, 0, 0, 0.2);
+    padding-left: 5px;
+}
+.game-log-item .person-icon img {
+    border: 1px solid #555;
+    width: 100%;
+    height: auto;
+}
+.game-log-item-wrapper.answer-valid {
+    background-color: #5d5;
+}
+.game-log-item-wrapper.answer-invalid {
+    background-color: #d55;
 }

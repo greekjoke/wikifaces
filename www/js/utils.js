@@ -23,6 +23,10 @@ window.WfUtils = {
         return (/Android|iPhone/i.test(navigator.userAgent))
     },
 
+    isLocalhost: function() {
+        return document.location.href.indexOf('/localhost') !== -1
+    },
+
     hasQueryKey: function(key) {
         return document.location.href.indexOf('?' + key + '=') != -1 ||
             document.location.href.indexOf('&' + key + '=') != -1
@@ -219,6 +223,14 @@ window.WfUtils = {
         }
 
         return out.join('')
+    },
+
+    yoSuffix: function(years) {
+        years = parseInt(years)
+        let w = 'лет'
+        if ((years % 10) === 1) w = 'год'
+        else if ((years % 10) < 5) w = 'года'
+        return w
     }
 
 }

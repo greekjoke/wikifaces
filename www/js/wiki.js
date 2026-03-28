@@ -681,6 +681,7 @@ ORDER BY DESC(?victimCount) ?personLabel
         ageMax = ageMax || 90
 
         const utils = WfUtils
+        const cache = window.WfLocalCache
         const tCur = new Date()
         const year = tCur.getFullYear()
         const yearMin = year - ageMax
@@ -764,10 +765,14 @@ WHERE {
 LIMIT ${num}
 `
 
-        const cache = window.WfLocalCache
-        const hashStr = utils.simpleHash(q)
-        // const cacheId = `sparql_person_live_or_dead:0` // DEBUG
-        const cacheId = `sparql_person_live_or_dead:${hashStr}`
+        let cacheId
+        if (utils.isLocalhost() && true) {
+            console.warn('[wiki] force to use last result')
+            cacheId = `sparql_person_live_or_dead:0` // DEBUG
+        } else {
+            const hashStr = utils.simpleHash(q)
+            cacheId = `sparql_person_live_or_dead:${hashStr}`
+        }
 
         return await this._sparql_query_wrapper(cacheId, q, {
             name: 'personLabel',
