@@ -466,6 +466,10 @@ window.WfWiki = {
             out = handler(res['results']['bindings'])
         }
 
+        if (options.reverseYear && out && out.items) {
+            out.items.reverse()
+        }
+
         if (options.reversePerson && out && out.items) {
             out.items.forEach(x => { x.person.reverse() })
         }
@@ -552,11 +556,12 @@ WHERE {
   ${codeThumb}
 }
 GROUP BY ?winnerLabel
-ORDER BY ?year ?winnerLabel
-LIMIT 500
+ORDER BY DESC(?year) ?winnerLabel
+LIMIT 100
 `
         const cacheId = `sparql_award:${prizeId}`
-        return await this._sparql_query_wrapper(cacheId, q, {name: 'winnerLabel'})
+        return await this._sparql_query_wrapper(cacheId, q,
+            {name: 'winnerLabel'}, { reverseYear: true })
     },
 
     sparql_president: async function(posId) {
@@ -583,7 +588,7 @@ WHERE {
 }
 GROUP BY ?name
 ORDER BY ASC(xsd:integer(?order))
-LIMIT 500
+LIMIT 100
 `
         const cacheId = `sparql_president:${posId}`
         return await this._sparql_query_wrapper(cacheId, q, {
