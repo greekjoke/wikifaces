@@ -7,6 +7,8 @@
 
 body {
     background: radial-gradient(ellipse at top, #ddd, #333);
+    background-repeat: no-repeat;
+    background-color: #888;
 }
 h2 {
     color: #555;
@@ -16,7 +18,7 @@ h2 {
 
 a.icon-link {
     text-decoration: none;
-    filter: hue-rotate(260deg) brightness(1.2);
+    /* filter: hue-rotate(260deg) brightness(1.2); */
 }
 
 label > input[type="checkbox"] {
@@ -29,7 +31,7 @@ label.user-option {
 }
 
 #content {
-    height: calc(100vh - 70px);
+    min-height: calc(100vh - 70px);
     position: relative;
 }
 #disclaimer {
@@ -198,8 +200,8 @@ body[data-layout="main"] #back {
 #modal-box {
     min-width: 320px;
     min-height: 50px;
-    width: 300px;
-    margin-left: -150px;
+    width: 320px;
+    margin-left: -160px;
     background-color: white;
     border: 1px solid black;
     border-radius: 5px;
@@ -238,7 +240,7 @@ body[data-layout="main"] #back {
 }
 .layout-wrapper button {
     width: 100%;
-    padding: 0.25em 3em;
+    padding: 0.25em 1.5em;
 }
 
 .progress-container {
@@ -263,22 +265,30 @@ body[data-layout="main"] #back {
 
 /* slider */
 .slider {
-    width: 35vw;
-    min-width: 320px;
+    /* width: 35vw; */
+    min-width: max(35vw, 320px);
+    max-width: min(100%, 640px);
     height: 100%;
+    min-height: calc(100vh - 114px);
     overflow: hidden;
     position: relative;
     box-sizing: border-box;
 }
 .slide {
-    position: absolute;
+    position: relative;
+    left: 0;
+    top: 0;
     box-sizing: border-box;
     background-color: #aaa;
     border: 1px solid #555;
     border-radius: 5px;
     width: 100%;
     height: 100%;
+    min-height: calc(100vh - 114px);
     padding: 1em;
+}
+.slide.transit-out {
+    position: absolute;
 }
 .slide.transit-right2left {
     animation: right2left 0.5s 1 ease-in-out;

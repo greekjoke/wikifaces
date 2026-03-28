@@ -5,9 +5,9 @@
     padding-bottom: 1em;
 }
 #modal-box:has(.layout-wrapper[data-layout="viewer"]) {
-    width: 80vw;
+    width: max(98vw, 320px);
     height: 100%;
-    margin-left: -40vw;
+    margin-left: min(-49vw, 160px);
 }
 #image-viewer {
     width: 100%;
@@ -21,7 +21,7 @@
 }
 #image-viewer .face-slot {
     width: auto;
-    max-width: 76vw;
+    max-width: 94vw;
     height: 100%;
 }
 #image-viewer .face-slot .details {

@@ -372,6 +372,12 @@ class GameBase extends AppletBase {
             this.setSummaryStat('')
         }
 
+        // collapse details
+        this.rootElem.querySelectorAll('details').forEach(elem => {
+            elem.removeAttribute('open')
+        })
+
+        // refresh details
         const logElem = this.rootElem.querySelector('.slide[data-name="summary"] .results-tab')
         if (logElem) {
             this._refreshLog(logElem)

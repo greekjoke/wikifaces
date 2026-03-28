@@ -78,6 +78,7 @@
 .slide.card {
     display: flex;
     flex-direction: column;
+    height: calc(100vh - 114px);
 }
 .slide.card.hide {
     display: none;
@@ -168,8 +169,8 @@
     height: auto;
 }
 .game-log-item-wrapper.answer-valid {
-    background-color: #5d5;
+    background-color: #7c7;
 }
 .game-log-item-wrapper.answer-invalid {
-    background-color: #d55;
+    background-color: #e88;
 }

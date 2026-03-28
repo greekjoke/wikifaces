@@ -443,6 +443,9 @@ window.WfUI = {
                 const slide = this.getByName(name)
                 const trans = options.transit_class || 'transit-right2left'
                 const delay = options.transit_delay || 550
+                const old = last
+                if (old)
+                    old.classList.add('transit-out')
                 slide.classList.remove('hide')
                 slide.classList.add(trans)
                 last = slide
@@ -452,6 +455,8 @@ window.WfUI = {
                             x.classList.add('hide')
                     })
                     slide.classList.remove(trans)
+                    if (old)
+                        old.classList.remove('transit-out')
                 }, delay)
             },
             selectByIndex(index) {
