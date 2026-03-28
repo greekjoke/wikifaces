@@ -42,6 +42,24 @@
             "link": "https://en.wikipedia.org/wiki/Abel_Prize",
             "query": "award|Q28835|Q188184"
         },
+        "victoria_cross": {
+            "icon": "🏅",
+            "title": "крест Виктории (за доблесть)",
+            "link": "https://en.wikipedia.org/wiki/Victoria_Cross",
+            "query": "award|Q219578"
+        },
+        "medal_honor": {
+            "icon": "🏅",
+            "title": "Медаль Почёта (USA military)",
+            "link": "https://en.wikipedia.org/wiki/Medal_of_Honor",
+            "query": "award|Q203535"
+        },
+        "hugo": {
+            "icon": "🏅",
+            "title": "Hugo Award (писатели фантасты)",
+            "link": "https://en.wikipedia.org/wiki/Medal_of_Honor",
+            "query": "award|Q255032"
+        },
         "oscar": {
             "icon": "👤",
             "title": "Премия Oscar за лучшую роль",

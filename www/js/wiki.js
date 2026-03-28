@@ -533,35 +533,43 @@ SERVICE wikibase:mwapi {
         prizeId = args.map(x => `wd:${x}`).join(' ')
         const codeLang = this._sparql_label_code()
         const codeThumb = this._sparql_thumb_code()
+
+        const qSub = `
+SELECT ?winner ?year ?image
+WHERE {
+    ?winner wdt:P166 ?prize;
+            wdt:P27 ?ctz;
+            wdt:P31 wd:Q5;
+            wdt:P18 ?image.
+    VALUES ?prize { ${prizeId} }
+    OPTIONAL {
+        ?winner p:P166 ?statement .
+        ?statement ps:P166 ?prize .
+        ?statement pq:P585 ?when .
+        BIND(YEAR(?when) AS ?year)
+    }
+}
+ORDER BY DESC(?year)
+LIMIT 100
+`
+
         const q = `
 SELECT ?winnerLabel
     (SAMPLE(?year) AS ?year)
     (SAMPLE(?thumburl) AS ?thumburl)
     (SAMPLE(?fileTitle) AS ?fileTitle)
 WHERE {
-  ?winner wdt:P166 ?prize ; # P166 is "award received"
-          wdt:P31 wd:Q5 ;  # EXCLUDE FICTION: Ensure winner is an instance of (P31) human (Q5)
-          wdt:P18 ?image . # has a photo
-  # Filter to prize type and related awards
-  VALUES ?prize { ${prizeId} }  # prize type
-  # Optional: get the year the award was received
-  # The "point in time" qualifier (P585) on the P166 statement
-  OPTIONAL {
-    ?winner p:P166 ?statement .
-    ?statement ps:P166 ?prize .
-    ?statement pq:P585 ?when .
-    BIND(YEAR(?when) AS ?year)
-  }
-  ${codeLang}
-  ${codeThumb}
+    { ${qSub} }
+    ${codeLang}
+    ${codeThumb}
 }
 GROUP BY ?winnerLabel
 ORDER BY DESC(?year) ?winnerLabel
-LIMIT 100
 `
+
         const cacheId = `sparql_award:${prizeId}`
         return await this._sparql_query_wrapper(cacheId, q,
-            {name: 'winnerLabel'}, { reverseYear: true })
+            {name: 'winnerLabel'})
     },
 
     sparql_president: async function(posId) {
