@@ -440,6 +440,10 @@ class GameBase extends AppletBase {
             elemTitle.innerHTML = this.title
         }
     }
+    _getAnswerText(answerId) {
+        const text = answerId ? this.buttons[answerId] : '--'
+        return 'Ответ: ' + text
+    }
     onWheel(delta, event) {
         let view
         if (event.target.tagName === 'IMG')
@@ -490,16 +494,19 @@ class GameAliveOrDead extends GameBase {
         const isDead = !isAlive
         return (value === 1 && isAlive) || (value === 2 && isDead)
     }
+    _getSparqlOptions() {
+        return {
+            ageMin: this.ageMin,
+            ageMax: this.ageMax
+        }
+    }
     load(onReady) {
         const that = this
         const ui = window.WfUI
         const wiki = window.WfWiki
         const cards = this.cards
         const superFunc = super.load
-        const opt = {
-            ageMin: this.ageMin,
-            ageMax: this.ageMax
-        }
+        const opt = this._getSparqlOptions()
 
         wiki.sparql_person_live_or_dead(this.maxTests, opt)
             .then(async result => {
@@ -597,10 +604,6 @@ class GameAliveOrDead extends GameBase {
 
         return `<span class="birth-date">${a}</span>` + `<span class="death-date">${b}</span>`
     }
-    _getAnswerText(answerId) {
-        const text = answerId ? this.buttons[answerId] : '--'
-        return 'Ответ: ' + text
-    }
 } // class GameAliveOrDead
 
 window['GameAliveOrDead'] = GameAliveOrDead // register
@@ -619,6 +622,25 @@ class GamePredictAge extends GameAliveOrDead {
         super(app, desc, options, gameId)
         this.ageMin = 15
         this.ageMax = 105
+    }
+    _getSparqlOptions() {
+        const opt = super._getSparqlOptions()
+        opt.onlyLiving = true
+        return opt
+    }
+    _validate(value) {
+        const card = this.slider.currentSlide
+        if (!card.gameData) {
+            console.warn('game data not found in current card')
+            return false
+        }
+        const now = new Date()
+        const birth = new Date(card.gameData.birthDate)
+        const years = now.getFullYear() - birth.getFullYear()
+        return (value === 1 && years < 30) ||
+            (value === 2 && years >= 30 && years <= 45) ||
+            (value === 3 && years >= 45 && years <= 60) ||
+            (value === 4 && years > 60)
     }
 }
 

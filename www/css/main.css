@@ -125,6 +125,9 @@ img.icon
     flex-direction: column;
     height: 100%;
 }
+.menu-list {
+    min-width: max(15vh, 320px);
+}
 
 img.error {
     width: 100%;
@@ -240,7 +243,7 @@ body[data-layout="main"] #back {
 }
 .layout-wrapper button {
     width: 100%;
-    padding: 0.25em 1.5em;
+    padding: 0.25em 0.5em;
 }
 
 .progress-container {
