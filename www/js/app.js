@@ -73,6 +73,14 @@ window.WfApp = function(settings) {
         return ui.ImageTwist(img)
     }
 
+    function subscribe(elem, event, handler) {
+        if (!Array.isArray(event))
+            event = event.split(' ')
+        event.forEach(eventType => {
+            elem.addEventListener(eventType, handler)
+        })
+    }
+
     console.log('app starts...')
 
     document.body.addEventListener('click', function(event) {
@@ -130,27 +138,28 @@ window.WfApp = function(settings) {
         }
     }, { passive: true });
 
-    document.body.addEventListener('mousedown', function(event) {
+    subscribe(document.body, 'mousedown touchstart', function(event) {
         const elem = event.target
         if (!elem.classList.contains('draggable'))
             return
-        const ox = event.clientX - parseInt(elem.style.left)
-        const oy = event.clientY - parseInt(elem.style.top)
+        const mouseData = event.touches ? event.touches[0] : event
+        const ox = mouseData.clientX - parseInt(elem.style.left)
+        const oy = mouseData.clientY - parseInt(elem.style.top)
         elem.setAttribute('data-drag-ox', ox)
         elem.setAttribute('data-drag-oy', oy)
         elem.classList.add('dragging')
     })
 
-    document.body.addEventListener('mousemove', function(event) {
+    subscribe(document.body, 'mousemove touchmove', function(event) {
         const elem = event.target
         if (!elem.classList.contains('dragging'))
             return
+        const mouseData = event.touches ? event.touches[0] : event
         const ox = parseInt(elem.getAttribute('data-drag-ox') || 0)
         const oy = parseInt(elem.getAttribute('data-drag-oy') || 0)
-        const nx = event.clientX - ox;
-        const ny = event.clientY - oy;
+        const nx = mouseData.clientX - ox;
+        const ny = mouseData.clientY - oy;
         const pos = {x:nx, y:ny}
-
         const action = 'onDragging'
         const topApplet = getTopApplet()
         if (utils.hasMethod(topApplet, action)) {
@@ -158,12 +167,11 @@ window.WfApp = function(settings) {
             if (res === false)
                 return // prevent to change position
         }
-
         elem.style.left = `${pos.x}px`;
         elem.style.top = `${pos.y}px`;
     })
 
-    document.body.addEventListener('mouseup', function(event) {
+    subscribe(document.body, 'mouseup touchend', function(event) {
         document.querySelectorAll('.dragging').forEach(x => {
             x.classList.remove('dragging')
         })
