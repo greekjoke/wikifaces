@@ -64,6 +64,15 @@ window.WfApp = function(settings) {
         return desc
     }
 
+    function getImageTwisterByToolbarButton(bn) {
+        const ui = window.WfUI
+        const view = bn.closest('.face-slot')
+        if (!view) return
+        const img = view.querySelector('img')
+        if (!img) return
+        return ui.ImageTwist(img)
+    }
+
     console.log('app starts...')
 
     document.body.addEventListener('click', function(event) {
@@ -228,26 +237,41 @@ window.WfApp = function(settings) {
             globalApplet.saveOption('user-options', all)
             updateUserOptions()
         },
-        fit_mode(bn) {
-            const ui = window.WfUI
-            const view = bn.closest('.face-slot')
-            if (!view) return
-            const img = view.querySelector('img')
-            if (!img) return
-            if (img.classList.contains('fit-mode')) {
-                const pad = parseFloat(img.getAttribute('data-pad'))
-                img.classList.remove('fit-mode')
-                ui.updateImageScale(img, pad)
+        photoFit(bn) {
+            const tw = getImageTwisterByToolbarButton(bn)
+            if (!tw) return
+            if (tw.img.classList.contains('fit-mode')) {
+                tw.img.classList.remove('fit-mode')
+                tw.img.classList.remove('orig-mode')
+                const pad = tw.getImagePad()
+                window.WfUI.updateImageScale(tw.img, pad)
             } else {
-                const iw = img.naturalWidth
-                const ih = img.naturalHeight
-                const rc = view.getBoundingClientRect()
-                const z = Math.min(rc.width / iw, rc.height / ih)
-                img.style.left = `0px`
-                img.style.top = `0px`
-                img.style.transform = `scale(${z})`
-                img.classList.add('fit-mode')
+                tw.img.classList.add('fit-mode')
+                tw.fit()
             }
+        },
+        photoOrig(bn) {
+            const tw = getImageTwisterByToolbarButton(bn)
+            if (!tw) return
+            if (tw.img.classList.contains('orig-mode')) {
+                tw.img.classList.remove('fit-mode')
+                tw.img.classList.remove('orig-mode')
+                const pad = tw.getImagePad()
+                window.WfUI.updateImageScale(tw.img, pad)
+            } else {
+                tw.img.classList.add('orig-mode')
+                tw.orig()
+            }
+        },
+        photoZoomIn(bn) {
+            const tw = getImageTwisterByToolbarButton(bn)
+            if (!tw) return
+            tw.zoomIn()
+        },
+        photoZoomOut(bn) {
+            const tw = getImageTwisterByToolbarButton(bn)
+            if (!tw) return
+            tw.zoomOut()
         },
         initLayout_settings: function(con) {
             con.querySelectorAll('[data-name]').forEach(elem => {
@@ -611,11 +635,16 @@ class CollectionExplorer extends AppletBase {
 class ImageViewer extends AppletBase {
     constructor(app, viewElem) {
         super(app,  'ImageViewer')
+        const ui = window.WfUI
         this.viewElem = viewElem
         this.img = viewElem.querySelector('img')
         this.zoomStep = 0.1
         this.moveStep = 20
         this.oldState = undefined
+        this.twister = new ui.ImageTwist(this.img, {
+            zoomStep: this.zoomStep,
+            moveStep: this.moveStep
+        })
     }
     isModal() { return true }
     isEditMode() {
@@ -632,56 +661,16 @@ class ImageViewer extends AppletBase {
         this.viewElem.classList.remove('edit-mode')
         this.img.classList.remove('draggable')
     }
-    _getImagePad() {
-        return parseFloat(this.img.getAttribute('data-pad') || '1.0')
-    }
-    _getImageState() {
-        const ui = window.WfUI
-        return ui.getImageTransformState(this.img)
-    }
-    _setImageState(st) {
-        const ui = window.WfUI
 
-        ui.validateImagePosition(this.img, st, {
-            zoomStep: this.zoomStep
-        })
+    _getImagePad() { return this.twister.getImagePad() }
+    _getImageState() { return this.twister.getImageState() }
+    _setImageState(st) { this.twister.setImageState(st) }
+    orig() { this.twister.orig() }
+    fit() { this.twister.fit() }
+    zoomIn() { this.twister.zoomIn() }
+    zoomOut()  { this.twister.zoomOut() }
+    movePos(ox, oy, absolute) { this.twister.movePos(ox, oy, absolute) }
 
-        this.img.style.left = `${st.x}px`
-        this.img.style.top = `${st.y}px`
-        this.img.style.transform = `scale(${st.z})`
-    }
-    orig() {
-        this._setImageState({x:0, y:0, z:1})
-    }
-    fit() {
-        const iw = this.img.naturalWidth
-        const ih = this.img.naturalHeight
-        const rc = this.viewElem.getBoundingClientRect()
-        const z = Math.min(rc.width / iw, rc.height / ih)
-        this._setImageState({x:0, y:0, z:z})
-    }
-    zoomIn() {
-        const st = this._getImageState()
-        st.z += this.zoomStep
-        this._setImageState(st)
-    }
-    zoomOut() {
-        const st = this._getImageState()
-        st.z -= this.zoomStep
-        this._setImageState(st)
-    }
-    movePos(ox, oy, absolute) {
-        absolute = absolute || false
-        const st = this._getImageState()
-        if (absolute) {
-            st.x = ox
-            st.y = oy
-        } else {
-            st.x += ox
-            st.y += oy
-        }
-        this._setImageState(st)
-    }
     save() {
         const ui = window.WfUI
         if (!this.isEditMode()) return
@@ -704,6 +693,7 @@ class ImageViewer extends AppletBase {
         if (this.oldState)
             this._setImageState(this.oldState)
     }
+
     onKeyup(keyCode) {
         if (!this.isEditMode())
             return

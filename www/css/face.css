@@ -40,6 +40,9 @@
     transition-duration: 0.5s;
     transition-timing-function: ease-out;
 }
+.face-slot > img.dragging {
+    transition-property: none !important;
+}
 .face-slot:has(img.loading):after {
     content: ' ';
     position: absolute;
@@ -117,18 +120,15 @@ body:not([data-option-face-details="true"]) .face-slot .details {
     background-color: rgba(255, 255, 180, 0.5) !important;
 }
 
-.bn-fit {
-    background-image: url('../media/icon-frame-outer.svg');
-}
-.bn-edit {
-    background-image: url('../media/icon-edit.svg');
-}
-.bn-orig {
-    background-image: url('../media/icon-frame.svg');
-}
-.bn-zoom-in {
-    background-image: url('../media/icon-zoom-in.svg');
-}
-.bn-zoom-out {
-    background-image: url('../media/icon-zoom-out.svg');
+.bn-fit { background-image: url('../media/icon-frame-outer.svg'); }
+.bn-edit { background-image: url('../media/icon-edit.svg'); }
+.bn-orig { background-image: url('../media/icon-frame.svg'); }
+.bn-zoom-in { background-image: url('../media/icon-zoom-in.svg'); }
+.bn-zoom-out { background-image: url('../media/icon-zoom-out.svg'); }
+
+.light-twist .image-toolbar .bn-orig,
+.light-twist .image-toolbar .bn-zoom-in,
+.light-twist .image-toolbar .bn-zoom-out
+{
+    display: none;
 }

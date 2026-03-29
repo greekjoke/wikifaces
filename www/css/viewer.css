@@ -40,7 +40,7 @@
     transition-property: none;
     left: 0;
 }
-.image-editor-sidebar .button {
+.image-toolbar .button {
     display: block;
     letter-spacing: -0.95em;
     margin-bottom: 0.5em;

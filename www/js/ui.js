@@ -407,6 +407,61 @@ window.WfUI = {
         return best
     },
 
+    ImageTwist: function(img, options) {
+        const ui = window.WfUI
+        const viewElem = img.closest('.face-slot')
+        options = options || {}
+        return {
+            get img() { return img },
+            get view() { return viewElem },
+            get zoomStep() { return options.zoomStep || 0.1 },
+            getImagePad() {
+                return parseFloat(img.getAttribute('data-pad') || 1.0)
+            },
+            getImageState() {
+                return ui.getImageTransformState(img)
+            },
+            setImageState(st) {
+                ui.validateImagePosition(img, st, { zoomStep: this.zoomStep })
+                img.style.left = `${st.x}px`
+                img.style.top = `${st.y}px`
+                img.style.transform = `scale(${st.z})`
+            },
+            orig() {
+                this.setImageState({x:0, y:0, z:1})
+            },
+            fit() {
+                const iw = img.naturalWidth
+                const ih = img.naturalHeight
+                const rc = viewElem.getBoundingClientRect()
+                const z = Math.min(rc.width / iw, rc.height / ih)
+                this.setImageState({x:0, y:0, z:z})
+            },
+            zoomIn() {
+                const st = this.getImageState()
+                st.z += this.zoomStep
+                this.setImageState(st)
+            },
+            zoomOut() {
+                const st = this.getImageState()
+                st.z -= this.zoomStep
+                this.setImageState(st)
+            },
+            movePos(ox, oy, absolute) {
+                absolute = absolute || false
+                const st = this.getImageState()
+                if (absolute) {
+                    st.x = ox
+                    st.y = oy
+                } else {
+                    st.x += ox
+                    st.y += oy
+                }
+                this.setImageState(st)
+            }
+        }
+    },
+
     Slider: function(con, options) {
         options = options || {}
 

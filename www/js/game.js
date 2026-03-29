@@ -418,6 +418,28 @@ class GameBase extends AppletBase {
             elemTitle.innerHTML = this.title
         }
     }
+    onWheel(delta, event) {
+        let view
+        if (event.target.tagName === 'IMG')
+            view = event.target.closest('.face-slot')
+        if (event.target.classList.contains('face-slot'))
+            view = event.target
+        if (!view) return
+        const ui = window.WfUI
+        const img = view.querySelector('img')
+        const tw = ui.ImageTwist(img)
+        if (delta > 0) {
+            tw.zoomOut()
+        } else if (delta < 0) {
+            tw.zoomIn()
+        }
+    }
+    onDragging(img, pos) {
+        const ui = window.WfUI
+        const tw = ui.ImageTwist(img)
+        tw.movePos(pos.x, pos.y, true)
+        return false // pos already changed
+    }
 } // class GameBase
 
 window['GameBase'] = GameBase // register
@@ -496,7 +518,10 @@ class GameAliveOrDead extends GameBase {
                     }
 
                     const img = await ui.addFaceSlot(item.page, opt)
-                    ui.bindImageViewer(img)
+                    if (img) {
+                        // ui.bindImageViewer(img)
+                        img.classList.add('draggable')
+                    }
                 }
 
                 superFunc.call(that, onReady)

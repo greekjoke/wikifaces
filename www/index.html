@@ -29,7 +29,10 @@
             <img src="" loading="lazy" />
             <div class="details">some info about this photo</div>
             <div class="image-toolbar">
-                <span class="button bn-fit" data-action=":fit_mode" title="Вписать в область просмотра">🔲</span>
+                <span class="button bn-orig" data-action=":photoOrig" title="Оригинальный размер">🔳</span>
+                <span class="button bn-fit" data-action=":photoFit" title="Вписать в область просмотра">🔲</span>
+                <span class="button bn-zoom-in" data-action=":photoZoomIn" title="Увеличить">🔎➕</span>
+                <span class="button bn-zoom-out" data-action=":photoZoomOut" title="Уменьшить">🔎➖</span>
             </div>
         </div>
     </script>
@@ -116,7 +119,7 @@
                 <span class="title">Title</span>
             </div>
         </div>
-        <div class="pa1 faces-list"></div>
+        <div class="pa1 faces-list light-twist"></div>
     </script>
 
     <!-- playground menu -->
@@ -170,6 +173,7 @@
         </div>
     </script>
 
+    <!-- other templates -->
     <script type="text/template" id="tpl-game-log-person">
         <div class="game-log-item flex-row">
             <div class="person-icon flex-center">
