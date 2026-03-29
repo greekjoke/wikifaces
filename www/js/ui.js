@@ -410,22 +410,41 @@ window.WfUI = {
     ImageTwist: function(img, options) {
         const ui = window.WfUI
         const viewElem = img.closest('.face-slot')
+        let discretTimer
         options = options || {}
         return {
             get img() { return img },
             get view() { return viewElem },
             get zoomStep() { return options.zoomStep || 0.1 },
+            viewToImg(pt) {
+                if (!Array.isArray(pt) || pt.length !== 2)
+                    throw new Error('expected point as array[2]')
+                const st = this.getImageState()
+                const f = 1.0 / st.z
+                const x = (pt[0] - st.x) * f
+                const y = (pt[1] - st.y) * f
+                return [x, y]
+            },
+            validate(st) {
+                ui.validateImagePosition(img, st, { zoomStep: this.zoomStep })
+            },
             getImagePad() {
                 return parseFloat(img.getAttribute('data-pad') || 1.0)
             },
             getImageState() {
                 return ui.getImageTransformState(img)
             },
-            setImageState(st) {
-                ui.validateImagePosition(img, st, { zoomStep: this.zoomStep })
+            setImageState(st, discret) {
+                this.validate(st)
+                if (discret) // prevent animation
+                    img.classList.add('discret')
                 img.style.left = `${st.x}px`
                 img.style.top = `${st.y}px`
                 img.style.transform = `scale(${st.z})`
+                if (discret) {
+                    clearTimeout(discretTimer)
+                    discretTimer = setTimeout(() => img.classList.remove('discret'), 200)
+                }
             },
             orig() {
                 this.setImageState({x:0, y:0, z:1})
@@ -437,15 +456,33 @@ window.WfUI = {
                 const z = Math.min(rc.width / iw, rc.height / ih)
                 this.setImageState({x:0, y:0, z:z})
             },
-            zoomIn() {
+            zoomIn(center) {
                 const st = this.getImageState()
-                st.z += this.zoomStep
-                this.setImageState(st)
+                if (center) {
+                    const cx = center[0]
+                    const cy = center[1]
+                    st.x -= this.zoomStep * cx
+                    st.y -= this.zoomStep * cy
+                    st.z += this.zoomStep
+                    this.validate(st)
+                } else {
+                    st.z += this.zoomStep
+                }
+                this.setImageState(st, true)
             },
-            zoomOut() {
+            zoomOut(center) {
                 const st = this.getImageState()
-                st.z -= this.zoomStep
-                this.setImageState(st)
+                if (center) {
+                    const cx = center[0]
+                    const cy = center[1]
+                    st.x += this.zoomStep * cx
+                    st.y += this.zoomStep * cy
+                    st.z -= this.zoomStep
+                    this.validate(st)
+                } else {
+                    st.z -= this.zoomStep
+                }
+                this.setImageState(st, true)
             },
             movePos(ox, oy, absolute) {
                 absolute = absolute || false

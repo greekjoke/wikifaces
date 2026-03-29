@@ -64,13 +64,18 @@ class GameBase extends AppletBase {
         valid: 'valid',
         invalid: 'invalid',
     }
-    constructor(app, gameId, desc, options) {
+    constructor(app, desc, options, gameId) {
         super(app,  gameId || 'GameBase')
 
         this.options = options || {}
         this.desc = desc || {}
         this.title = this.desc.title || 'Безымянная игра'
         this.logo = this.desc.logo || undefined
+        this.buttons = options.buttons || {
+            0: 'Далее', // 0|false == Skip button
+            1: 'Да',
+            2: 'Нет',
+        }
 
         this._refreshTitle()
 
@@ -152,8 +157,20 @@ class GameBase extends AppletBase {
     }
     _initCardButtons(con, card) {
         con.innerHTML = '' // clear
-        con.appendChild(this._createButton('Да', '.answer|yes', 1))
-        con.appendChild(this._createButton('Нет', '.answer|no', 2))
+        const utils = window.WfUtils
+        const ar = Object.keys(this.buttons || {})
+        let skipText = undefined
+        for (let i=0; i < ar.length; i++) {
+            const id = utils.isNumeric(ar[i]) ? parseInt(ar[i]) : ar[i]
+            const text = this.buttons[id]
+            if (!id) {
+                skipText = text
+            } else {
+                con.appendChild(this._createButton(text, `.answer|${id}`, id))
+            }
+        }
+        if (skipText)
+            con.appendChild(this._createButton(skipText))
     }
     _initCardContent(con, card) {
         con.innerHTML = card.getAttribute('data-name')
@@ -268,8 +285,13 @@ class GameBase extends AppletBase {
             return
 
         const that = this
+        const utils = window.WfUtils
         const bnId = bnElem ? bnElem.getAttribute('data-id') : ''
         const skip = value === undefined
+
+        if (utils.isNumeric(value)) {
+            value = parseInt(value)
+        }
 
         if (skip) {
             this.round.acceptSkip()
@@ -428,10 +450,11 @@ class GameBase extends AppletBase {
         const ui = window.WfUI
         const img = view.querySelector('img')
         const tw = ui.ImageTwist(img)
+        const pt = [event.offsetX, event.offsetY]
         if (delta > 0) {
-            tw.zoomOut()
+            tw.zoomOut(pt)
         } else if (delta < 0) {
-            tw.zoomIn()
+            tw.zoomIn(pt)
         }
     }
     onDragging(img, pos) {
@@ -445,23 +468,17 @@ class GameBase extends AppletBase {
 window['GameBase'] = GameBase // register
 
 class GameAliveOrDead extends GameBase {
-    static BUTTONS = {
-        0: '--',
-        1: '☘️ Жив',
-        2: '💀 Мёртв',
-    }
-    constructor(app, desc) {
-        super(app, 'GameAliveOrDead', desc, {maxTests:5})
+    constructor(app, desc, options, gameId) {
+        gameId = gameId || 'GameAliveOrDead'
+        options = options || { maxTests:5 }
+        options.buttons = options.buttons || {
+            0: 'Дальше ➡️',
+            1: '☘️ Жив',
+            2: '💀 Мёртв'
+        }
+        super(app, desc, options, gameId)
         this.ageMin = 25
         this.ageMax = 95
-    }
-    _initCardButtons(con, card) {
-        con.innerHTML = '' // clear
-        const text1 = GameAliveOrDead.BUTTONS[1]
-        const text2 = GameAliveOrDead.BUTTONS[2]
-        con.appendChild(this._createButton(text1, '.answer|live', 1))
-        con.appendChild(this._createButton(text2, '.answer|dead', 2))
-        con.appendChild(this._createButton('Дальше ➡️'))
     }
     _validate(value) {
         const card = this.slider.currentSlide
@@ -469,13 +486,9 @@ class GameAliveOrDead extends GameBase {
             console.warn('game data not found in current card')
             return false
         }
-        const isDead = !!card.gameData.deathDate
-        if ((value == 'live' && !isDead) ||
-            (value == 'dead' && isDead))
-        {
-            return true
-        }
-        return false
+        const isAlive = !card.gameData.deathDate
+        const isDead = !isAlive
+        return (value === 1 && isAlive) || (value === 2 && isDead)
     }
     load(onReady) {
         const that = this
@@ -542,7 +555,6 @@ class GameAliveOrDead extends GameBase {
         })
     }
     _initLogItem(card, elem, pers) {
-        const utils = window.WfUtils
         const data = card.gameData
         const img = elem.querySelector('.person-icon img')
         const imgLink = elem.querySelector('.person-icon a')
@@ -553,18 +565,6 @@ class GameAliveOrDead extends GameBase {
         const st = card.getAttribute('data-state')
         const answerId = parseInt(card.getAttribute('data-button') || 0)
 
-        const dateFmt = function(s) {
-            return s ? s.substring(0, 10) : '--'
-        }
-
-        const yoFmt = function(birthDate) {
-            const now = new Date()
-            const birth = new Date(birthDate)
-            const years = now.getFullYear() - birth.getFullYear()
-            const w = utils.yoSuffix(years)
-            return `${years} ${w}`
-        }
-
         if (st == GameBase.CARD_STATE.valid) {
             elem.classList.add('answer-valid')
         } else if (st == GameBase.CARD_STATE.invalid) {
@@ -573,21 +573,53 @@ class GameAliveOrDead extends GameBase {
 
         if (img) img.src = data.photo
         if (imgLink) imgLink.href = data.photo
-        if (personBio) {
-            const a = 'Дата рождения: ' + dateFmt(data.birthDate)
-            const b = data.deathDate ?
-                ('Дата смерти: ' + dateFmt(data.deathDate)) : yoFmt(data.birthDate)
-            personBio.innerHTML =
-                `<span class="birth-date">${a}</span>` +
-                `<span class="death-date">${b}</span>`
-        }
-        if (personName) personName.innerHTML = pers.name
+        if (personBio) personBio.innerHTML = this._getPersonBioHtml(data)
+        if (personName) personName.innerText = pers.name
         if (personLink) personLink.href = pers.link
-        if (answerInfo) {
-            answerInfo.innerHTML = 'Ответ: ' + GameAliveOrDead.BUTTONS[answerId]
-        }
+        if (answerInfo) answerInfo.innerText = this._getAnswerText(answerId)
     }
+    static dateFmt(s) {
+        return s ? s.substring(0, 10) : '--'
+    }
+    static yoFmt(birthDate) {
+        const utils = window.WfUtils
+        const now = new Date()
+        const birth = new Date(birthDate)
+        const years = now.getFullYear() - birth.getFullYear()
+        const w = utils.yoSuffix(years)
+        return `${years} ${w}`
+    }
+    _getPersonBioHtml(data) {
+        const own = this.constructor
+        const a = 'Дата рождения: ' + own.dateFmt(data.birthDate)
+        const b = data.deathDate ?
+            ('Дата смерти: ' + own.dateFmt(data.deathDate)) : own.yoFmt(data.birthDate)
 
+        return `<span class="birth-date">${a}</span>` + `<span class="death-date">${b}</span>`
+    }
+    _getAnswerText(answerId) {
+        const text = answerId ? this.buttons[answerId] : '--'
+        return 'Ответ: ' + text
+    }
 } // class GameAliveOrDead
 
 window['GameAliveOrDead'] = GameAliveOrDead // register
+
+class GamePredictAge extends GameAliveOrDead {
+    constructor(app, desc, options, gameId) {
+        gameId = gameId || 'GamePredictAge'
+        options = options || { maxTests:5 }
+        options.buttons = options.buttons || {
+            0: 'Дальше ➡️',
+            1: '<30',
+            2: '30-45',
+            3: '45-60',
+            4: '>60',
+        }
+        super(app, desc, options, gameId)
+        this.ageMin = 15
+        this.ageMax = 105
+    }
+}
+
+window['GamePredictAge'] = GamePredictAge // register

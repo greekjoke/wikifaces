@@ -40,7 +40,9 @@
     transition-duration: 0.5s;
     transition-timing-function: ease-out;
 }
-.face-slot > img.dragging {
+.face-slot > img.dragging,
+.face-slot > img.discret
+{
     transition-property: none !important;
 }
 .face-slot:has(img.loading):after {

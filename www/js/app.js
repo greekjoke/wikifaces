@@ -64,7 +64,7 @@ window.WfApp = function(settings) {
         return desc
     }
 
-    function getImageTwisterByToolbarButton(bn) {
+    function getImageTwisterByButton(bn) {
         const ui = window.WfUI
         const view = bn.closest('.face-slot')
         if (!view) return
@@ -88,6 +88,7 @@ window.WfApp = function(settings) {
         const args = action.split('|')
         action = args.shift()
         args.push(elem)
+        args.push(event)
 
         if (action.startsWith(':')) { // global/app scape
             action = action.substring(1)
@@ -238,7 +239,7 @@ window.WfApp = function(settings) {
             updateUserOptions()
         },
         photoFit(bn) {
-            const tw = getImageTwisterByToolbarButton(bn)
+            const tw = getImageTwisterByButton(bn)
             if (!tw) return
             if (tw.img.classList.contains('fit-mode')) {
                 tw.img.classList.remove('fit-mode')
@@ -251,7 +252,7 @@ window.WfApp = function(settings) {
             }
         },
         photoOrig(bn) {
-            const tw = getImageTwisterByToolbarButton(bn)
+            const tw = getImageTwisterByButton(bn)
             if (!tw) return
             if (tw.img.classList.contains('orig-mode')) {
                 tw.img.classList.remove('fit-mode')
@@ -264,14 +265,18 @@ window.WfApp = function(settings) {
             }
         },
         photoZoomIn(bn) {
-            const tw = getImageTwisterByToolbarButton(bn)
+            const tw = getImageTwisterByButton(bn)
             if (!tw) return
-            tw.zoomIn()
+            const rc = tw.view.getBoundingClientRect()
+            const pt = tw.viewToImg([rc.width / 2, rc.height / 2])
+            tw.zoomIn(pt)
         },
         photoZoomOut(bn) {
-            const tw = getImageTwisterByToolbarButton(bn)
+            const tw = getImageTwisterByButton(bn)
             if (!tw) return
-            tw.zoomOut()
+            const rc = tw.view.getBoundingClientRect()
+            const pt = tw.viewToImg([rc.width / 2, rc.height / 2])
+            tw.zoomOut(pt)
         },
         initLayout_settings: function(con) {
             con.querySelectorAll('[data-name]').forEach(elem => {
@@ -665,10 +670,21 @@ class ImageViewer extends AppletBase {
     _getImagePad() { return this.twister.getImagePad() }
     _getImageState() { return this.twister.getImageState() }
     _setImageState(st) { this.twister.setImageState(st) }
+    _zoomIn(pt) { this.twister.zoomIn(pt) }
+    _zoomOut(pt) { this.twister.zoomOut(pt) }
+
     orig() { this.twister.orig() }
     fit() { this.twister.fit() }
-    zoomIn() { this.twister.zoomIn() }
-    zoomOut()  { this.twister.zoomOut() }
+    zoomIn() {
+        const rc = this.viewElem.getBoundingClientRect()
+        const pt = this.twister.viewToImg([rc.width / 2, rc.height / 2])
+        this._zoomIn(pt)
+    }
+    zoomOut()  {
+        const rc = this.viewElem.getBoundingClientRect()
+        const pt = this.twister.viewToImg([rc.width / 2, rc.height / 2])
+        this.twister.zoomOut(pt)
+    }
     movePos(ox, oy, absolute) { this.twister.movePos(ox, oy, absolute) }
 
     save() {
@@ -716,13 +732,14 @@ class ImageViewer extends AppletBase {
             this.orig()
         }
     }
-    onWheel(delta) {
+    onWheel(delta, event) {
         if (!this.isEditMode())
             return
+        const pt = [event.offsetX, event.offsetY]
         if (delta > 0) {
-            this.zoomOut()
+            this._zoomOut(pt)
         } else if (delta < 0) {
-            this.zoomIn()
+            this._zoomIn(pt)
         }
     }
     onDragging(elem, pos) {

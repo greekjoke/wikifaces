@@ -789,7 +789,7 @@ LIMIT ${num}
 `
 
         let cacheId
-        if (utils.isLocalhost() && false) { // DEBUG
+        if (utils.isLocalhost() && true) { // DEBUG
             console.warn('[wiki] force to use last result')
             cacheId = `sparql_person_live_or_dead:0`
         } else {
