@@ -688,13 +688,15 @@ ORDER BY DESC(?victimCount) ?personLabel
         }, { reversePerson: true })
     },
 
-    sparql_person_live_or_dead: async function(num, ageMin, ageMax) {
-        num = num || 5
-        ageMin = ageMin || 5
-        ageMax = ageMax || 90
-
+    sparql_person_live_or_dead: async function(num, options) {
         const utils = WfUtils
         const cache = window.WfLocalCache
+
+        num = num || 5
+        options = options || {}
+
+        const ageMin = options.ageMin || 0
+        const ageMax = options.ageMax || 100
         const tCur = new Date()
         const year = tCur.getFullYear()
         const yearMin = year - ageMax
@@ -702,10 +704,7 @@ ORDER BY DESC(?victimCount) ?personLabel
         const codeLang = this._sparql_label_code()
         const codeThumb = this._sparql_thumb_code()
         const codeRand = this._sparql_rand_code()
-        const countries = this._sparql_countries({
-            shuffle: true,
-            take: 10
-        })
+        const countries = this._sparql_countries({ shuffle: true, take: 10 })
         const codeCountries = countries.join(' ')
         const pastDate = new Date(tCur)
         const daysToSubtract = 365 * 2
@@ -749,6 +748,19 @@ OFFSET ${ofsDead}
 LIMIT ${limit}
 `
 
+        // union
+        const arSub = []
+        if (options.onlyLiving) {
+            arSub.push(qLive)
+        } else if (options.onlyDead) {
+            arSub.push(qDead)
+        } else {
+            arSub.push(qLive)
+            arSub.push(qDead)
+        }
+        const arSubStr = arSub.join('} UNION {')
+        const codeUnion = `{ ${arSubStr} }`
+
         // random order
         const qRand = `
 SELECT ?person
@@ -757,9 +769,7 @@ SELECT ?person
     (SAMPLE(?birthDate) as ?birthDate)
     (SAMPLE(?deathDate) as ?deathDate)
 WHERE {
-    { ${qLive} }
-    UNION
-    { ${qDead} }
+    ${codeUnion}
     ${codeRand}
 }
 GROUP BY ?person
@@ -779,9 +789,9 @@ LIMIT ${num}
 `
 
         let cacheId
-        if (utils.isLocalhost() && false) {
+        if (utils.isLocalhost() && true) { // DEBUG
             console.warn('[wiki] force to use last result')
-            cacheId = `sparql_person_live_or_dead:0` // DEBUG
+            cacheId = `sparql_person_live_or_dead:0`
         } else {
             const hashStr = utils.simpleHash(q)
             cacheId = `sparql_person_live_or_dead:${hashStr}`

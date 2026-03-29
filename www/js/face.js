@@ -158,11 +158,11 @@ window.WfDetector = function(image, options) {
             if (options.dpCustom) {
                 params = [options.dpCustom]
             } else if (isPortrait) {
-                params = [dpPort, dpSmall, dpLand, dpBig]
+                params = [dpPort/*, dpSmall*/, dpLand, dpBig]
             } else if (isSquare) {
-                params = [dpBig, dpSmall, dpPort, dpLand]
+                params = [dpBig/*, dpSmall*/, dpPort, dpLand]
             } else {
-                params = [dpLand, dpSmall, dpPort, dpBig]
+                params = [dpLand/*, dpSmall*/, dpPort, dpBig]
             }
 
             for (let curParamItem of params) {

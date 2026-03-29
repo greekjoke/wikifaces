@@ -209,10 +209,10 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
-            const cols = await window.WfUtils.loadDataFile('data/collections.json')
-            if (!cols)
-                return
-            const app = window.WfApp(cols)
+            const settings = await window.WfUtils.loadDataFile('data/settings.json')
+            if (!settings)
+                throw new Error('settings file loading failed')
+            const app = window.WfApp(settings)
             app.selectLayout('main')
         });
     </script>

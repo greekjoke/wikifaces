@@ -80,7 +80,7 @@
         },
         "richest": {
             "icon": "💰",
-            "title": "Богатейшие (top 100)",
+            "title": "Богатейшие",
             "link": "https://en.wikipedia.org/wiki/The_World%27s_Billionaires",
             "query": "richest"
         },

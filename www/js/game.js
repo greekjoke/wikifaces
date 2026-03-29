@@ -72,10 +72,7 @@ class GameBase extends AppletBase {
         this.title = this.desc.title || 'Безымянная игра'
         this.logo = this.desc.logo || undefined
 
-        const elemTitle = this.rootElem.querySelector('.game-title')
-        if (elemTitle) {
-            elemTitle.innerHTML = this.title
-        }
+        this._refreshTitle()
 
         const elemLogo = this.rootElem.querySelector('.logo')
         if (elemLogo && this.logo) {
@@ -106,6 +103,7 @@ class GameBase extends AppletBase {
         this.intro()
     }
     _initSlider() {
+        const that = this
         let con
 
         if (this.rootElem.classList.contains('slider')) {
@@ -131,7 +129,11 @@ class GameBase extends AppletBase {
             this._initCard(elem)
         });
 
-        this.slider = WfUI.Slider(con)
+        this.slider = WfUI.Slider(con, {
+            onChangeAfter: function() {
+                that._refreshTitle()
+            }
+        })
     }
     get cards() {
         const items = []
@@ -402,6 +404,20 @@ class GameBase extends AppletBase {
         div.innerHTML = tpl.innerHTML
         return div
     }
+    _refreshTitle() {
+        const elemTitle = this.rootElem.querySelector('.game-title')
+        if (!elemTitle) return
+        const slide = this.slider ? this.slider.currentSlide : false
+        if (slide && slide.classList.contains('card')) {
+            const all = this.cards
+            const i = this.cards.indexOf(slide)
+            if (i < 0)
+                throw new Error('invalid card index')
+            elemTitle.innerHTML = `${this.title} (${i+1} / ${all.length})`
+        } else {
+            elemTitle.innerHTML = this.title
+        }
+    }
 } // class GameBase
 
 window['GameBase'] = GameBase // register
@@ -445,8 +461,12 @@ class GameAliveOrDead extends GameBase {
         const wiki = window.WfWiki
         const cards = this.cards
         const superFunc = super.load
+        const opt = {
+            ageMin: this.ageMin,
+            ageMax: this.ageMax
+        }
 
-        wiki.sparql_person_live_or_dead(this.maxTests, this.ageMin, this.ageMax)
+        wiki.sparql_person_live_or_dead(this.maxTests, opt)
             .then(async result => {
                 if (!result || !result.items) {
                     alert('Ошибка при получении данных.')

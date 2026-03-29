@@ -227,9 +227,11 @@ window.WfUtils = {
 
     yoSuffix: function(years) {
         years = parseInt(years)
+        const tail = years % 10
         let w = 'лет'
-        if ((years % 10) === 1) w = 'год'
-        else if ((years % 10) < 5) w = 'года'
+        if (tail === 0) ;
+        else if (tail === 1) w = 'год'
+        else if (tail < 5) w = 'года'
         return w
     }
 

@@ -413,6 +413,8 @@ window.WfUI = {
         const slides = []
         const byName = {}
         const byOrder = []
+        const onChangeBefore = options.onChangeBefore || undefined
+        const onChangeAfter = options.onChangeAfter || undefined
         let last = undefined
 
         con.querySelectorAll('.slide').forEach(elem => {
@@ -451,6 +453,8 @@ window.WfUI = {
                 slide.classList.remove('hide')
                 slide.classList.add(trans)
                 last = slide
+                if (onChangeBefore)
+                    onChangeBefore.call(this, old, last)
                 setTimeout(function() {
                     Object.values(byName).forEach(x => {
                         if (!x.classList.contains(trans))
@@ -459,6 +463,8 @@ window.WfUI = {
                     slide.classList.remove(trans)
                     if (old)
                         old.classList.remove('transit-out')
+                    if (onChangeAfter)
+                        onChangeAfter.call(this, old, last)
                 }, delay)
             },
             selectByIndex(index) {
