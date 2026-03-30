@@ -132,11 +132,14 @@ window.WfUI = {
                 view.classList.add('face-detection')
                 await utils.sleep(50) // wait for render
 
-                const det = window.WfDetector(img, options.detCustomize)
-                faceInfo = await det.detect()
+                if (!options.detDisabled) {
+                    const det = window.WfDetector(img, options.detCustomize)
+                    faceInfo = await det.detect()
+                }
                 if (!faceInfo) {
                     faceInfo = {x:0.5, y:0.5, diam:(1.0 / pad)}
-                    console.warn('detection failed', img.src)
+                    if (!options.detDisabled)
+                        console.warn('detection failed', img.src)
                 }
                 utils.storageWrite(cacheKey, faceInfo)
                 view.classList.remove('face-detection')
@@ -160,10 +163,11 @@ window.WfUI = {
         const vh = rc.height
         const viewScale = vw / iw
 
+        const fuf = options.detDisabled ? 1 : self.FACE_UPPER_FACTOR
         const detScale = 1.0 / (faceInfo.diam * pad)
         const scale = viewScale * detScale
         let ox = Math.round(0.5 * vw - faceInfo.x * iw * scale)
-        let oy = Math.round(0.5 * (vh * self.FACE_UPPER_FACTOR) - faceInfo.y * ih * scale)
+        let oy = Math.round(0.5 * (vh * fuf) - faceInfo.y * ih * scale)
 
         // snap to view border
         let st = {x:ox, y:oy, z:scale}
@@ -219,7 +223,7 @@ window.WfUI = {
         return st
     },
 
-    receiveImageDetParams: function(img, save) {
+    receiveImageDetParams: function(img, save, options) {
         const self = window.WfUI
         const utils = window.WfUtils
 
@@ -227,6 +231,9 @@ window.WfUI = {
         const view = img.closest('.face-slot')
         if (!view) return
 
+        options = options || {}
+
+        const fuf = options.detDisabled ? 1 : self.FACE_UPPER_FACTOR
         const pad = parseFloat(img.getAttribute('data-pad'))
         const iw = img.naturalWidth
         const ih = img.naturalHeight
@@ -246,7 +253,7 @@ window.WfUI = {
         const x = tx / (iw * scale)
 
         const oy = st.y
-        const ty = 0.5 * (vh * self.FACE_UPPER_FACTOR) - oy
+        const ty = 0.5 * (vh * fuf) - oy
         const y = ty / (ih * scale)
 
         const faceInfo = {x:x, y:y, diam:diam}

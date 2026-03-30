@@ -46,7 +46,9 @@ window.WfApp = function(settings) {
     }
 
     function updateUserOptions() {
-        const all = globalApplet.readOption('user-options') || {}
+        const all = globalApplet.readOption('user-options') || {
+            'face-detecion': 'face'
+        }
         for (let key in all) {
             const value = all[key]
             document.body.setAttribute(`data-option-${key}`, value)
@@ -273,19 +275,42 @@ window.WfApp = function(settings) {
             this.close()
         },
         setProgressText: setProgressText,
-        resetCache: function() {
+        resetCache: function(startsWith) {
+            if (startsWith) {
+                Object.keys(localStorage)
+                    .filter(x => x.startsWith(startsWith))
+                        .forEach(x => localStorage.removeItem(x))
+                console.warn(`cache cleared for prefix "${startsWith}"`)
+                return
+            }
             if (!confirm('Все настройки будут сброшены в значения по умолчанию. Продолжить?'))
                 return
             localStorage.clear()
             document.location.href = ''
+            console.warn('cache totally cleared')
         },
         changeUserOption: function(bn) {
             const optName = bn.getAttribute('data-name')
             if (!optName) return
             const all = globalApplet.readOption('user-options') || {}
-            all[optName] = !!bn.checked
+            let value = undefined
+            if (bn.tagName === 'SELECT') {
+                value = bn.value
+            } else {
+                value = !!bn.checked
+            }
+            all[optName] = value
             globalApplet.saveOption('user-options', all)
             updateUserOptions()
+        },
+        changeFaceDetection: function(elem) {
+            this.changeUserOption(elem)
+            this.resetCache('face-det')
+        },
+        getCustomFacePad: function() {
+            const variants = { off: false, eyes: 1.1, face: 1.4, distant: 1.8 }
+            const code = document.body.getAttribute('data-option-face-detecion') || 'face'
+            return variants[code]
         },
         photoFit(bn) {
             const tw = getImageTwisterByButton(bn)
@@ -335,6 +360,8 @@ window.WfApp = function(settings) {
                 if (value === 'false') value = false
                 if (elem.tagName == 'INPUT') {
                     elem.checked = !!value
+                } else if (elem.tagName == 'SELECT') {
+                    elem.value = value
                 }
             });
         },
@@ -366,7 +393,12 @@ window.WfApp = function(settings) {
                 personId = utils.fromBase64(personId.substring(7))
             }
             target.innerHTML = '' // clear
-            const img = await ui.addFaceSlot(personId, { container: target })
+            const cpad = this.getCustomFacePad()
+            const img = await ui.addFaceSlot(personId, {
+                container: target,
+                detDisabled: !cpad,
+                pad: cpad
+            })
             if (!img) return
             const view = img.closest('.face-slot')
             const tools = con.querySelector('.image-editor-sidebar')
@@ -406,6 +438,7 @@ window.WfApp = function(settings) {
 
     globalApplet = new AppletBase(app)
     updateUserOptions()
+    window['__wfApp'] = app
     return app
 }
 
@@ -536,9 +569,12 @@ class CollectionExplorer extends AppletBase {
 
         for (let i=0; i < part.length; i++) {
             const p = part[i]
+            const cpad = that.app.getCustomFacePad()
             const img = await ui.addFaceSlot(p.page, {
                 container: that.listElem,
-                pad: that.facePad
+                // pad: that.facePad
+                detDisabled: !cpad,
+                pad: cpad
             })
             ui.bindImageViewer(img)
         }
@@ -741,7 +777,9 @@ class ImageViewer extends AppletBase {
         if (!this.isEditMode()) return
         this._editEnd()
         // receive det values & save changes
-        const det = ui.receiveImageDetParams(this.img, true)
+        const det = ui.receiveImageDetParams(this.img, true, {
+            detDisabled: !this.app.getCustomFacePad()
+        })
         // refresh all slots
         const facePad = this._getImagePad()
         const pass = this.img.getAttribute('data-pass')

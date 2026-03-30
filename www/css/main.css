@@ -25,9 +25,19 @@ label > input[type="checkbox"] {
     vertical-align: baseline;
     margin-right: 0.1em;
 }
+
 label.user-option {
     display: inline-block;
-    margin-bottom: 0.5em;
+    /* border-bottom: 1px solid lightgray; */
+}
+label.user-option > span {
+    text-align: right;
+}
+label.user-option > input[type="checkbox"] {
+    vertical-align: text-bottom;
+}
+label.user-option > select {
+    vertical-align: text-top;
 }
 
 #content {
@@ -91,7 +101,9 @@ img.icon
 .pa4 { padding: 4em; }
 .pa5 { padding: 5em; }
 .pah1 { padding: 0 1em; }
+.pah5f { padding: 0 0.5em; }
 .pav1 { padding: 1em 0; }
+.pav5f { padding: 0.5em 0; }
 .pot1 { padding: 1em; padding-top: 0; }
 .tal { text-align: left;}
 .tar { text-align: right;}

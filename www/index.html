@@ -55,9 +55,18 @@
     <!-- settings menu -->
     <script type="text/template" id="tpl-layout-settings" data-title="Настройки">
         <div class="pa1">
-            <label class="user-option">
+            <label class="user-option w100 pav5f">
+                <span class="w50">Подписи к фото</span>
                 <input type="checkbox" class="button" data-action=":changeUserOption" data-name="face-details" />
-                <span>Показывать подписи к фото</span>
+            </label>
+            <label class="user-option w100 pav5f">
+                <span class="w50">Поиск лица</span>
+                <select data-name="face-detecion" onchange="__wfApp.changeFaceDetection(this)">
+                    <option value="off">Отключить</option>
+                    <option value="eyes">Фокус на глаза</option>
+                    <option value="face">Фокус на лицо</option>
+                    <option value="distant">Общий план</option>
+                </select>
             </label>
             <div style="margin-top: 1em;">
                 <button data-action=":resetCache">⚠️&nbsp;Сброс настроек</button>

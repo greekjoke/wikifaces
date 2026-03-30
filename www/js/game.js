@@ -516,6 +516,7 @@ class GameAliveOrDead extends GameBase {
                     return
                 }
 
+                const cpad = this.app.getCustomFacePad()
                 const list = wiki.collectPeople(result.items, true)
 
                 if (!list || list.length < cards.length) {
@@ -534,7 +535,8 @@ class GameAliveOrDead extends GameBase {
 
                     const opt = {
                         container: con,
-                        pad: 1.6
+                        detDisabled: !cpad,
+                        pad: cpad
                     }
 
                     const img = await ui.addFaceSlot(item.page, opt)
