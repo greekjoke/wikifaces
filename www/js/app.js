@@ -81,7 +81,34 @@ window.WfApp = function(settings) {
         })
     }
 
+    function selectLayoutByName(name, modal, pass) {
+        if (modal) {
+            showModal(name, pass)
+        } else {
+            showLayout(name, pass)
+        }
+    }
+
+    function handleLocationHash(hash) {
+        hash = hash || window.location.hash
+        if (hash.startsWith('#layout:')) {
+            let pass = undefined
+            let name = hash.split('#layout:').slice(1).join(':')
+            const parts = name.split('|')
+            name = parts.shift()
+            pass = parts.join('|')
+            selectLayoutByName(name, false, pass)
+        } else {
+            selectLayoutByName('main')
+        }
+    }
+
     console.log('app starts...')
+
+    window.addEventListener('hashchange', function(event) {
+        console.log('hashchange', this.document.location.hash)
+        handleLocationHash()
+    })
 
     document.body.addEventListener('click', function(event) {
         const elem = event.target
@@ -113,11 +140,13 @@ window.WfApp = function(settings) {
             }
         } else if (action.startsWith('*')) { // show modal layout
             action = action.substring(1)
-            showModal(action, pass)
+            // showModal(action, pass)
+            app.selectLayout(action, true, pass)
         } else if (action.startsWith('http:') || action.startsWith('https:')) {
             window.open(action, '_blank').focus();
         } else { // show layout
-            showLayout(action, pass)
+            // showLayout(action, pass)
+            app.selectLayout(action, false, pass)
         }
     })
 
@@ -206,15 +235,27 @@ window.WfApp = function(settings) {
             const col = collections[cid]
             return buildIconHtml(col.icon)
         },
+        getCurrentLayoutName: function() {
+            return document.body.getAttribute('data-layout')
+        },
         selectLayout: function(name, modal, pass) {
+            console.log('try to selectLayout', name, pass)
             if (modal) {
-                showModal(name, pass)
+                selectLayoutByName(name, true, pass)
             } else {
-                showLayout(name, pass)
+                if (this.getCurrentLayoutName() === name)
+                    return // TODO: diff pass?
+                const parts = [name]
+                if (pass) parts.push(pass)
+                const hash = 'layout:' + parts.join('|')
+                document.location.hash = hash
             }
         },
         navBack: function() {
-            showLayout('main')
+            this.selectLayout('main')
+        },
+        start: function() {
+            handleLocationHash()
         },
         close: function() {
             if (ui.hideModal()) {

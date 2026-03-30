@@ -217,7 +217,7 @@
             if (!settings)
                 throw new Error('settings file loading failed')
             const app = window.WfApp(settings)
-            app.selectLayout('main')
+            app.start()
         });
     </script>
 </html>

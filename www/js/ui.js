@@ -2,6 +2,8 @@
 
 window.WfUI = {
 
+    FACE_UPPER_FACTOR: 0.75,
+
     getContainer: function(modal) {
         modal = modal || false
         if (modal)
@@ -111,7 +113,7 @@ window.WfUI = {
         const self = window.WfUI
 
         options = options || {}
-        pad = pad || 1.3
+        pad = pad || 1.4
 
         if (!img || !img.src || img.naturalWidth < 1)
             return
@@ -161,7 +163,7 @@ window.WfUI = {
         const detScale = 1.0 / (faceInfo.diam * pad)
         const scale = viewScale * detScale
         let ox = Math.round(0.5 * vw - faceInfo.x * iw * scale)
-        let oy = Math.round(0.5 * vh - faceInfo.y * ih * scale)
+        let oy = Math.round(0.5 * (vh * self.FACE_UPPER_FACTOR) - faceInfo.y * ih * scale)
 
         // snap to view border
         let st = {x:ox, y:oy, z:scale}
@@ -244,7 +246,7 @@ window.WfUI = {
         const x = tx / (iw * scale)
 
         const oy = st.y
-        const ty = 0.5 * vh - oy
+        const ty = 0.5 * (vh * self.FACE_UPPER_FACTOR) - oy
         const y = ty / (ih * scale)
 
         const faceInfo = {x:x, y:y, diam:diam}
