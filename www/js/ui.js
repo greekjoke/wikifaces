@@ -2,7 +2,7 @@
 
 window.WfUI = {
 
-    FACE_UPPER_FACTOR: 0.75,
+    FACE_UPPER_FACTOR: 0.8,
 
     getContainer: function(modal) {
         modal = modal || false

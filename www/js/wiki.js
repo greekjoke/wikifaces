@@ -706,9 +706,6 @@ ORDER BY DESC(?victimCount) ?personLabel
         const codeRand = this._sparql_rand_code()
         const countries = this._sparql_countries({ shuffle: true, take: 10 })
         const codeCountries = countries.join(' ')
-        const pastDate = new Date(tCur)
-        const daysToSubtract = 365 * 2
-        pastDate.setDate(pastDate.getDate() - daysToSubtract)
         const maxOffset = 1000
         const ofsLive = utils.getRandomInt(0, maxOffset)
         const ofsDead = utils.getRandomInt(0, maxOffset)
