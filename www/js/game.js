@@ -238,6 +238,11 @@ class GameBase extends AppletBase {
         this.duration = value
         this.saveOption('duration', this.duration)
     }
+    incStat(name) {
+        const key = `stat_counter_${name}`
+        const cur = this.readOption(key, 0)
+        this.saveOption(key, cur + 1)
+    }
     isOn() {
         return !!this.round
     }
@@ -294,11 +299,14 @@ class GameBase extends AppletBase {
         }
 
         if (skip) {
+            this.incStat('skip')
             this.round.acceptSkip()
         } else if (this._validate(value)) {
+            this.incStat('pass')
             this._setCardState(GameBase.CARD_STATE.valid, bnId)
             this.round.acceptPassed()
         } else {
+            this.incStat('fail')
             this._setCardState(GameBase.CARD_STATE.invalid, bnId)
             this.round.acceptFailed()
         }
@@ -413,9 +421,6 @@ class GameBase extends AppletBase {
             this._refreshLog(logElem)
         }
     }
-    _refreshLog(con) {
-        con.innerHTML = '' // clear
-    }
     _createLogItem(tplId) {
         tplId = tplId || 'tpl-game-log-person'
         const tpl = document.getElementById(tplId)
@@ -467,38 +472,11 @@ class GameBase extends AppletBase {
         tw.movePos(pos.x, pos.y, true)
         return false // pos already changed
     }
-} // class GameBase
-
-window['GameBase'] = GameBase // register
-
-class GameAliveOrDead extends GameBase {
-    constructor(app, desc, options, gameId) {
-        gameId = gameId || 'GameAliveOrDead'
-        options = options || { maxTests:5 }
-        options.buttons = options.buttons || {
-            0: 'Дальше ➡️',
-            1: '☘️ Жив',
-            2: '💀 Мёртв'
-        }
-        super(app, desc, options, gameId)
-        this.ageMin = 25
-        this.ageMax = 95
-    }
-    _validate(value) {
-        const card = this.slider.currentSlide
-        if (!card.gameData) {
-            console.warn('game data not found in current card')
-            return false
-        }
-        const isAlive = !card.gameData.deathDate
-        const isDead = !isAlive
-        return (value === 1 && isAlive) || (value === 2 && isDead)
-    }
     _getSparqlOptions() {
-        return {
-            ageMin: this.ageMin,
-            ageMax: this.ageMax
-        }
+        return {}
+    }
+    _getSparqlMethod() {
+        throw new Error('not implemented')
     }
     load(onReady) {
         const that = this
@@ -507,8 +485,9 @@ class GameAliveOrDead extends GameBase {
         const cards = this.cards
         const superFunc = super.load
         const opt = this._getSparqlOptions()
+        const method = this._getSparqlMethod()
 
-        wiki.sparql_person_live_or_dead(this.maxTests, opt)
+        wiki[method](this.maxTests, opt)
             .then(async result => {
                 if (!result || !result.items) {
                     alert('Ошибка при получении данных.')
@@ -550,7 +529,7 @@ class GameAliveOrDead extends GameBase {
             })
     }
     _refreshLog(con) {
-        super._refreshLog(con)
+        con.innerHTML = '' // clear
 
         const that = this
         const wiki = window.WfWiki
@@ -603,9 +582,45 @@ class GameAliveOrDead extends GameBase {
         const a = 'Дата рождения: ' + own.dateFmt(data.birthDate)
         const b = data.deathDate ?
             ('Дата смерти: ' + own.dateFmt(data.deathDate)) : own.yoFmt(data.birthDate)
-
         return `<span class="birth-date">${a}</span>` + `<span class="death-date">${b}</span>`
     }
+} // class GameBase
+
+window['GameBase'] = GameBase // register
+
+class GameAliveOrDead extends GameBase {
+    constructor(app, desc, options, gameId) {
+        gameId = gameId || 'GameAliveOrDead'
+        options = options || { maxTests:5 }
+        options.buttons = options.buttons || {
+            0: 'Дальше ➡️',
+            1: '☘️ Жив',
+            2: '💀 Мёртв'
+        }
+        super(app, desc, options, gameId)
+        this.ageMin = 25
+        this.ageMax = 95
+    }
+    _validate(value) {
+        const card = this.slider.currentSlide
+        if (!card.gameData) {
+            console.warn('game data not found in current card')
+            return false
+        }
+        const isAlive = !card.gameData.deathDate
+        const isDead = !isAlive
+        return (value === 1 && isAlive) || (value === 2 && isDead)
+    }
+    _getSparqlOptions() {
+        const opt = super._getSparqlOptions()
+        opt.ageMin = this.ageMin
+        opt.ageMax = this.ageMax
+        return opt
+    }
+    _getSparqlMethod() {
+        return 'sparql_person_live_or_dead'
+    }
+
 } // class GameAliveOrDead
 
 window['GameAliveOrDead'] = GameAliveOrDead // register
@@ -647,3 +662,49 @@ class GamePredictAge extends GameAliveOrDead {
 }
 
 window['GamePredictAge'] = GamePredictAge // register
+
+class GamePredictChildren extends GameBase {
+    constructor(app, desc, options, gameId) {
+        gameId = gameId || 'GamePredictChildren'
+        options = options || { maxTests:5 }
+        options.buttons = options.buttons || {
+            0: 'Дальше ➡️',
+            1: 'Нет',
+            2: '1',
+            3: '2-3',
+            4: '>3',
+        }
+        super(app, desc, options, gameId)
+        this.ageMin = 25
+        this.ageMax = 95
+    }
+    _getSparqlMethod() {
+        return 'sparql_person_children'
+    }
+    _getSparqlOptions() {
+        const opt = super._getSparqlOptions()
+        // opt.onlyWC = true
+        // opt.onlyWO = true
+        opt.ageMin = this.ageMin
+        opt.ageMax = this.ageMax
+        return opt
+    }
+    _validate(value) {
+        const card = this.slider.currentSlide
+        if (!card.gameData) {
+            console.warn('game data not found in current card')
+            return false
+        }
+        const children = parseInt(card.gameData.childCount)
+        return (value === 1 && children < 1) ||
+            (value === 2 && children === 1) ||
+            (value === 3 && children >= 2 && children <= 3) ||
+            (value === 4 && children > 3)
+    }
+    _getPersonBioHtml(data) {
+        const a = `Кол-во детей: ${data.childCount}`
+        return `<span class="child-count">${a}</span>`
+    }
+}
+
+window['GamePredictChildren'] = GamePredictChildren // register

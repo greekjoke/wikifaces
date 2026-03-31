@@ -11,6 +11,9 @@ window.WfApp = function(settings) {
     const games = settings.games || {}
     let applet = []
     let globalApplet = undefined
+    const defaultUserOptions = settings.defaultUserOptions || {
+        'face-detecion': 'face'
+    }
 
     function initLayout(name, pass, layoutData) {
         if (!layoutData)
@@ -46,9 +49,7 @@ window.WfApp = function(settings) {
     }
 
     function updateUserOptions() {
-        const all = globalApplet.readOption('user-options') || {
-            'face-detecion': 'face'
-        }
+        const all = globalApplet.readOption('user-options') || defaultUserOptions
         for (let key in all) {
             const value = all[key]
             document.body.setAttribute(`data-option-${key}`, value)
@@ -108,7 +109,6 @@ window.WfApp = function(settings) {
     console.log('app starts...')
 
     window.addEventListener('hashchange', function(event) {
-        console.log('hashchange', this.document.location.hash)
         handleLocationHash()
     })
 
@@ -116,7 +116,6 @@ window.WfApp = function(settings) {
         const elem = event.target
         if (elem.tagName !== 'BUTTON' && !elem.classList.contains('button'))
             return
-
         const pass = elem.getAttribute('data-pass')
         let action = elem.getAttribute('data-action')
         if (!action)

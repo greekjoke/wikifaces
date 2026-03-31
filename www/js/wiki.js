@@ -770,7 +770,6 @@ WHERE {
     ${codeRand}
 }
 GROUP BY ?person
-ORDER BY ?randValue
 `
 
         // final query
@@ -782,6 +781,7 @@ WHERE {
     ${codeLang}
     ${codeThumb}
 }
+ORDER BY ?randValue
 LIMIT ${num}
 `
 
@@ -802,6 +802,145 @@ LIMIT ${num}
             cacheExpireIn: cache.Period.Hour * 8,
             noCacheCore: true // don't allow to cache query result
         })
+    },
+
+    sparql_person_children: async function(num, options) {
+        const utils = WfUtils
+        const cache = window.WfLocalCache
+
+        num = num || 5
+        options = options || {}
+
+        const ageMin = options.ageMin || 0
+        const ageMax = options.ageMax || 100
+        const tCur = new Date()
+        const year = tCur.getFullYear()
+        const yearMin = year - ageMax
+        const yearMax = year - ageMin
+        const codeLang = this._sparql_label_code()
+        const codeThumb = this._sparql_thumb_code()
+        const codeRand = this._sparql_rand_code()
+        const countries = this._sparql_countries({ shuffle: true, take: 10 })
+        const codeCountries = countries.join(' ')
+        const maxOffset = 1000
+        const ofsWC = utils.getRandomInt(0, maxOffset)
+        const ofsWO = utils.getRandomInt(0, maxOffset)
+        const limit = num * 10
+
+        // people with children
+        const qCoreWC = `
+SELECT ?person ?image ?birthDate ?child
+WHERE {
+    ?person wdt:P31 wd:Q5;
+        wdt:P27 ?ctz;
+        wdt:P18 ?image;
+        wdt:P569 ?birthDate;
+        wdt:P40 ?child.
+    ?ctz wdt:P31 wd:Q3624078 .
+    VALUES ?ctz { ${codeCountries} }
+    FILTER(YEAR(?birthDate) > ${yearMin} && YEAR(?birthDate) < ${yearMax})
+}
+OFFSET ${ofsWC}
+LIMIT ${limit}
+`
+
+    const qWC = `
+SELECT ?person
+    (SAMPLE(?image) as ?image)
+    (SAMPLE(?birthDate) as ?birthDate)
+    (COUNT(?child) as ?childCount)
+WHERE {
+    ${qCoreWC}
+}
+GROUP BY ?person`
+
+        // people without children
+        const qWO = `
+SELECT ?person ?image ?birthDate (0 as ?childCount)
+WHERE {
+  ?person wdt:P31 wd:Q5;
+        wdt:P27 ?ctz;
+        wdt:P18 ?image;
+        wdt:P569 ?birthDate.
+    ?ctz wdt:P31 wd:Q3624078 .
+    VALUES ?ctz { ${codeCountries} }
+    FILTER(YEAR(?birthDate) > ${yearMin} && YEAR(?birthDate) < ${yearMax})
+    FILTER NOT EXISTS { ?person wdt:P40 ?child }
+}
+OFFSET ${ofsWO}
+LIMIT ${limit}
+`
+
+        // union
+        const arSub = []
+        if (options.onlyWC) {
+            arSub.push(qWC)
+        } else if (options.onlyWO) {
+            arSub.push(qWO)
+        } else {
+            arSub.push(qWC)
+            arSub.push(qWO)
+        }
+        const arSubStr = arSub.join('} UNION {')
+        const codeUnion = `{ ${arSubStr} }`
+
+        // random order
+        const qRand = `
+SELECT ?person
+    (SAMPLE(?image) as ?image)
+    (SAMPLE(?randValue) as ?randValue)
+    (SAMPLE(?birthDate) as ?birthDate)
+    (SAMPLE(?childCount) AS ?childCount)
+WHERE {
+    ${codeUnion}
+    ${codeRand}
+}
+GROUP BY ?person
+`
+
+        // final query
+        const q = `
+SELECT ?personLabel ?birthDate ?deathDate ?thumburl ?year ?childCount
+WHERE {
+    { ${qRand} }
+    BIND(YEAR(?birthDate) AS ?year)
+    OPTIONAL { ?person wdt:P570 ?deathDate }
+    ${codeLang}
+    ${codeThumb}
+}
+ORDER BY ?randValue
+LIMIT ${num}
+`
+
+        let cacheId
+        if (utils.isLocalhost() && false) { // DEBUG
+            console.warn('[wiki] force to use last result')
+            cacheId = `sparql_person_live_or_dead:0`
+        } else {
+            const hashStr = utils.simpleHash(q)
+            cacheId = `sparql_person_live_or_dead:${hashStr}`
+        }
+
+        return await this._sparql_query_wrapper(cacheId, q, {
+            name: 'personLabel',
+            page: 'personLabel'
+        }, {
+            addition: ['birthDate', 'childCount'],
+            cacheExpireIn: cache.Period.Hour * 8,
+            noCacheCore: true // don't allow to cache query result
+        })
+    },
+
+    getCachedCollections: function() {
+        const out = {}
+        const cache = window.WfLocalCache
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('wiki.requestLaureates:')) {
+                const value = cache.get(key)
+                out[key] = value
+            }
+        });
+        return out
     },
 
     getCachedCollections: function() {
