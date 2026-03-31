@@ -72,6 +72,8 @@ window.WfUtils = {
     },
 
     shuffle: function(ar) {
+        if (!Array.isArray(ar))
+            throw new Error('array expected')
         let currentIndex = ar.length, randomIndex
         while (currentIndex !== 0) {
             randomIndex = Math.floor(Math.random() * currentIndex)

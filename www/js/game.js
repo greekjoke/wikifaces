@@ -156,6 +156,7 @@ class GameBase extends AppletBase {
         return bn
     }
     _initCardButtons(con, card) {
+        con = con || card.querySelector('.buttons')
         con.innerHTML = '' // clear
         const utils = window.WfUtils
         const ar = Object.keys(this.buttons || {})
@@ -445,7 +446,7 @@ class GameBase extends AppletBase {
             elemTitle.innerHTML = this.title
         }
     }
-    _getAnswerText(answerId) {
+    _getAnswerText(answerId, card) {
         const text = answerId ? this.buttons[answerId] : '--'
         return 'Ответ: ' + text
     }
@@ -509,8 +510,8 @@ class GameBase extends AppletBase {
                     const card = cards[i]
                     const con = card.querySelector('.content')
 
-                    card.gameData = item // save into the card
                     con.innerHTML = '' // clear
+                    that._onCardData(card, item)
 
                     const opt = {
                         container: con,
@@ -523,10 +524,15 @@ class GameBase extends AppletBase {
                         // ui.bindImageViewer(img)
                         img.classList.add('draggable')
                     }
+
+
                 }
 
                 superFunc.call(that, onReady)
             })
+    }
+    _onCardData(card, data) {
+        card.gameData = data // save into the card
     }
     _refreshLog(con) {
         con.innerHTML = '' // clear
@@ -564,7 +570,7 @@ class GameBase extends AppletBase {
         if (personBio) personBio.innerHTML = this._getPersonBioHtml(data)
         if (personName) personName.innerText = pers.name
         if (personLink) personLink.href = pers.link
-        if (answerInfo) answerInfo.innerText = this._getAnswerText(answerId)
+        if (answerInfo) answerInfo.innerText = this._getAnswerText(answerId, card)
     }
     static dateFmt(s) {
         return s ? s.substring(0, 10) : '--'
@@ -708,3 +714,87 @@ class GamePredictChildren extends GameBase {
 }
 
 window['GamePredictChildren'] = GamePredictChildren // register
+
+class GamePredictOccupation extends GameBase {
+    constructor(app, desc, options, gameId) {
+        gameId = gameId || 'GamePredictOccupation'
+        options = options || { maxTests:5 }
+        super(app, desc, options, gameId)
+        this.ageMin = 25
+        this.ageMax = 105
+        this.lastOccupItems = {}
+        this.lastOccupLkup = {}
+        this.buttonsLkup = {}
+    }
+    _getSparqlMethod() {
+        return 'sparql_person_occupation'
+    }
+    _getSparqlOptions() {
+        const that = this
+        const opt = super._getSparqlOptions()
+        opt.ageMin = this.ageMin
+        opt.ageMax = this.ageMax
+        // opt.countriesMax = 15
+        opt.occupationMax = 20
+        opt.onSelectOccupations = function(items) {
+            console.log('selected occupations', items)
+            that.lastOccupItems = items
+            that.lastOccupLkup = {}
+            items.forEach(x => that.lastOccupLkup[x.code] = x)
+        }
+        return opt
+    }
+    _onCardData(card, data) {
+        super._onCardData(card, data)
+
+        const that = this
+        const utils = window.WfUtils
+        const cardIndex = this.cards.indexOf(card)
+        const oc = data.occupCode
+        const presonOccup = this.lastOccupLkup[oc]
+
+        let ar = utils.shuffle(this.lastOccupItems)
+                    .filter(x => x.code !== oc)
+                    .slice(0, 3)
+
+        ar.push(presonOccup)
+        this.buttonsLkup[cardIndex] = {}
+        this.buttons = { 0: 'Дальше ➡️' }
+
+        utils.shuffle(ar).forEach(x => {
+            const id = Object.keys(that.buttons).length
+            that.buttonsLkup[cardIndex][id] = x.code
+            that.buttons[id] = x.label
+        })
+
+        this._initCardButtons(false, card)
+    }
+    _validate(value) {
+        const card = this.slider.currentSlide
+        if (!card.gameData) {
+            console.warn('game data not found in current card')
+            return false
+        }
+        const cardIndex = this.cards.indexOf(card)
+        const oc = card.gameData.occupCode
+        const bc = this.buttonsLkup[cardIndex][value]
+        return oc === bc
+    }
+    _getPersonBioHtml(data) {
+        const oc = data.occupCode
+        const personOccup = this.lastOccupLkup[oc]
+        const a = `Профессия: ${personOccup.label}`
+        return `<span class="occupation">${a}</span>`
+    }
+    _getAnswerText(answerId, card) {
+        let text = '--'
+        if (answerId) {
+            const cardIndex = this.cards.indexOf(card)
+            const bc = this.buttonsLkup[cardIndex][answerId]
+            text = this.lastOccupLkup[bc].label
+        }
+        return `Ответ: ${text}`
+    }
+}
+
+window['GamePredictOccupation'] = GamePredictOccupation // register

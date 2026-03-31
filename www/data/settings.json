@@ -107,11 +107,18 @@
             "logo": "media/yo.png"
         },
         "children": {
-            "icon": "👶",
+            "icon": "🧸",
             "title": "Сколько детей?",
             "class": "GamePredictChildren",
             "intro": "В этой игре нужно по фотографии человека определить сколько у него детей. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
             "logo": "media/children.png"
+        },
+        "occupation": {
+            "icon": "🔧",
+            "title": "Угадай профессию!",
+            "class": "GamePredictOccupation",
+            "intro": "В этой игре нужно по фотографии человека определить его принадлежность к профессии. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
+            "logo": "media/occup_worker.png"
         }
     }
 }

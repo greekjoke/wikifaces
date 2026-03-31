@@ -10,6 +10,7 @@ const __wikiLoadLocalFile = async function(id, url) {
 }
 
 __wikiLoadLocalFile('countries', 'data/countries.json')
+__wikiLoadLocalFile('occupation', 'data/occupation.json')
 
 window.WfWiki = {
 
@@ -512,18 +513,33 @@ SERVICE wikibase:mwapi {
         return `BIND(MD5(CONCAT(STR(?image), '${seed}')) as ?randValue)`
     },
 
-    _sparql_countries: function(options) {
+    _sparql_item_ids: function(name, options) {
         const utils = WfUtils
-        const data = __wfLocalFiles['countries']
+        const data = __wfLocalFiles[name]
         if (!data)
-            throw new Error('countries data not found')
+            throw new Error(`${name} data not found`)
         options = options || {}
-        let codes = data.map(x => `wd:${x.countryCode}`)
+        let codes = data.map(x => `wd:${x.code}`)
         if (options.shuffle)
             codes = utils.shuffle(codes)
         if (options.take)
             codes = codes.slice(0, options.take)
         return codes
+    },
+
+    _sparql_countries: function(options) {
+        return this._sparql_item_ids('countries', options)
+    },
+
+    _sparql_occupation: function(options) {
+        return this._sparql_item_ids('occupation', options)
+    },
+
+    _sparql_occupation_by_code: function(code) {
+        const ar = __wfLocalFiles['occupation']
+        const res = Object.values(ar.filter(x => x.code == code))
+        if (res)
+            return res[0]
     },
 
     sparql_award: async function(prizeId) {
@@ -915,10 +931,10 @@ LIMIT ${num}
         let cacheId
         if (utils.isLocalhost() && false) { // DEBUG
             console.warn('[wiki] force to use last result')
-            cacheId = `sparql_person_live_or_dead:0`
+            cacheId = `sparql_person_children:0`
         } else {
             const hashStr = utils.simpleHash(q)
-            cacheId = `sparql_person_live_or_dead:${hashStr}`
+            cacheId = `sparql_person_children:${hashStr}`
         }
 
         return await this._sparql_query_wrapper(cacheId, q, {
@@ -926,6 +942,114 @@ LIMIT ${num}
             page: 'personLabel'
         }, {
             addition: ['birthDate', 'childCount'],
+            cacheExpireIn: cache.Period.Hour * 8,
+            noCacheCore: true // don't allow to cache query result
+        })
+    },
+
+    sparql_person_occupation: async function(num, options) {
+        const that = this
+        const utils = WfUtils
+        const cache = window.WfLocalCache
+
+        num = num || 5
+        options = options || {}
+
+        const ageMin = options.ageMin || 0
+        const ageMax = options.ageMax || 100
+        const tCur = new Date()
+        const year = tCur.getFullYear()
+        const yearMin = year - ageMax
+        const yearMax = year - ageMin
+
+        const codeLang = this._sparql_label_code()
+        const codeThumb = this._sparql_thumb_code()
+        const codeRand = this._sparql_rand_code()
+
+        const countriesMax = options.countriesMax || 10
+        const countries = this._sparql_countries({ shuffle: true, take: countriesMax })
+        const codeCountries = countries.join(' ')
+
+        const occupationMax = options.occupationMax || 10
+        const occupation = this._sparql_occupation({ shuffle: true, take: occupationMax })
+        const codeOccupation = occupation.join(' ')
+
+        const maxOffset = 1000
+        const ofs = utils.getRandomInt(0, maxOffset)
+        const limit = num * 5
+
+        if (options.onSelectOccupations) {
+            const occupInfo = occupation.map(x => {
+                const code = x.split('wd:').pop()
+                return {
+                    code: code,
+                    label: that._sparql_occupation_by_code(code).label
+                }
+            })
+            options.onSelectOccupations.call(this, occupInfo)
+        }
+
+        // choose people
+        const qCore = `
+SELECT ?person ?image ?birthDate ?occup
+WHERE {
+    ?person wdt:P31 wd:Q5;
+        wdt:P27 ?ctz;
+        wdt:P106 ?occup;
+        wdt:P18 ?image;
+        wdt:P569 ?birthDate.
+    ?ctz wdt:P31 wd:Q3624078 .
+    VALUES ?ctz { ${codeCountries} }
+    VALUES ?occup { ${codeOccupation} }
+    FILTER(YEAR(?birthDate) > ${yearMin} && YEAR(?birthDate) < ${yearMax})
+}
+OFFSET ${ofs}
+LIMIT ${limit}
+`
+
+        // random order
+        const qRand = `
+SELECT ?person
+    (SAMPLE(?image) as ?image)
+    (SAMPLE(?randValue) as ?randValue)
+    (SAMPLE(?birthDate) as ?birthDate)
+    (SAMPLE(?occup) as ?occup)
+WHERE {
+    { ${qCore} }
+    ${codeRand}
+}
+GROUP BY ?person
+`
+
+        // final query
+        const q = `
+SELECT ?personLabel ?birthDate ?deathDate ?thumburl ?year ?occupCode
+WHERE {
+    { ${qRand} }
+    BIND(YEAR(?birthDate) AS ?year)
+    ${codeLang}
+    ${codeThumb}
+    OPTIONAL { ?person wdt:P570 ?deathDate }
+    BIND(STRAFTER(wikibase:decodeUri(STR(?occup)), "http://www.wikidata.org/entity/") AS ?occupCode)
+}
+ORDER BY ?randValue
+LIMIT ${num}
+`
+
+        let cacheId
+        if (utils.isLocalhost() && false) { // DEBUG
+            console.warn('[wiki] force to use last result')
+            cacheId = `sparql_person_occupation:0`
+        } else {
+            const hashStr = utils.simpleHash(q)
+            cacheId = `sparql_person_occupation:${hashStr}`
+        }
+
+        return await this._sparql_query_wrapper(cacheId, q, {
+            name: 'personLabel',
+            page: 'personLabel'
+        }, {
+            addition: ['birthDate', 'deathDate', 'occupCode'],
             cacheExpireIn: cache.Period.Hour * 8,
             noCacheCore: true // don't allow to cache query result
         })
