@@ -12,10 +12,6 @@
 
 -------------
 какие коллекции ещё можно попробовать собрать:
-- философы / https://en.wikipedia.org/wiki/Berggruen_Prize_for_Philosophy_and_Culture
-- религия / https://en.wikipedia.org/wiki/Templeton_Prize
-- спорт
-- шахматы
 - политика
 - fashion
 - медики/врачеватели

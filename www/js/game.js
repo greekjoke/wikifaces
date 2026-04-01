@@ -740,7 +740,6 @@ class GamePredictOccupation extends GameBase {
         // opt.countriesMax = 15
         opt.occupationMax = 20
         opt.onSelectOccupations = function(items) {
-            console.log('selected occupations', items)
             that.lastOccupItems = items
             that.lastOccupLkup = {}
             items.forEach(x => that.lastOccupLkup[x.code] = x)

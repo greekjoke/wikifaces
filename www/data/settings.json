@@ -60,6 +60,24 @@
             "link": "https://en.wikipedia.org/wiki/Medal_of_Honor",
             "query": "award|Q255032"
         },
+        "templeton": {
+            "icon": "🏅",
+            "title": "Премия Темплтона (сближение духовного и науки)",
+            "link": "https://en.wikipedia.org/wiki/Templeton_Prize",
+            "query": "award|Q603631"
+        },
+        "chess": {
+            "icon": "🏅",
+            "title": "Шахматы",
+            "link": "https://en.wikipedia.org/wiki/Chess_Oscar",
+            "query": "award|Q752000"
+        },
+        "sport": {
+            "icon": "🏅",
+            "title": "Спорт (Олимпийская золотая медаль)",
+            "link": "https://en.wikipedia.org/wiki/Olympic_medal",
+            "query": "award|Q15243387"
+        },
         "oscar": {
             "icon": "👤",
             "title": "Премия Oscar за лучшую роль",
