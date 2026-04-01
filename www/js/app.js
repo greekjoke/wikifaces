@@ -449,10 +449,12 @@ class AppletBase {
         if (!this.rootElem && this.appletId !== 'default')
             throw new Error('content container not found')
     }
-    load(onReady) {
-        // NOTE: load some data
+    load(onReady, onError) {
         if (onReady) {
-            onReady.call(this)
+            return onReady.call(this)
+        }
+        if (onError) {
+            return onError.call(this)
         }
     }
     render() {
@@ -504,7 +506,7 @@ class CollectionExplorer extends AppletBase {
     clear() {
         this.listElem.innerHTML = '' // clear view
     }
-    load(onReady) {
+    load(onReady, onError) {
         // super.load()
 
         const app = this.app
@@ -518,6 +520,7 @@ class CollectionExplorer extends AppletBase {
             if (!result) {
                 alert('Ошибка при получении данных.')
                 app.hideProgress()
+                super.load(false, onError)
                 return
             }
 

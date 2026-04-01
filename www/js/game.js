@@ -267,6 +267,8 @@ class GameBase extends AppletBase {
                 this.slider.select('card')
             this.render()
             app.hideProgress()
+        }, function() {
+            app.hideProgress()
         })
     }
     finish() {
@@ -479,9 +481,8 @@ class GameBase extends AppletBase {
     _getSparqlMethod() {
         throw new Error('not implemented')
     }
-    load(onReady) {
+    load(onReady, onError) {
         const that = this
-        const ui = window.WfUI
         const wiki = window.WfWiki
         const cards = this.cards
         const superFunc = super.load
@@ -492,7 +493,7 @@ class GameBase extends AppletBase {
             .then(async result => {
                 if (!result || !result.items) {
                     alert('Ошибка при получении данных.')
-                    superFunc.call(that, onReady)
+                    superFunc.call(that, false, onError)
                     return
                 }
 
@@ -501,7 +502,7 @@ class GameBase extends AppletBase {
 
                 if (!list || list.length < cards.length) {
                     alert('Получено недостаточно данных.')
-                    superFunc.call(that, onReady)
+                    superFunc.call(that, false, onError)
                     return
                 }
 
@@ -512,20 +513,11 @@ class GameBase extends AppletBase {
 
                     con.innerHTML = '' // clear
                     that._onCardData(card, item)
-
-                    const opt = {
+                    await that._onCardPhoto(card, item, {
                         container: con,
                         detDisabled: !cpad,
                         pad: cpad
-                    }
-
-                    const img = await ui.addFaceSlot(item.page, opt)
-                    if (img) {
-                        // ui.bindImageViewer(img)
-                        img.classList.add('draggable')
-                    }
-
-
+                    })
                 }
 
                 superFunc.call(that, onReady)
@@ -533,6 +525,17 @@ class GameBase extends AppletBase {
     }
     _onCardData(card, data) {
         card.gameData = data // save into the card
+    }
+    async _onCardPhoto(card, data, options) {
+        const ui = window.WfUI
+        const img = await ui.addFaceSlot(data.page, options)
+
+        if (img) {
+            // ui.bindImageViewer(img)
+            img.classList.add('draggable')
+        }
+
+        return img
     }
     _refreshLog(con) {
         con.innerHTML = '' // clear

@@ -976,17 +976,14 @@ LIMIT ${num}
 
         const maxOffset = 1000
         const ofs = utils.getRandomInt(0, maxOffset)
-        const limit = num * 5
+        const limit = num * 10
 
         if (options.onSelectOccupations) {
-            const occupInfo = occupation.map(x => {
-                const code = x.split('wd:').pop()
-                return {
-                    code: code,
-                    label: that._sparql_occupation_by_code(code).label
-                }
+            const occups = occupation.map(x => {
+                const code = x.split(':').pop()
+                return that._sparql_occupation_by_code(code)
             })
-            options.onSelectOccupations.call(this, occupInfo)
+            options.onSelectOccupations.call(this, occups)
         }
 
         // choose people
