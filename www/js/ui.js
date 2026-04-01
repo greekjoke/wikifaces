@@ -108,6 +108,17 @@ window.WfUI = {
         return cacheKey
     },
 
+    removeFaceDetCache: function(all) {
+        Object.keys(window.localStorage)
+            .filter(x => x.startsWith('face-det:'))
+            .forEach(x => {
+                const utils = window.WfUtils
+                const faceInfo = utils.storageRead(x)
+                if (all || faceInfo.auto)
+                    window.localStorage.removeItem(x)
+            })
+    },
+
     updateImageScale: async function(img, pad, options) {
         const utils = window.WfUtils
         const self = window.WfUI
@@ -141,6 +152,7 @@ window.WfUI = {
                     if (!options.detDisabled)
                         console.warn('detection failed', img.src)
                 }
+                faceInfo.auto = true
                 utils.storageWrite(cacheKey, faceInfo)
                 view.classList.remove('face-detection')
             }

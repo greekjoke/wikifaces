@@ -153,6 +153,11 @@ window.WfApp = function(settings) {
 
     document.body.addEventListener('keyup', function(event) {
         // console.log('keyup', event.key)
+        if (event.key === 'Backspace') {
+            if (app.getCurrentLayoutName() !== 'main')
+                window.history.back()
+            return
+        }
         const action = 'onKeyup'
         const topApplet = getTopApplet()
         if (utils.hasMethod(topApplet, action)) {
@@ -304,7 +309,7 @@ window.WfApp = function(settings) {
         },
         changeFaceDetection: function(elem) {
             this.changeUserOption(elem)
-            this.resetCache('face-det')
+            ui.removeFaceDetCache()
         },
         getCustomFacePad: function() {
             const variants = { off: false, eyes: 1.1, face: 1.4, distant: 1.8 }
