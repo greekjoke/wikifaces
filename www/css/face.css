@@ -110,10 +110,10 @@ body:not([data-option-face-details="true"]) .face-slot .details {
     left: 0;
 }
 .image-toolbar .button {
-    width: 2em;
-    height: 2em;
+    width: 1.5em;
+    height: 1.5em;
     text-indent: -999px;
-    background-size: 2em 2em;
+    background-size: 1.5em 1.5em;
     background-repeat: no-repeat;
     background-color: rgba(255, 255, 255, 0.2);
     display: inline-block;

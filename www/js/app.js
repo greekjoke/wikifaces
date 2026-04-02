@@ -106,6 +106,16 @@ window.WfApp = function(settings) {
         }
     }
 
+    let imageChangedTimer
+    function onImageChanged(img) {
+        clearTimeout(imageChangedTimer)
+        imageChangedTimer = setTimeout(function() {
+            ui.receiveImageDetParams(img, true, {
+                detDisabled: !app.getCustomFacePad()
+            })
+        }, 500)
+    }
+
     console.log('app starts...')
 
     window.addEventListener('hashchange', function(event) {
@@ -319,28 +329,14 @@ window.WfApp = function(settings) {
         photoFit(bn) {
             const tw = getImageTwisterByButton(bn)
             if (!tw) return
-            if (tw.img.classList.contains('fit-mode')) {
-                tw.img.classList.remove('fit-mode')
-                tw.img.classList.remove('orig-mode')
-                const pad = tw.getImagePad()
-                window.WfUI.updateImageScale(tw.img, pad)
-            } else {
-                tw.img.classList.add('fit-mode')
-                tw.fit()
-            }
+            tw.fit()
+            onImageChanged(tw.img)
         },
         photoOrig(bn) {
             const tw = getImageTwisterByButton(bn)
             if (!tw) return
-            if (tw.img.classList.contains('orig-mode')) {
-                tw.img.classList.remove('fit-mode')
-                tw.img.classList.remove('orig-mode')
-                const pad = tw.getImagePad()
-                window.WfUI.updateImageScale(tw.img, pad)
-            } else {
-                tw.img.classList.add('orig-mode')
-                tw.orig()
-            }
+            tw.orig()
+            onImageChanged(tw.img)
         },
         photoZoomIn(bn) {
             const tw = getImageTwisterByButton(bn)
@@ -348,6 +344,7 @@ window.WfApp = function(settings) {
             const rc = tw.view.getBoundingClientRect()
             const pt = tw.viewToImg([rc.width / 2, rc.height / 2])
             tw.zoomIn(pt)
+            onImageChanged(tw.img)
         },
         photoZoomOut(bn) {
             const tw = getImageTwisterByButton(bn)
@@ -355,6 +352,13 @@ window.WfApp = function(settings) {
             const rc = tw.view.getBoundingClientRect()
             const pt = tw.viewToImg([rc.width / 2, rc.height / 2])
             tw.zoomOut(pt)
+            onImageChanged(tw.img)
+        },
+        photoMoveTo(img, x, y) {
+            const tw = getImageTwisterByButton(img)
+            if (!tw) return
+            tw.movePos(x, y, true)
+            onImageChanged(tw.img)
         },
         initLayout_settings: function(con) {
             con.querySelectorAll('[data-name]').forEach(elem => {
@@ -583,7 +587,8 @@ class CollectionExplorer extends AppletBase {
                 detDisabled: !cpad,
                 pad: cpad
             })
-            ui.bindImageViewer(img)
+            // ui.bindImageViewer(img)
+            img.classList.add('draggable')
         }
     }
     setupGrid(numItems) {
@@ -726,6 +731,24 @@ class CollectionExplorer extends AppletBase {
         } else if (keyCode == '-') {
             this.capLess()
         }
+    }
+    onWheel(delta, event) {
+        let view
+        if (event.target.tagName === 'IMG')
+            view = event.target.closest('.face-slot')
+        if (event.target.classList.contains('face-slot'))
+            view = event.target
+        if (!view) return
+        const img = view.querySelector('img')
+        if (delta > 0) {
+            this.app.photoZoomOut(img)
+        } else if (delta < 0) {
+            this.app.photoZoomIn(img)
+        }
+    }
+    onDragging(img, pos) {
+        this.app.photoMoveTo(img, pos.x, pos.y)
+        return false // pos already changed
     }
 } // class CollectionExplorer
 
