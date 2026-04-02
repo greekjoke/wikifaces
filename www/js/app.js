@@ -338,19 +338,25 @@ window.WfApp = function(settings) {
             tw.orig()
             onImageChanged(tw.img)
         },
-        photoZoomIn(bn) {
+        photoZoomIn(bn, event) {
             const tw = getImageTwisterByButton(bn)
             if (!tw) return
             const rc = tw.view.getBoundingClientRect()
-            const pt = tw.viewToImg([rc.width / 2, rc.height / 2])
+            let pt = tw.viewToImg([rc.width / 2, rc.height / 2])
+            if (event && event.constructor && event.constructor.name === 'WheelEvent') {
+                pt = [event.offsetX, event.offsetY]
+            }
             tw.zoomIn(pt)
             onImageChanged(tw.img)
         },
-        photoZoomOut(bn) {
+        photoZoomOut(bn, event) {
             const tw = getImageTwisterByButton(bn)
             if (!tw) return
             const rc = tw.view.getBoundingClientRect()
-            const pt = tw.viewToImg([rc.width / 2, rc.height / 2])
+            let pt = tw.viewToImg([rc.width / 2, rc.height / 2])
+            if (event && event.constructor && event.constructor.name === 'WheelEvent') {
+                pt = [event.offsetX, event.offsetY]
+            }
             tw.zoomOut(pt)
             onImageChanged(tw.img)
         },
@@ -740,10 +746,11 @@ class CollectionExplorer extends AppletBase {
             view = event.target
         if (!view) return
         const img = view.querySelector('img')
+        // const pt = [event.offsetX, event.offsetY]
         if (delta > 0) {
-            this.app.photoZoomOut(img)
+            this.app.photoZoomOut(img, event)
         } else if (delta < 0) {
-            this.app.photoZoomIn(img)
+            this.app.photoZoomIn(img, event)
         }
     }
     onDragging(img, pos) {
