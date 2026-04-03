@@ -481,6 +481,9 @@ class GameBase extends AppletBase {
     _getSparqlMethod() {
         throw new Error('not implemented')
     }
+    _getSparqlLimit() {
+        return this.maxTests
+    }
     load(onReady, onError) {
         const that = this
         const wiki = window.WfWiki
@@ -488,8 +491,9 @@ class GameBase extends AppletBase {
         const superFunc = super.load
         const opt = this._getSparqlOptions()
         const method = this._getSparqlMethod()
+        const limit = this._getSparqlLimit()
 
-        wiki[method](this.maxTests, opt)
+        wiki[method](limit, opt)
             .then(async result => {
                 if (!result || !result.items) {
                     alert('Ошибка при получении данных.')
@@ -837,3 +841,24 @@ class GamePredictReligion extends GamePredictOccupation {
 }
 
 window['GamePredictReligion'] = GamePredictReligion // register
+
+class GamePredictRelative extends GameBase { // TODO: base class?
+    constructor(app, desc, options, gameId) {
+        gameId = gameId || 'GamePredictRelative'
+        options = options || { maxTests:5 }
+        super(app, desc, options, gameId)
+    }
+    _getSparqlLimit() {
+        return this.maxTests * 2
+    }
+    _getSparqlMethod() {
+        return 'sparql_person_relatives'
+    }
+    _getSparqlOptions() {
+        const opt = super._getSparqlOptions()
+        // opt.countriesMax = 15
+        return opt
+    }
+}
+
+window['GamePredictRelative'] = GamePredictRelative // register
