@@ -1194,7 +1194,8 @@ LIMIT ${num}
 
         const maxOffset = 2000
         const ofs = utils.getRandomInt(0, maxOffset)
-        const limit = num * 10
+        const limit = num * 5
+        const limitPreFinal = num
 
         // choose the base person
         const qCore = `
@@ -1238,6 +1239,8 @@ WHERE {
     ${codeRand}
 }
 GROUP BY ?person ?finalPerson ?type
+ORDER BY ?personBase
+LIMIT ${limitPreFinal}
 `
 
         // final query
