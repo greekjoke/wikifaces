@@ -725,8 +725,8 @@ class GamePredictOccupation extends GameBase {
         super(app, desc, options, gameId)
         this.ageMin = 25
         this.ageMax = 105
-        this.lastOccupItems = {}
-        this.lastOccupLkup = {}
+        this.lastAtrItems = {}
+        this.lastAtrLkup = {}
         this.buttonsLkup = {}
     }
     _getSparqlMethod() {
@@ -740,11 +740,14 @@ class GamePredictOccupation extends GameBase {
         // opt.countriesMax = 15
         opt.occupationMax = 20
         opt.onSelectOccupations = function(items) {
-            that.lastOccupItems = items
-            that.lastOccupLkup = {}
-            items.forEach(x => that.lastOccupLkup[x.code] = x)
+            that.lastAtrItems = items
+            that.lastAtrLkup = {}
+            items.forEach(x => that.lastAtrLkup[x.code] = x)
         }
         return opt
+    }
+    _getGameDataAtr(data) {
+        return data.occupCode
     }
     _onCardData(card, data) {
         super._onCardData(card, data)
@@ -752,14 +755,14 @@ class GamePredictOccupation extends GameBase {
         const that = this
         const utils = window.WfUtils
         const cardIndex = this.cards.indexOf(card)
-        const oc = data.occupCode
-        const presonOccup = this.lastOccupLkup[oc]
+        const oc = this._getGameDataAtr(data)
+        const presonAtr = this.lastAtrLkup[oc]
 
-        let ar = utils.shuffle(this.lastOccupItems)
+        let ar = utils.shuffle(this.lastAtrItems)
                     .filter(x => x.code !== oc)
                     .slice(0, 3)
 
-        ar.push(presonOccup)
+        ar.push(presonAtr)
         this.buttonsLkup[cardIndex] = {}
         this.buttons = { 0: 'Дальше ➡️' }
 
@@ -778,14 +781,14 @@ class GamePredictOccupation extends GameBase {
             return false
         }
         const cardIndex = this.cards.indexOf(card)
-        const oc = card.gameData.occupCode
+        const oc = this._getGameDataAtr(card.gameData)
         const bc = this.buttonsLkup[cardIndex][value]
         return oc === bc
     }
     _getPersonBioHtml(data) {
-        const oc = data.occupCode
-        const personOccup = this.lastOccupLkup[oc]
-        const a = `Профессия: ${personOccup.label}`
+        const oc = this._getGameDataAtr(data)
+        const personAtr = this.lastAtrLkup[oc]
+        const a = `Профессия: ${personAtr.label}`
         return `<span class="occupation">${a}</span>`
     }
     _getAnswerText(answerId, card) {
@@ -793,10 +796,44 @@ class GamePredictOccupation extends GameBase {
         if (answerId) {
             const cardIndex = this.cards.indexOf(card)
             const bc = this.buttonsLkup[cardIndex][answerId]
-            text = this.lastOccupLkup[bc].label
+            text = this.lastAtrLkup[bc].label
         }
         return `Ответ: ${text}`
     }
 }
 
 window['GamePredictOccupation'] = GamePredictOccupation // register
+
+class GamePredictReligion extends GamePredictOccupation {
+    constructor(app, desc, options, gameId) {
+        gameId = gameId || 'GamePredictReligion'
+        options = options || { maxTests:5 }
+        super(app, desc, options, gameId)
+    }
+    _getSparqlMethod() {
+        return 'sparql_person_religion'
+    }
+    _getSparqlOptions() {
+        const that = this
+        const opt = super._getSparqlOptions()
+        opt.countriesMax = 25
+        opt.religionMax = 15
+        opt.onSelectReligions = function(items) {
+            that.lastAtrItems = items
+            that.lastAtrLkup = {}
+            items.forEach(x => that.lastAtrLkup[x.code] = x)
+        }
+        return opt
+    }
+    _getGameDataAtr(data) {
+        return data.religCode
+    }
+    _getPersonBioHtml(data) {
+        const oc = this._getGameDataAtr(data)
+        const personAtr = this.lastAtrLkup[oc]
+        const a = `Религия: ${personAtr.label}`
+        return `<span class="religion">${a}</span>`
+    }
+}
+
+window['GamePredictReligion'] = GamePredictReligion // register
