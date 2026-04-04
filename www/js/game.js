@@ -96,6 +96,7 @@ class GameBase extends AppletBase {
         this.round = undefined // RoundBase
         this.slider = undefined
         this.beforeSlideDelay = 1500
+        this.shuffleResult = true
 
         const tmp = this._newRoundInstance()
         const numTests = tmp.numTests || 'бесконечного числа'
@@ -502,9 +503,9 @@ class GameBase extends AppletBase {
                 }
 
                 const cpad = this.app.getCustomFacePad()
-                const list = wiki.collectPeople(result.items, true)
+                const list = wiki.collectPeople(result.items, that.shuffleResult)
 
-                if (!list || list.length < cards.length) {
+                if (!list || list.length < limit) {
                     alert('Получено недостаточно данных.')
                     superFunc.call(that, false, onError)
                     return
@@ -516,18 +517,26 @@ class GameBase extends AppletBase {
                     const con = card.querySelector('.content')
 
                     con.innerHTML = '' // clear
-                    that._onCardData(card, item)
+
+                    that._onCardData(card, item, {
+                        itemsList: list,
+                        cardIndex: i
+                    })
+
                     await that._onCardPhoto(card, item, {
                         container: con,
                         detDisabled: !cpad,
-                        pad: cpad
+                        pad: cpad,
+                        itemsList: list,
+                        cardIndex: i
                     })
                 }
 
                 superFunc.call(that, onReady)
             })
     }
-    _onCardData(card, data) {
+    _onCardData(card, data, options) {
+        options = options || {}
         card.gameData = data // save into the card
     }
     async _onCardPhoto(card, data, options) {
@@ -753,8 +762,8 @@ class GamePredictOccupation extends GameBase {
     _getGameDataAtr(data) {
         return data.occupCode
     }
-    _onCardData(card, data) {
-        super._onCardData(card, data)
+    _onCardData(card, data, options) {
+        super._onCardData(card, data, options)
 
         const that = this
         const utils = window.WfUtils
@@ -842,11 +851,57 @@ class GamePredictReligion extends GamePredictOccupation {
 
 window['GamePredictReligion'] = GamePredictReligion // register
 
-class GamePredictRelative extends GameBase { // TODO: base class?
+class GamePredictRelative extends GameBase {
+    static SEX_CODES = {
+        'Q6581097': 'male',
+        'Q6581072': 'female',
+    }
+    static RELATIVE_STATUS_NAME = {
+        ALIEN: 'чужой',
+        HUSBAND: 'муж',
+        WIFE: 'жена',
+        SPOUSE: 'супруг(а)',
+        CHILD: 'ребёнок',
+        FATHER: 'отец',
+        MOTHER: 'мать',
+        PARENT: 'родитель',
+        COMPETITOR: 'бывш./нов.',
+        SPOUSE_PARENT: 'родитель супруга(и)',
+        CHILD_SPOUSE: 'невестка/зять',
+        GRANDCHILDREN: 'внуки',
+        GRANDFATHER: 'дедушка',
+        GRANDMOTHER: 'бабушка',
+        SIBLING: 'брат/сестра',
+        BROTHER: 'брат',
+        SISTER: 'сестра',
+        SON: 'сын',
+        DAUGHTER: 'дочь',
+        GRANDSON: 'внук',
+        GRANDDAUGHTER: 'внучка',
+        SON_IN_LAW: 'зять',
+        DAUGHTER_IN_LAW: 'сноха',
+        MOTHER_IN_LAW: 'тёща', // +свекровь
+        FATHER_IN_LAW: 'тесть', // +свёкр
+        BROTHER_IN_LAW: 'деверь',
+        SISTER_IN_LAW: 'золовка',
+        UNCLE: 'дядя',
+        AUNT: 'тётя',
+        NEPHEW: 'племянник',
+        NIECE: 'племянница',
+    }
     constructor(app, desc, options, gameId) {
         gameId = gameId || 'GamePredictRelative'
         options = options || { maxTests:5 }
+        options.buttons = options.buttons || {
+            0: 'Дальше ➡️',
+            1: 'Нет',
+            2: 'Родители / Дети',
+            3: 'Братья / Сёстры',
+            4: 'Супруги',
+            // 5: 'Деды / Внуки',
+        }
         super(app, desc, options, gameId)
+        this.shuffleResult = false
     }
     _getSparqlLimit() {
         return this.maxTests * 2
@@ -856,8 +911,223 @@ class GamePredictRelative extends GameBase { // TODO: base class?
     }
     _getSparqlOptions() {
         const opt = super._getSparqlOptions()
-        // opt.countriesMax = 15
+        opt.countriesMax = 20
         return opt
+    }
+    _onCardData(card, data, options) {
+        options = options || {}
+        const pairIndex = options.cardIndex
+        const ia = pairIndex * 2 + 0
+        const ib = pairIndex * 2 + 1
+        card.gameData = [options.itemsList[ia], options.itemsList[ib]]
+    }
+    async _onCardPhoto(card, data, options) {
+        const ui = window.WfUI
+        const ar = card.gameData
+        const images = []
+
+        if (!Array.isArray(ar))
+            throw new Error('expected game data as array of pair items')
+
+        await ar.forEach(async data => {
+            const img = await ui.addFaceSlot(data.page, options)
+            if (img) {
+                img.classList.add('draggable')
+                images.push(img)
+            }
+        })
+
+        return images
+    }
+    _refreshLog(con) {
+        const that = this
+        const wiki = window.WfWiki
+
+        con.innerHTML = '' // clear
+
+        this.cards.forEach(card => {
+            const ar = card.gameData
+            const pers1 = wiki.Person(ar[0].page)
+            const pers2 = wiki.Person(ar[1].page)
+            const itemElem = that._createLogItem()
+            that._initLogItem(card, itemElem, [pers1, pers2])
+            con.appendChild(itemElem)
+        })
+    }
+    _initLogItem(card, elem, arPers) {
+        const that = this
+        const arData = card.gameData
+        const iconFirst = elem.querySelector('.person-icon')
+        const personInfoFirst = elem.querySelector('.person-info')
+        const iconSecond = iconFirst.cloneNode(true)
+        const personInfoSecond = personInfoFirst.cloneNode(true)
+
+        personInfoFirst.after(iconSecond)
+        iconSecond.after(personInfoSecond)
+
+        const icons = [iconFirst, iconSecond]
+        icons.forEach((iconElem, i) => {
+            const data = arData[i]
+            const imgElem = iconElem.querySelector('img')
+            const linkElem = iconElem.querySelector('a')
+            imgElem.src = data.photo
+            linkElem.href = data.photo
+        })
+
+        const infos = [personInfoFirst, personInfoSecond]
+        infos.forEach((infoElem, i) => {
+            const data = arData[i]
+            const pers = arPers[i]
+            const nameElem = infoElem.querySelector('.person-name > span')
+            const linkElem = infoElem.querySelector('.person-name > a')
+            const personBio = infoElem.querySelector('.person-bio')
+            personBio.innerHTML = that._getPersonBioHtml(data, arData[(i+1)%2])
+            nameElem.innerText = pers.name
+            linkElem.href = pers.link
+        })
+
+        const st = card.getAttribute('data-state')
+        const answerId = parseInt(card.getAttribute('data-button') || 0)
+        const answerInfo = elem.querySelector('.answer-info')
+
+        if (st == GameBase.CARD_STATE.valid) {
+            elem.classList.add('answer-valid')
+        } else if (st == GameBase.CARD_STATE.invalid) {
+            elem.classList.add('answer-invalid')
+        }
+
+        if (answerInfo)
+            answerInfo.innerText = this._getAnswerText(answerId, card)
+    }
+    _getPersonBioHtml(data, other) {
+        const rsn = GamePredictRelative.RELATIVE_STATUS_NAME
+        const sex = GamePredictRelative.SEX_CODES
+        let status = '--'
+
+        if (data.baseCode === other.baseCode) { // relative
+            const myType = data.type
+            const myMale = sex[data.sexCode] === 'male'
+            const anType = other.type
+            const anMale = sex[other.sexCode] === 'male'
+
+            switch(myType) {
+                case 'self': // кто я для...
+                    switch(anType) {
+                        case 'self': status = rsn.ALIEN; break;
+                        case 'spouse': status = myMale ? rsn.HUSBAND : rsn.WIFE; break;
+                        case 'mother': status = myMale ? rsn.SON : rsn.DAUGHTER; break;
+                        case 'father': status = myMale ? rsn.SON : rsn.DAUGHTER; break;
+                        case 'child': status = myMale ? rsn.FATHER : rsn.MOTHER; break;
+                        case 'sibling': status = myMale ? rsn.BROTHER : rsn.SISTER; break;
+                    }
+                    break;
+
+                case 'spouse': // я супруг(а), кто я для...
+                    switch(anType) {
+                        case 'self': status = myMale ? rsn.HUSBAND : rsn.WIFE; break;
+                        case 'spouse': status = rsn.COMPETITOR; break;
+                        case 'mother': status = myMale ? rsn.SON_IN_LAW : rsn.DAUGHTER_IN_LAW; break;
+                        case 'father': status = myMale ? rsn.SON_IN_LAW : rsn.DAUGHTER_IN_LAW; break;
+                        case 'child': status = myMale ? rsn.FATHER : rsn.MOTHER; break;
+                        case 'sibling': status = myMale ? rsn.BROTHER_IN_LAW : rsn.SISTER_IN_LAW; break;
+                    }
+                    break;
+
+                case 'mother': // я мать, кто я для...
+                    switch(anType) {
+                        case 'self': status = rsn.MOTHER; break;
+                        case 'spouse': status = myMale ? 'тёща' : 'свекровь'; break;
+                        case 'mother': break;
+                        case 'father': status = rsn.HUSBAND; break;
+                        case 'child': status = rsn.GRANDMOTHER; break;
+                        case 'sibling': status = rsn.MOTHER; break;
+                    }
+                    break;
+
+                case 'father': // я отец, кто я для...
+                    switch(anType) {
+                        case 'self': status = rsn.FATHER; break;
+                        case 'spouse': status = myMale ? 'тесть' : 'свёкр'; break;
+                        case 'mother': status = rsn.WIFE; break;
+                        case 'father': break;
+                        case 'child': status = rsn.GRANDFATHER; break;
+                        case 'sibling': status = rsn.FATHER; break;
+                    }
+                    break;
+
+                case 'child': // я ребёнок, кто я для...
+                    switch(anType) {
+                        case 'self': status = myMale ? rsn.SON : rsn.DAUGHTER; break;
+                        case 'spouse': status = myMale ? rsn.SON : rsn.DAUGHTER; break;
+                        case 'mother': status = myMale ? rsn.GRANDSON : rsn.GRANDDAUGHTER; break;
+                        case 'father': status = myMale ? rsn.GRANDSON : rsn.GRANDDAUGHTER; break;
+                        case 'child': status = myMale ? rsn.BROTHER : rsn.SISTER; break;
+                        case 'sibling': status = myMale ? rsn.NEPHEW : rsn.NIECE; break;
+                    }
+                    break;
+
+                case 'sibling': // я брат/сестра, кто я для...
+                    switch(anType) {
+                        case 'self': status = myMale ? rsn.BROTHER : rsn.SISTER; break;
+                        case 'spouse': status = myMale ? rsn.BROTHER_IN_LAW : rsn.SISTER_IN_LAW; break;
+                        case 'mother': status = myMale ? rsn.SON : rsn.DAUGHTER; break;
+                        case 'father': status = myMale ? rsn.SON : rsn.DAUGHTER; break;
+                        case 'child': status = myMale ? rsn.UNCLE : rsn.AUNT; break;
+                        case 'sibling': status = myMale ? rsn.BROTHER : rsn.SISTER; break;
+                    }
+                    break;
+
+            }
+        } else {
+            status = rsn.ALIEN
+        }
+
+        const a = `Статус: ${status}`
+        return `<span class="relative-status">${a}</span>`
+    }
+    _validate(value) {
+        const card = this.slider.currentSlide
+        if (!card.gameData) {
+            console.warn('game data not found in current card')
+            return false
+        }
+        const [a, b] = card.gameData
+        const isRelative = a.baseCode === b.baseCode
+
+        if (!isRelative) // not relatives
+            return (value === 1)
+
+        if (value === 2) // children vs parents
+            return (a.type === 'self' && b.type === 'child') ||
+                    (a.type === 'self' && b.type === 'mother') ||
+                    (a.type === 'self' && b.type === 'father') ||
+                    (b.type === 'self' && a.type === 'child') ||
+                    (b.type === 'self' && a.type === 'mother') ||
+                    (b.type === 'self' && a.type === 'father') ||
+                    (a.type === 'sibling' && b.type === 'father') ||
+                    (a.type === 'sibling' && b.type === 'mother') ||
+                    (b.type === 'sibling' && a.type === 'father') ||
+                    (b.type === 'sibling' && a.type === 'mother')
+
+        if (value === 3) // siblings
+            return (a.type === 'child' && b.type === 'child') ||
+                    (a.type === 'sibling' && b.type === 'sibling') ||
+                    (a.type === 'self' && b.type === 'sibling') ||
+                    (b.type === 'self' && a.type === 'sibling')
+
+        if (value === 4) // spouse
+            return (a.type === 'self' && b.type === 'spouse') ||
+                    (b.type === 'self' && a.type === 'spouse') ||
+                    (a.type === 'mother' && b.type === 'father') ||
+                    (b.type === 'mother' && a.type === 'father')
+
+        if (value === 5) // grands
+            return (a.type === 'child' && b.type === 'mother') ||
+                    (a.type === 'child' && b.type === 'father') ||
+                    (b.type === 'child' && a.type === 'mother') ||
+                    (b.type === 'child' && a.type === 'father')
+
+        return false
     }
 }
 

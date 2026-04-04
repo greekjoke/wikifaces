@@ -1178,7 +1178,7 @@ LIMIT ${num}
         options = options || {}
 
         const ageMin = options.ageMin || 20
-        const ageMax = options.ageMax || 70
+        const ageMax = options.ageMax || 90
         const tCur = new Date()
         const year = tCur.getFullYear()
         const yearMin = year - ageMax
@@ -1192,7 +1192,7 @@ LIMIT ${num}
         const countries = this._sparql_countries({ shuffle: true, take: countriesMax })
         const codeCountries = countries.join(' ')
 
-        const maxOffset = 2000
+        const maxOffset = 5000
         const ofs = utils.getRandomInt(0, maxOffset)
         const limit = num * 5
         const limitPreFinal = num
@@ -1208,7 +1208,8 @@ WHERE {
     ?ctz wdt:P31 wd:Q3624078 .
     VALUES ?ctz { ${codeCountries} }
     FILTER(YEAR(?birthDate) > ${yearMin} && YEAR(?birthDate) < ${yearMax})
-    ?person wdt:P22 | wdt:P25 | wdt:P26 | wdt:P40 [] .
+    # ?person wdt:P22 | wdt:P25 | wdt:P26 | wdt:P40 [] .
+    ?person wdt:P22 | wdt:P25 [] .
 }
 OFFSET ${ofs}
 LIMIT ${limit}
@@ -1216,9 +1217,10 @@ LIMIT ${limit}
 
         // query part to get relatives
         const qRel = `
-SELECT ?type
-    (?person as ?personBase)
+SELECT
     (?finalPerson as ?person)
+    (SAMPLE(?person) as ?personBase)
+    (SAMPLE(?type) as ?type)
     (SAMPLE(?image) as ?image)
     (SAMPLE(?randValue) as ?randValue)
 WHERE {
@@ -1226,38 +1228,49 @@ WHERE {
     BIND(?person AS ?core).
     BIND(?img AS ?coreImg).
     { BIND(?core AS ?person2). BIND(?coreImg AS ?image2). BIND("self" AS ?type)  } # self
-    UNION
-    { ?core wdt:P26 ?person2. ?person2 wdt:P18 ?image2. BIND("spouse" AS ?type) } # husband/wife
+    # UNION
+    # { ?core wdt:P26 ?person2. ?person2 wdt:P18 ?image2. BIND("spouse" AS ?type) } # husband/wife
     UNION
     { ?core wdt:P25 ?person2. ?person2 wdt:P18 ?image2. BIND("mother" AS ?type) } # mother
     UNION
     { ?core wdt:P22 ?person2. ?person2 wdt:P18 ?image2. BIND("father" AS ?type) } # father
+    # UNION
+    # { ?core wdt:P40 ?person2. ?person2 wdt:P18 ?image2. BIND("child" AS ?type) } # child
     UNION
-    { ?core wdt:P40 ?person2. ?person2 wdt:P18 ?image2. BIND("child" AS ?type) } # child
+    { ?core wdt:P3373 ?person2. ?person2 wdt:P18 ?image2. BIND("sibling" AS ?type) } # sibling
     BIND(COALESCE(?person2, ?core) AS ?finalPerson).
     BIND(COALESCE(?image2, ?coreImg) AS ?image).
     ${codeRand}
 }
-GROUP BY ?person ?finalPerson ?type
-ORDER BY ?personBase
+GROUP BY ?finalPerson
+ORDER BY ?personBase DESC(?type)
 LIMIT ${limitPreFinal}
 `
 
         // final query
         const q = `
-SELECT ?personLabel ?birthDate ?deathDate ?thumburl ?year ?baseCode ?personCode ?type
+SELECT ?baseCode ?personCode ?type ?personLabel
+    (SAMPLE(?birthDate) as ?birthDate)
+    (SAMPLE(?deathDate) as ?deathDate)
+    (SAMPLE(?thumburl) as ?thumburl)
+    (SAMPLE(?year) as ?year)
+    (SAMPLE(?sexCode) as ?sexCode)
 WHERE {
     { ${qRel} }
     ${codeLang}
     ${codeThumb}
     OPTIONAL { ?person wdt:P569 ?birthDate }
     OPTIONAL { ?person wdt:P570 ?deathDate }
+    OPTIONAL { ?person wdt:P21 ?sex }
     BIND(YEAR(?birthDate) AS ?year)
     BIND(STRAFTER(wikibase:decodeUri(STR(?personBase)), "http://www.wikidata.org/entity/") AS ?baseCode)
     BIND(STRAFTER(wikibase:decodeUri(STR(?person)), "http://www.wikidata.org/entity/") AS ?personCode)
+    BIND(STRAFTER(wikibase:decodeUri(STR(?sex)), "http://www.wikidata.org/entity/") AS ?sexCode)
 }
-ORDER BY ?randValue
-LIMIT ${num}
+GROUP BY ?baseCode ?personCode ?type ?personLabel
+# ORDER BY ?randValue
+ORDER BY ?baseCode
+# LIMIT ${num}
 `
 
         let cacheId
@@ -1269,11 +1282,14 @@ LIMIT ${num}
             cacheId = `sparql_person_relatives:${hashStr}`
         }
 
+        // TODO: нужна сортирока результата, чтобы родственники чаще были в паре
+
         return await this._sparql_query_wrapper(cacheId, q, {
+            year: '*', // same year for all
             name: 'personLabel',
             page: 'personLabel'
         }, {
-            addition: ['birthDate', 'deathDate', 'baseCode', 'personCode', 'type'],
+            addition: ['birthDate', 'deathDate', 'baseCode', 'personCode', 'type', 'sexCode'],
             cacheExpireIn: cache.Period.Hour * 8,
             noCacheCore: true // don't allow to cache query result
         })
