@@ -97,6 +97,9 @@ body:not([data-option-face-details="true"]) .face-slot .details {
 .photo-prefer-height .face-slot-wrapper {
     height: 100%;
 }
+.layout-wrapper[data-layout="game-launcher"].couple .photo-prefer-height .face-slot {
+    height: min(420px, 100%);
+}
 
 .image-toolbar {
     position: absolute;

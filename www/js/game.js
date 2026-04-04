@@ -902,6 +902,7 @@ class GamePredictRelative extends GameBase {
         }
         super(app, desc, options, gameId)
         this.shuffleResult = false
+        this.rootElem.classList.add('couple')
     }
     _getSparqlLimit() {
         return this.maxTests * 2
