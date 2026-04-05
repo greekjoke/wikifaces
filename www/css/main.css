@@ -18,7 +18,10 @@ h2 {
 
 a.icon-link {
     text-decoration: none;
-    /* filter: hue-rotate(260deg) brightness(1.2); */
+    color: rgba(80, 80, 80, 0.5);
+}
+a.icon-link:hover {
+    color: blue;
 }
 
 label > input[type="checkbox"] {

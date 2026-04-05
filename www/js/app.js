@@ -691,7 +691,8 @@ class CollectionExplorer extends AppletBase {
         const icon = (iconHtml || '') + (iconHtml ? '&nbsp;' : '')
         const wikiHost = window.WfWiki.site
         const link = col.link || `${wikiHost}/wiki/${col.page}`
-        const linkHtml = link ? ` <a class="icon-link" target="_blank" href="${link}">🔗</a>` : ''
+        const linkHtml = link ?
+            ` <a class="icon-link" target="_blank" href="${link}"><i class="fa-solid fa-link"></i></a>` : ''
         titleElem.innerHTML = `${icon}${title}${linkHtml}`
     }
     capLess() {
