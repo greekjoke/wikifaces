@@ -554,7 +554,12 @@ class GameBase extends AppletBase {
     }
     async _onCardPhoto(card, data, options) {
         const ui = window.WfUI
-        const img = await ui.addFaceSlot(data.page, options)
+
+        // const img = await ui.addFaceSlot(data.page, options)
+        const img = await ui.addFaceSlot({
+            photo: { url: data.photo },
+            load: async function() {}
+        }, options)
 
         if (img) {
             // ui.bindImageViewer(img)
