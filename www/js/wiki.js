@@ -1334,6 +1334,8 @@ ORDER BY ?baseCode
             const all = wiki.getCachedCollections()
             for (let cid in all) {
                 const col = all[cid]
+                if (!col)
+                    continue
                 for (let i in col.items) {
                     const item = col.items[i]
                     for (let j in item.person) {

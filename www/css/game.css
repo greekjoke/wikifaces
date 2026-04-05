@@ -101,13 +101,16 @@
     width: 100%;
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     flex: 0 0 0%;
 }
 .slide.card button {
     display: inline-block;
     margin: 0.25em 0.5em;
+    /* word-break: break-word; */
     width: auto;
     flex: 1;
+    flex-basis: 100px;
 }
 .slide.card:not([data-state="ask"]) button {
     /* prevent button double click */
