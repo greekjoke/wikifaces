@@ -118,11 +118,11 @@ body:not([data-option-face-details="true"]) .face-slot .details {
     text-indent: -999px;
     background-size: 1.5em 1.5em;
     background-repeat: no-repeat;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.3);
     display: inline-block;
 }
 .image-toolbar .button:hover {
-    background-color: rgba(255, 255, 180, 0.5) !important;
+    background-color: rgba(255, 255, 180, 0.6) !important;
 }
 
 .bn-fit { background-image: url('../media/icon-frame-outer.svg'); }

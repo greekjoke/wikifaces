@@ -732,7 +732,8 @@ ORDER BY DESC(?victimCount) ?personLabel
         const codeLang = this._sparql_label_code()
         const codeThumb = this._sparql_thumb_code()
         const codeRand = this._sparql_rand_code()
-        const countries = this._sparql_countries({ shuffle: true, take: 10 })
+        const countriesMax = options.countriesMax || 10
+        const countries = this._sparql_countries({ shuffle: true, take: countriesMax })
         const codeCountries = countries.join(' ')
         const maxOffset = 1000
         const ofsLive = utils.getRandomInt(0, maxOffset)
@@ -848,7 +849,8 @@ LIMIT ${num}
         const codeLang = this._sparql_label_code()
         const codeThumb = this._sparql_thumb_code()
         const codeRand = this._sparql_rand_code()
-        const countries = this._sparql_countries({ shuffle: true, take: 10 })
+        const countriesMax = options.countriesMax || 10
+        const countries = this._sparql_countries({ shuffle: true, take: countriesMax })
         const codeCountries = countries.join(' ')
         const maxOffset = 1000
         const ofsWC = utils.getRandomInt(0, maxOffset)

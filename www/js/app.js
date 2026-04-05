@@ -292,7 +292,7 @@ window.WfApp = function(settings) {
         },
         setProgressText: setProgressText,
         resetCache: function(startsWith) {
-            if (startsWith) {
+            if (startsWith && typeof(startsWith) === 'string') {
                 Object.keys(localStorage)
                     .filter(x => x.startsWith(startsWith))
                         .forEach(x => localStorage.removeItem(x))

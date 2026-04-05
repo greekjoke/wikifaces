@@ -635,6 +635,7 @@ class GameAliveOrDead extends GameBase {
     }
     _getSparqlOptions() {
         const opt = super._getSparqlOptions()
+        opt.countriesMax = 8
         opt.ageMin = this.ageMin
         opt.ageMax = this.ageMax
         return opt
@@ -705,6 +706,7 @@ class GamePredictChildren extends GameBase {
     }
     _getSparqlOptions() {
         const opt = super._getSparqlOptions()
+        opt.countriesMax = 8
         // opt.onlyWC = true
         // opt.onlyWO = true
         opt.ageMin = this.ageMin
@@ -750,7 +752,7 @@ class GamePredictOccupation extends GameBase {
         const opt = super._getSparqlOptions()
         opt.ageMin = this.ageMin
         opt.ageMax = this.ageMax
-        // opt.countriesMax = 15
+        opt.countriesMax = 8
         opt.occupationMax = 20
         opt.onSelectOccupations = function(items) {
             that.lastAtrItems = items
@@ -1039,7 +1041,7 @@ class GamePredictRelative extends GameBase {
                         case 'self': status = rsn.MOTHER; break;
                         case 'spouse': status = myMale ? 'тёща' : 'свекровь'; break;
                         case 'mother': break;
-                        case 'father': status = rsn.HUSBAND; break;
+                        case 'father': status = rsn.WIFE; break;
                         case 'child': status = rsn.GRANDMOTHER; break;
                         case 'sibling': status = rsn.MOTHER; break;
                     }
@@ -1049,7 +1051,7 @@ class GamePredictRelative extends GameBase {
                     switch(anType) {
                         case 'self': status = rsn.FATHER; break;
                         case 'spouse': status = myMale ? 'тесть' : 'свёкр'; break;
-                        case 'mother': status = rsn.WIFE; break;
+                        case 'mother': status = rsn.HUSBAND; break;
                         case 'father': break;
                         case 'child': status = rsn.GRANDFATHER; break;
                         case 'sibling': status = rsn.FATHER; break;
