@@ -114,7 +114,7 @@ body.modal .slide button {
     margin: 0.25em 0.5em;
     width: auto;
     flex: 1;
-    flex-basis: 100px;
+    flex-basis: 80px;
     /* text limitting */
     line-clamp: 2;
     -webkit-line-clamp: 2;
@@ -161,7 +161,7 @@ body.modal .slide button {
 }
 [data-layout="game-launcher"] .face-slot {
     /* max-width: calc((100vh - 210px) * 2 / 3); */
-    max-width: calc((100vh - 234px) * 2 / 3);
+    max-width: calc((100vh - 254px) * 2 / 3);
 }
 
 /* game log */
