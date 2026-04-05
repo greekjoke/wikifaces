@@ -182,6 +182,7 @@ body.modal .slide button {
 }
 .death-date::before {
     content: ' | ';
+    display: inline;
 }
 .game-log-item {
     border-bottom: 1px solid rgba(0, 0, 0, 0.2);

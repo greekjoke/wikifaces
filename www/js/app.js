@@ -12,7 +12,7 @@ window.WfApp = function(settings) {
     let applet = []
     let globalApplet = undefined
     const defaultUserOptions = settings.defaultUserOptions || {
-        'face-detecion': 'face'
+        'face-detection': 'face'
     }
 
     function initLayout(name, pass, layoutData) {
@@ -50,6 +50,7 @@ window.WfApp = function(settings) {
 
     function updateUserOptions() {
         const all = globalApplet.readOption('user-options') || defaultUserOptions
+        console.log('user options', all)
         for (let key in all) {
             const value = all[key]
             document.body.setAttribute(`data-option-${key}`, value)
@@ -308,7 +309,7 @@ window.WfApp = function(settings) {
         changeUserOption: function(bn) {
             const optName = bn.getAttribute('data-name')
             if (!optName) return
-            const all = globalApplet.readOption('user-options') || {}
+            const all = globalApplet.readOption('user-options') || defaultUserOptions
             let value = undefined
             if (bn.tagName === 'SELECT') {
                 value = bn.value
@@ -325,7 +326,7 @@ window.WfApp = function(settings) {
         },
         getCustomFacePad: function() {
             const variants = { off: false, eyes: 1.1, face: 1.4, distant: 1.8 }
-            const code = document.body.getAttribute('data-option-face-detecion') || 'face'
+            const code = document.body.getAttribute('data-option-face-detection') || 'face'
             return variants[code]
         },
         photoFit(bn) {
