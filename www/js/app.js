@@ -368,6 +368,14 @@ window.WfApp = function(settings) {
             tw.movePos(x, y, true)
             onImageChanged(tw.img)
         },
+        fireEvent: function(name, data, emitter) {
+            emitter = emitter || document
+            emitter.dispatchEvent(new CustomEvent(name, {
+                detail: data,
+                bubbles: true,   // Allow the event to bubble up the DOM
+                cancelable: true // Allow event.preventDefault()
+            }))
+        },
         initLayout_settings: function(con) {
             con.querySelectorAll('[data-name]').forEach(elem => {
                 const name = elem.getAttribute('data-name')

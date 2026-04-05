@@ -250,9 +250,9 @@ class GameBase extends AppletBase {
     }
     intro() {
         this._refreshStat()
-        if (this.slider) {
+        if (this.slider)
             this.slider.first()
-        }
+        this.app.fireEvent('game-intro', this)
     }
     start() {
         if (this.isOn())
@@ -287,6 +287,7 @@ class GameBase extends AppletBase {
         if (this.slider)
             this.slider.select('summary')
 
+        this.app.fireEvent('game-finish', this)
         this.round = undefined
     }
     answer(value, bnElem) {
@@ -378,13 +379,27 @@ class GameBase extends AppletBase {
             this.setIntroStat('')
         }
     }
+    static GRADES = {
+        BAD: 0,
+        GOOD: 1,
+        BRILLIANT: 2,
+    }
+    getRoundGrade() {
+        const g = GameBase.GRADES
+        const r = this.round
+        if (r.passedTestsCount === r.totalTestsCount) {
+            return g.BRILLIANT
+        } else {
+            return r.score > 0 ? g.GOOD : g.BAD
+        }
+    }
     _refreshSummary() {
         const that = this
         const utils = WfUtils
         const sumElem = this.rootElem.querySelector('.slide[data-name="summary"]')
         const r = this.round
         const sec = 0.001 * r.duration
-        let grade = 0
+        const grade = this.getRoundGrade()
         let out = []
 
         const line = function(text, value) {
@@ -393,15 +408,13 @@ class GameBase extends AppletBase {
         }
 
         line('Ответы', `${r.passedTestsCount} / ${r.totalTestsCount}`)
-        if (r.passedTestsCount === r.totalTestsCount) {
+        if (grade === GameBase.GRADES.BRILLIANT) {
             const bonus = RoundBase.PRIZE_PER_ROUND
             const cleanScore = r.score - bonus
             line('Очки за ответы', cleanScore)
             line('Бонус', bonus)
-            grade = 2
         } else {
             line('Очки за ответы', r.score)
-            grade = r.score > 0 ? 1 : 0
         }
         line('Итоговые очки', `+${r.score}`)
         line('Затраченное время', utils.durationToText(sec))
@@ -608,8 +621,6 @@ class GameBase extends AppletBase {
     }
 } // class GameBase
 
-window['GameBase'] = GameBase // register
-
 class GameAliveOrDead extends GameBase {
     constructor(app, desc, options, gameId) {
         gameId = gameId || 'GameAliveOrDead'
@@ -646,7 +657,6 @@ class GameAliveOrDead extends GameBase {
 
 } // class GameAliveOrDead
 
-window['GameAliveOrDead'] = GameAliveOrDead // register
 
 class GamePredictAge extends GameAliveOrDead {
     constructor(app, desc, options, gameId) {
@@ -684,7 +694,6 @@ class GamePredictAge extends GameAliveOrDead {
     }
 }
 
-window['GamePredictAge'] = GamePredictAge // register
 
 class GamePredictChildren extends GameBase {
     constructor(app, desc, options, gameId) {
@@ -731,7 +740,6 @@ class GamePredictChildren extends GameBase {
     }
 }
 
-window['GamePredictChildren'] = GamePredictChildren // register
 
 class GamePredictOccupation extends GameBase {
     constructor(app, desc, options, gameId) {
@@ -817,7 +825,6 @@ class GamePredictOccupation extends GameBase {
     }
 }
 
-window['GamePredictOccupation'] = GamePredictOccupation // register
 
 class GamePredictReligion extends GamePredictOccupation {
     constructor(app, desc, options, gameId) {
@@ -851,7 +858,6 @@ class GamePredictReligion extends GamePredictOccupation {
     }
 }
 
-window['GamePredictReligion'] = GamePredictReligion // register
 
 class GamePredictRelative extends GameBase {
     static SEX_CODES = {
@@ -1134,4 +1140,11 @@ class GamePredictRelative extends GameBase {
     }
 }
 
-window['GamePredictRelative'] = GamePredictRelative // register
+// register game classes
+window['GameBase'] = GameBase
+window['GameAliveOrDead'] = GameAliveOrDead
+window['GamePredictAge'] = GamePredictAge
+window['GamePredictChildren'] = GamePredictChildren
+window['GamePredictOccupation'] = GamePredictOccupation
+window['GamePredictReligion'] = GamePredictReligion
+window['GamePredictRelative'] = GamePredictRelative
