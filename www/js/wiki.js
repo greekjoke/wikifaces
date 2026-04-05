@@ -1194,7 +1194,7 @@ LIMIT ${num}
         const countries = this._sparql_countries({ shuffle: true, take: countriesMax })
         const codeCountries = countries.join(' ')
 
-        const maxOffset = 5000
+        const maxOffset = 1000
         const ofs = utils.getRandomInt(0, maxOffset)
         const limit = num * 5
         const limitPreFinal = num

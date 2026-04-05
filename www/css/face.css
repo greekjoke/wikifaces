@@ -20,6 +20,7 @@
     align-self: start;
     justify-content: center;
     align-items: center;
+    align-self: center;
 }
 .face-slot {
     overflow: hidden;
@@ -90,15 +91,16 @@ body:not([data-option-face-details="true"]) .face-slot .details {
     display: none;
 }
 
+.layout-wrapper[data-layout="game-launcher"] .face-slot {
+    max-width: calc((100vh - 210px) * 2 / 3);
+}
+
 .photo-prefer-height .face-slot {
     width: auto;
     height: 100%;
 }
 .photo-prefer-height .face-slot-wrapper {
     height: 100%;
-}
-.layout-wrapper[data-layout="game-launcher"].couple .photo-prefer-height .face-slot {
-    height: min(420px, 100%);
 }
 
 .image-toolbar {
