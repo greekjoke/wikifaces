@@ -120,6 +120,15 @@ img.icon
 .sept { border-top: 1px solid #555; }
 .sepb { border-bottom: 1px solid #555; }
 
+.text-red { color: red; }
+.text-blue { color: blue; }
+.text-green { color: green; }
+.text-yellow { color: yellow; }
+.text-gray { color: gray; }
+.text-black { color: black; }
+.text-white { color: white; }
+.text-darkgold { color: #c92; }
+
 .flex-center {
     display: flex;
     justify-content: center;
@@ -192,6 +201,13 @@ body[data-layout="main"] #back {
     width: 2em;
     font-size: 3em;
     text-align: right;
+    padding: 5px;
+}
+#main-icon img {
+    width: auto;
+    height: 64px;
+    vertical-align: bottom;
+    filter: hue-rotate(128deg);
 }
 #main-title {
     display: inline-block;

@@ -1,91 +1,91 @@
 {
     "collections": {
         "lit": {
-            "icon": "🏅",
+            "icon": "-award text-darkgold",
             "title": "Литература (нобелевские лауреаты)",
             "link": "https://en.wikipedia.org/wiki/List_of_Nobel_laureates_in_Literature",
             "query": "award|Q37922"
         },
         "phys": {
-            "icon": "🏅",
+            "icon": "-award text-darkgold",
             "title": "Физика (нобелевские лауреаты)",
             "link": "https://en.wikipedia.org/wiki/List_of_Nobel_laureates_in_Physics",
             "query": "award|Q38104"
         },
         "chem": {
-            "icon": "🏅",
+            "icon": "-award text-darkgold",
             "title": "Химия (нобелевские лауреаты)",
             "link": "https://en.wikipedia.org/wiki/List_of_Nobel_laureates_in_Chemistry",
             "query": "award|Q44585"
         },
         "med": {
-            "icon": "🏅",
+            "icon": "-award text-darkgold",
             "title": "Медицина или Психология (нобелевские лауреаты)",
             "link": "https://en.wikipedia.org/wiki/List_of_Nobel_laureates_in_Physiology_or_Medicine",
             "query": "award|Q80061"
         },
         "econ": {
-            "icon": "🏅",
+            "icon": "-award text-darkgold",
             "title": "Экономика (нобелевские лауреаты)",
             "link": "https://en.wikipedia.org/wiki/List_of_Nobel_Memorial_Prize_laureates_in_Economic_Sciences",
             "query": "award|Q47170"
         },
         "comp": {
-            "icon": "🏅",
+            "icon": "-award text-darkgold",
             "title": "Информатика (премия Тьюринга)",
             "link": "https://en.wikipedia.org/wiki/Turing_Award",
             "query": "award|Q185667"
         },
         "math_all": {
-            "icon": "🏅",
+            "icon": "-award text-darkgold",
             "title": "Математика (медаль Филдса + Абелевская премия)",
             "link": "https://en.wikipedia.org/wiki/Abel_Prize",
             "query": "award|Q28835|Q188184"
         },
         "victoria_cross": {
-            "icon": "🏅",
+            "icon": "-award text-darkgold",
             "title": "крест Виктории (за доблесть)",
             "link": "https://en.wikipedia.org/wiki/Victoria_Cross",
             "query": "award|Q219578"
         },
         "medal_honor": {
-            "icon": "🏅",
+            "icon": "-award text-darkgold",
             "title": "Медаль Почёта (USA military)",
             "link": "https://en.wikipedia.org/wiki/Medal_of_Honor",
             "query": "award|Q203535"
         },
         "hugo": {
-            "icon": "🏅",
+            "icon": "-award text-darkgold",
             "title": "Hugo Award (писатели фантасты)",
             "link": "https://en.wikipedia.org/wiki/Medal_of_Honor",
             "query": "award|Q255032"
         },
         "templeton": {
-            "icon": "🏅",
+            "icon": "-award text-darkgold",
             "title": "Премия Темплтона (сближение духовного и науки)",
             "link": "https://en.wikipedia.org/wiki/Templeton_Prize",
             "query": "award|Q603631"
         },
         "chess": {
-            "icon": "🏅",
+            "icon": "-chess-knight text-gray",
             "title": "Шахматы",
             "link": "https://en.wikipedia.org/wiki/Chess_Oscar",
             "query": "award|Q752000"
         },
         "sport": {
-            "icon": "🏅",
+            "icon": "-trophy text-darkgold",
             "title": "Спорт (Олимпийская золотая медаль)",
             "link": "https://en.wikipedia.org/wiki/Olympic_medal",
             "query": "award|Q15243387"
         },
         "oscar": {
-            "icon": "👤",
+            "icon": "-star text-red",
             "title": "Премия Oscar за лучшую роль",
             "link": "https://en.wikipedia.org/wiki/Academy_Award_for_Best_Actor",
             "query": "award|Q103916|Q103618"
         },
         "grammy": {
-            "icon": "🎵",
+            "icon": "-music text-blue",
             "title": "Премия Грэмми",
             "link": "https://en.wikipedia.org/wiki/Big_Four_(Grammy_Awards)",
             "query": "award|Q41254"
@@ -97,13 +97,13 @@
             "query": "president|Q11696"
         },
         "richest": {
-            "icon": "💰",
+            "icon": "-sack-dollar text-darkgold",
             "title": "Богатейшие",
             "link": "https://en.wikipedia.org/wiki/The_World%27s_Billionaires",
             "query": "richest"
         },
         "serial_killer": {
-            "icon": "💀",
+            "icon": "-skull text-gray",
             "title": "Серийные убийцы",
             "link": "https://en.wikipedia.org/wiki/List_of_serial_killers_by_number_of_victims",
             "query": "serial_killer"
@@ -111,42 +111,42 @@
     },
     "games": {
         "alive": {
-            "icon": "💀",
+            "icon": "-skull-crossbones text-gray",
             "title": "Жив или мёртв?",
             "class": "GameAliveOrDead",
             "intro": "В этой игре нужно по фотографии человека определить, жив он сейчас или уже нет. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
             "logo": "media/rip2.png"
         },
         "age": {
-            "icon": "👨‍🦳",
+            "icon": "-person-cane text-gray",
             "title": "Сколько лет?",
             "class": "GamePredictAge",
             "intro": "В этой игре нужно по фотографии человека определить его примерный возраст на данный момент. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
             "logo": "media/yo.png"
         },
         "children": {
-            "icon": "🧸",
+            "icon": "-baby text-gray",
             "title": "Сколько детей?",
             "class": "GamePredictChildren",
             "intro": "В этой игре нужно по фотографии человека определить сколько у него детей. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
             "logo": "media/children.png"
         },
         "occupation": {
-            "icon": "🔧",
+            "icon": "-graduation-cap text-gray",
             "title": "Угадай профессию!",
             "class": "GamePredictOccupation",
             "intro": "В этой игре нужно по фотографии человека определить его принадлежность к профессии. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
-            "logo": "media/occup_worker.png"
+            "logo": "media/graduate1.png"
         },
         "religion": {
-            "icon": "🙏",
+            "icon": "-hands-praying text-gray",
             "title": "Угадай религию!",
             "class": "GamePredictReligion",
             "intro": "В этой игре нужно по фотографии человека определить его принадлежность к религии. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
             "logo": "media/religion2.png"
         },
         "relatives": {
-            "icon": "👤👤",
+            "icon": "-user-group text-gray",
             "title": "Родственники?",
             "class": "GamePredictRelative",
             "intro": "В этой игре нужно по фотографиям людей определить, состоят ли они в родственных связях. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",

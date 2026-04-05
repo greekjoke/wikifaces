@@ -64,6 +64,8 @@ window.WfApp = function(settings) {
         if (!desc) return
         if (desc.startsWith('media/') || desc.startsWith('http'))
             return `<img class="icon" src="${desc}" />`
+        else if (desc.startsWith('-'))
+            return `<i class="icon fa-solid fa${desc}"></i>`
         return desc
     }
 
