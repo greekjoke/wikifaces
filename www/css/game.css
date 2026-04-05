@@ -7,12 +7,18 @@
 .slide .top-block {
     display: flex;
     flex-direction: row;
+    background: linear-gradient(to right, #ffa, #aae);
+    border: 2px solid #555;
+    border-radius: 5px;
+    margin-bottom: 5px;
 }
 .slide .top-block > div {
     flex: 1;
+    flex-basis: 80px;
+    align-self: center;
 }
 .slide .top-block > div:nth-child(2) {
-    flex: 2;
+    flex: 3;
 }
 .slide .logo {
     float: left;
@@ -30,8 +36,8 @@
     height: auto;
 }
 .slide .info {
-    margin-bottom: 1em;
-    font-size: 1.24em;
+    /* margin-bottom: 1em; */
+    font-size: clamp(1rem, 2.5vw, 1.64rem);
     color: darkblue;
 }
 .slide .results-block .info {

@@ -122,6 +122,7 @@ img.icon
 .hide { display: none; }
 .sept { border-top: 1px solid #555; }
 .sepb { border-bottom: 1px solid #555; }
+.nowrap { white-space: nowrap; }
 
 .text-red { color: red; }
 .text-blue { color: blue; }

@@ -115,19 +115,21 @@
     <script type="text/template" id="tpl-layout-collection-explorer">
         <div class="pa1 toolbar w100 flex-center">
             <div class="w50 tar pah1">
-                <i data-action=".orderAsc" class="button bn-order-asc fa-solid fa-arrow-up-short-wide" title="Сортировка по возрастанию"></i>
-                <i data-action=".orderDesc" class="button bn-order-desc fa-solid fa-arrow-down-wide-short" title="Сортировка по убыванию"></i>
-                <i data-action=".orderShuffle" class="button bn-order-shuffle fa-solid fa-shuffle" title="Перемешать"></i>
-                &nbsp;
-                &nbsp;
-                <i data-action=".pageFirst" class="button bn-page-first fa-solid fa-backward-step" title="Первая страница"></i>
-                <i data-action=".pagePrev" class="button bn-page-prev fa-solid fa-angle-left" title="Предыдущая страница"></i>
-                <i data-action=".pageNext" class="button bn-page-next fa-solid fa-angle-right" title="Следующая страница"></i>
-                <i data-action=".pageLast" class="button bn-page-last fa-solid fa-forward-step" title="Последняя страница"></i>
-                &nbsp;
-                &nbsp;
-                <i data-action=".capLess" class="button bn-cap-less fa-solid fa-minus" title="Меньше картинок"></i>
-                <i data-action=".capMore" class="button bn-cap-more fa-solid fa-plus" title="Больше картинок"></i>
+                <span class="nowrap pah5f">
+                    <i data-action=".orderAsc" class="button bn-order-asc fa-solid fa-arrow-up-short-wide" title="Сортировка по возрастанию"></i>
+                    <i data-action=".orderDesc" class="button bn-order-desc fa-solid fa-arrow-down-wide-short" title="Сортировка по убыванию"></i>
+                    <i data-action=".orderShuffle" class="button bn-order-shuffle fa-solid fa-shuffle" title="Перемешать"></i>
+                </span>
+                <span class="nowrap pah5f">
+                    <i data-action=".pageFirst" class="button bn-page-first fa-solid fa-backward-step" title="Первая страница"></i>
+                    <i data-action=".pagePrev" class="button bn-page-prev fa-solid fa-angle-left" title="Предыдущая страница"></i>
+                    <i data-action=".pageNext" class="button bn-page-next fa-solid fa-angle-right" title="Следующая страница"></i>
+                    <i data-action=".pageLast" class="button bn-page-last fa-solid fa-forward-step" title="Последняя страница"></i>
+                </span>
+                <span class="nowrap pah5f">
+                    <i data-action=".capLess" class="button bn-cap-less fa-solid fa-minus" title="Меньше картинок"></i>
+                    <i data-action=".capMore" class="button bn-cap-more fa-solid fa-plus" title="Больше картинок"></i>
+                </span>
             </div>
             <div class="w50 pah1">
                 <span class="title">Title</span>
@@ -151,11 +153,9 @@
             <div class="slide" data-name="intro">
                 <div class="top-block">
                     <div class="logo"></div>
-                    <div>
-                        <div class="info">describe game rule here</div>
-                        <div class="stat">some statistics</div>
-                    </div>
+                    <div class="info pa1">describe game rule here</div>
                 </div>
+                <div class="stat">some statistics</div>
                 <div class="flex-center sept pa1">
                     <div class="buttons w50 tac">
                         <button data-action=".start">Старт</button>
