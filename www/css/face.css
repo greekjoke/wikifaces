@@ -91,10 +91,6 @@ body:not([data-option-face-details="true"]) .face-slot .details {
     display: none;
 }
 
-.layout-wrapper[data-layout="game-launcher"] .face-slot {
-    max-width: calc((100vh - 210px) * 2 / 3);
-}
-
 .photo-prefer-height .face-slot {
     width: auto;
     height: 100%;

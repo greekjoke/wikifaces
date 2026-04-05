@@ -329,6 +329,7 @@ window.WfUI = {
                 } else {
                     titleElem.parentElement.style.display = 'none'
                 }
+                document.body.classList.add('modal')
             }
         }
     },
@@ -336,6 +337,7 @@ window.WfUI = {
     hideModal: function() {
         const w = document.getElementById('modal-wrapper')
         if (w) {
+            document.body.classList.remove('modal')
             if (w.style.display !== 'none') {
                 w.style.display = 'none'
                 return true

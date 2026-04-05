@@ -79,6 +79,11 @@
 .slide .buttons {
     width: 50%;
 }
+body.modal .slide button {
+    cursor: inherit;
+    pointer-events: none;
+    color: gray;
+}
 
 /* card */
 .slide.card {
@@ -116,6 +121,7 @@
     /* prevent button double click */
     cursor: inherit;
     pointer-events: none;
+    color: gray;
 }
 .slide.card[data-state="valid"][data-button="1"] button[data-id="1"],
 .slide.card[data-state="valid"][data-button="2"] button[data-id="2"],
@@ -145,6 +151,10 @@
 /* face images */
 [data-layout="game-launcher"] .face-slot-wrapper {
     padding-bottom: 1em;
+}
+[data-layout="game-launcher"] .face-slot {
+    /* max-width: calc((100vh - 210px) * 2 / 3); */
+    max-width: calc((100vh - 234px) * 2 / 3);
 }
 
 /* game log */
