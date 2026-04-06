@@ -196,7 +196,7 @@ window.WfApp = function(settings) {
         if (!event || !event.touches) return
         const elem = event.target
         const st = ui.getImageTransformState(elem)
-        const rc = elem.getBoundingClientRect();
+        const rc = elem.getBoundingClientRect()
         const ar = [...event.touches]
         const num = ar.length
         let pt = ar.slice(1).reduce(
@@ -211,14 +211,19 @@ window.WfApp = function(settings) {
 
     subscribe(document.body, 'mousedown touchstart', function(event) {
         const elem = event.target
-        if (!elem.classList.contains('draggable'))
+        const isDraggable = elem.classList.contains('draggable')
+
+        if (!isDraggable)
             return
 
         event.preventDefault()
 
         const mouseData = event.touches ? event.touches[0] : event
-        const ox = mouseData.clientX - parseInt(elem.style.left)
-        const oy = mouseData.clientY - parseInt(elem.style.top)
+        let ex = elem.style.left
+        let ey = elem.style.top
+        if (ex === undefined || !ex) { ex = 0; ey = 0 }
+        const ox = mouseData.clientX - parseInt(ex)
+        const oy = mouseData.clientY - parseInt(ey)
         elem.setAttribute('data-drag-ox', ox)
         elem.setAttribute('data-drag-oy', oy)
         elem.classList.add('dragging')
@@ -227,7 +232,10 @@ window.WfApp = function(settings) {
 
     subscribe(document.body, 'mousemove touchmove', function(event) {
         const elem = event.target
-        if (!elem.classList.contains('dragging'))
+        const isDragging = elem.classList.contains('dragging')
+        const isSwipeable = elem.classList.contains('swipeable')
+
+        if (!isDragging)
             return
 
         event.preventDefault()
@@ -258,6 +266,16 @@ window.WfApp = function(settings) {
         const nx = mouseData.clientX - ox;
         const ny = mouseData.clientY - oy;
         const pos = {x:nx, y:ny}
+
+        if (isSwipeable) {
+            const action = 'onSwipe'
+            const topApplet = getTopApplet()
+            if (utils.hasMethod(topApplet, action)) {
+                topApplet[action].call(topApplet, elem, pos)
+            }
+            return
+        }
+
         const action = 'onDragging'
         const topApplet = getTopApplet()
         if (utils.hasMethod(topApplet, action)) {
@@ -320,7 +338,7 @@ window.WfApp = function(settings) {
                 document.location.hash = hash
             }
         },
-        navBack: function() {
+        navHome: function() {
             this.selectLayout('main')
         },
         start: function() {
@@ -392,6 +410,7 @@ window.WfApp = function(settings) {
             onImageChanged(tw.img)
         },
         photoZoomIn(bn, event, options) {
+            options = options || {}
             const tw = getImageTwisterByButton(bn, options)
             if (!tw) return
             const rc = tw.view.getBoundingClientRect()
@@ -403,11 +422,12 @@ window.WfApp = function(settings) {
                     pt = calcTouchesCenter(event)
                 }
             }
-            // console.log('zoom-in', pt)
             tw.zoomIn(pt)
-            onImageChanged(tw.img)
+            if (!options.skipSave)
+                onImageChanged(tw.img)
         },
         photoZoomOut(bn, event, options) {
+            options = options || {}
             const tw = getImageTwisterByButton(bn, options)
             if (!tw) return
             const rc = tw.view.getBoundingClientRect()
@@ -419,9 +439,9 @@ window.WfApp = function(settings) {
                     pt = calcTouchesCenter(event)
                 }
             }
-            // console.log('zoom-out', pt)
             tw.zoomOut(pt)
-            onImageChanged(tw.img)
+            if (!options.skipSave)
+                onImageChanged(tw.img)
         },
         photoMoveTo(img, x, y) {
             const tw = getImageTwisterByButton(img)
@@ -844,6 +864,25 @@ class CollectionExplorer extends AppletBase {
             this.app.photoZoomIn(img, event, { gesturePower: power })
         } else if (pinch) {
             this.app.photoZoomOut(img, event, { gesturePower: power })
+        }
+    }
+    onSwipe(elem, delta) {
+        const that = this
+        const minSwipeDist = 50
+        const mx = Math.abs(delta.x)
+        const my = Math.abs(delta.y)
+        const dist = Math.max(mx, my)
+        const horiz = mx > my
+        if (horiz && dist > minSwipeDist) {
+            const onRight = delta.x > 0
+            clearTimeout(this.swipeTimer)
+            this.swipeTimer = setTimeout(function() {
+                if (onRight) {
+                    that.pageNext()
+                } else {
+                    that.pagePrev()
+                }
+            }, 400)
         }
     }
 } // class CollectionExplorer

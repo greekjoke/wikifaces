@@ -489,6 +489,24 @@ class GameBase extends AppletBase {
         tw.movePos(pos.x, pos.y, true)
         return false // pos already changed
     }
+    onGesture(delta, event) {
+        let view
+        if (event.target.tagName === 'IMG')
+            view = event.target.closest('.face-slot')
+        if (event.target.classList.contains('face-slot'))
+            view = event.target
+        if (!view) return
+        const img = view.querySelector('img')
+        const power = Math.abs(delta)
+        const spread = delta > 0 // zoom-in
+        const pinch = delta < 0 // zoom-out
+        const opt = { gesturePower: power, skipSave: true }
+        if (spread) {
+            this.app.photoZoomIn(img, event, opt)
+        } else if (pinch) {
+            this.app.photoZoomOut(img, event, opt)
+        }
+    }
     _getSparqlOptions() {
         return {}
     }

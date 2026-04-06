@@ -97,6 +97,13 @@ img.icon
 }
 .dragging {
     cursor: grab;
+    filter: none;
+    transition-property: filter;
+    transition-duration: 0.5s;
+    transition-timing-function: ease-out;
+}
+.swipeable.dragging {
+    filter: blur(3px);
 }
 
 .pa25f { padding: 0.25em; }
@@ -125,6 +132,7 @@ img.icon
 .sept { border-top: 1px solid #555; }
 .sepb { border-bottom: 1px solid #555; }
 .nowrap { white-space: nowrap; }
+.noevent { pointer-events: none; }
 
 .text-red { color: red; }
 .text-blue { color: blue; }

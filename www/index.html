@@ -121,14 +121,14 @@
                     <i data-action=".orderShuffle" class="button bn-order-shuffle fa-solid fa-shuffle" title="Перемешать"></i>
                 </span>
                 <span class="nowrap pah5f">
+                    <i data-action=".capLess" class="button bn-cap-less fa-solid fa-minus" title="Меньше картинок"></i>
+                    <i data-action=".capMore" class="button bn-cap-more fa-solid fa-plus" title="Больше картинок"></i>
+                </span>
+                <span class="nowrap pah5f">
                     <i data-action=".pageFirst" class="button bn-page-first fa-solid fa-backward-step" title="Первая страница"></i>
                     <i data-action=".pagePrev" class="button bn-page-prev fa-solid fa-angle-left" title="Предыдущая страница"></i>
                     <i data-action=".pageNext" class="button bn-page-next fa-solid fa-angle-right" title="Следующая страница"></i>
                     <i data-action=".pageLast" class="button bn-page-last fa-solid fa-forward-step" title="Последняя страница"></i>
-                </span>
-                <span class="nowrap pah5f">
-                    <i data-action=".capLess" class="button bn-cap-less fa-solid fa-minus" title="Меньше картинок"></i>
-                    <i data-action=".capMore" class="button bn-cap-more fa-solid fa-plus" title="Больше картинок"></i>
                 </span>
             </div>
             <div class="w50 pah1">
@@ -209,10 +209,10 @@
     <!-- main page -->
     <body>
         <div id="top-sidebar">
-            <!-- <span id="back" data-action=":navBack" class="button light" title="Назад">&LeftArrow;</span> -->
+            <!-- <span id="back" data-action=":navHome" class="button light" title="Назад">&LeftArrow;</span> -->
             <div id="main-wrapper">
-                <div id="main-icon"><img src="media/logo1.png" /></div>
-                <div id="main-title" class="button" data-action=":navBack">Wiki Faces</div>
+                <div id="main-icon"><img src="media/logo1.png" class="button" data-action=":navHome" /></div>
+                <div id="main-title" class="draggable swipeable">Wiki Faces</div>
             </div>
         </div>
         <div id="content"></div>
