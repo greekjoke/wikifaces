@@ -194,12 +194,19 @@ window.WfApp = function(settings) {
 
     function calcTouchesCenter(event) {
         if (!event || !event.touches) return
-        const rc = event.target.getBoundingClientRect();
+        const elem = event.target
+        const st = ui.getImageTransformState(elem)
+        const rc = elem.getBoundingClientRect();
         const ar = [...event.touches]
-        const pt = ar.reduce(
+        const num = ar.length
+        let pt = ar.slice(1).reduce(
             (a, t) => [t.clientX + a[0], t.clientY + a[1]],
-            [0, 0])
-        return [pt[0] - rc.left, pt[1] - rc.top] // global to local
+            [ar[0].clientX, ar[0].clientY])
+        const dez = st ? (1.0 / st.z) : 1.0
+        return [ // global to local
+            (pt[0] / num - rc.left) * dez,
+            (pt[1] / num - rc.top) * dez
+        ]
     }
 
     subscribe(document.body, 'mousedown touchstart', function(event) {
@@ -396,6 +403,7 @@ window.WfApp = function(settings) {
                     pt = calcTouchesCenter(event)
                 }
             }
+            // console.log('zoom-in', pt)
             tw.zoomIn(pt)
             onImageChanged(tw.img)
         },
@@ -411,6 +419,7 @@ window.WfApp = function(settings) {
                     pt = calcTouchesCenter(event)
                 }
             }
+            // console.log('zoom-out', pt)
             tw.zoomOut(pt)
             onImageChanged(tw.img)
         },
@@ -831,7 +840,6 @@ class CollectionExplorer extends AppletBase {
         const power = Math.abs(delta)
         const spread = delta > 0 // zoom-in
         const pinch = delta < 0 // zoom-out
-        console.log('gesture', delta, power)
         if (spread) {
             this.app.photoZoomIn(img, event, { gesturePower: power })
         } else if (pinch) {
