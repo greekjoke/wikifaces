@@ -186,6 +186,8 @@ window.WfApp = function(settings) {
         }
     }, { passive: true });
 
+    let mtouchDist = -1
+
     subscribe(document.body, 'mousedown touchstart', function(event) {
         const elem = event.target
         if (!elem.classList.contains('draggable'))
@@ -196,12 +198,40 @@ window.WfApp = function(settings) {
         elem.setAttribute('data-drag-ox', ox)
         elem.setAttribute('data-drag-oy', oy)
         elem.classList.add('dragging')
+        mtouchDist = -1
+        // event.preventDefault()
     })
 
     subscribe(document.body, 'mousemove touchmove', function(event) {
         const elem = event.target
         if (!elem.classList.contains('dragging'))
             return
+
+        if (event.touches && event.touches.length > 1) { // multitouch
+            console.warn('multitouch event detected')
+            const a = event.touches[0]
+            const b = event.touches[1]
+            const dx = (b.clientX - a.clientX)
+            const dy = (b.clientY - a.clientY)
+            const dist = dx * dx + dy * dy
+            const old = mtouchDist
+            if (old > 0) {
+                const spread = dist > old
+                const pinch = dist < old
+
+                const action = 'onWheel' // pretend as wheel event
+                const topApplet = getTopApplet()
+                if (utils.hasMethod(topApplet, action)) {
+                    const wheelEvent = event.touches[0]
+                    topApplet[action].call(topApplet, spread ? 1 : -1, wheelEvent)
+                }
+
+            }
+            mtouchDist = dist
+            event.preventDefault();
+            return
+        }
+
         const mouseData = event.touches ? event.touches[0] : event
         const ox = parseInt(elem.getAttribute('data-drag-ox') || 0)
         const oy = parseInt(elem.getAttribute('data-drag-oy') || 0)
@@ -215,8 +245,9 @@ window.WfApp = function(settings) {
             if (res === false)
                 return // prevent to change position
         }
-        elem.style.left = `${pos.x}px`;
-        elem.style.top = `${pos.y}px`;
+        elem.style.left = `${pos.x}px`
+        elem.style.top = `${pos.y}px`
+        // event.preventDefault()
     })
 
     subscribe(document.body, 'mouseup touchend', function(event) {

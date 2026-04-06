@@ -852,7 +852,7 @@ LIMIT ${num}
         const countriesMax = options.countriesMax || 10
         const countries = this._sparql_countries({ shuffle: true, take: countriesMax })
         const codeCountries = countries.join(' ')
-        const maxOffset = 1000
+        const maxOffset = 500
         const ofsWC = utils.getRandomInt(0, maxOffset)
         const ofsWO = utils.getRandomInt(0, maxOffset)
         const limit = num * 10
@@ -988,7 +988,7 @@ LIMIT ${num}
         const occupation = this._sparql_occupation({ shuffle: true, take: occupationMax })
         const codeOccupation = occupation.join(' ')
 
-        const maxOffset = 1000
+        const maxOffset = 500
         const ofs = utils.getRandomInt(0, maxOffset)
         const limit = num * 10
 
@@ -1093,7 +1093,7 @@ LIMIT ${num}
         const religion = this._sparql_religion({ shuffle: true, take: religionMax })
         const codeReligion = religion.join(' ')
 
-        const maxOffset = 1000
+        const maxOffset = 500
         const ofs = utils.getRandomInt(0, maxOffset)
         const limit = num * 10
 

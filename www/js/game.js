@@ -64,6 +64,11 @@ class GameBase extends AppletBase {
         valid: 'valid',
         invalid: 'invalid',
     }
+    static GRADES = {
+        BAD: 0,
+        GOOD: 1,
+        BRILLIANT: 2,
+    }
     constructor(app, desc, options, gameId) {
         super(app,  gameId || 'GameBase')
 
@@ -378,11 +383,6 @@ class GameBase extends AppletBase {
         } else {
             this.setIntroStat('')
         }
-    }
-    static GRADES = {
-        BAD: 0,
-        GOOD: 1,
-        BRILLIANT: 2,
     }
     getRoundGrade() {
         const g = GameBase.GRADES
