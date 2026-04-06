@@ -209,6 +209,9 @@ window.WfApp = function(settings) {
         ]
     }
 
+    let tapInfo = undefined
+    const tapMinTimeMs = 300
+
     subscribe(document.body, 'mousedown touchstart', function(event) {
         const elem = event.target
         const isDraggable = elem.classList.contains('draggable')
@@ -217,6 +220,28 @@ window.WfApp = function(settings) {
             return
 
         event.preventDefault()
+
+        if (event.type === 'touchstart') {
+            tapInfo = tapInfo || { counter: 0, time: 0, target: null }
+            const curTime = new Date().getTime()
+            if (curTime - tapInfo.time < tapMinTimeMs && tapInfo.target === elem) {
+                tapInfo.time = curTime
+                tapInfo.counter++
+                if (tapInfo.counter > 1) {
+                    // console.log('double tap!', tapInfo.counter)
+                    const action = 'onDoubleTap'
+                    const topApplet = getTopApplet()
+                    if (utils.hasMethod(topApplet, action)) {
+                        topApplet[action].call(topApplet, elem, event)
+                    }
+                    return
+                }
+            } else {
+                tapInfo.target = elem
+                tapInfo.time = curTime
+                tapInfo.counter = 1
+            }
+        }
 
         const mouseData = event.touches ? event.touches[0] : event
         let ex = elem.style.left
@@ -878,12 +903,22 @@ class CollectionExplorer extends AppletBase {
             clearTimeout(this.swipeTimer)
             this.swipeTimer = setTimeout(function() {
                 if (onRight) {
-                    that.pageNext()
-                } else {
                     that.pagePrev()
+                } else {
+                    that.pageNext()
                 }
             }, 400)
         }
+    }
+    onDoubleTap(elem, event) {
+        let view
+        if (event.target.tagName === 'IMG')
+            view = event.target.closest('.face-slot')
+        if (event.target.classList.contains('face-slot'))
+            view = event.target
+        if (!view) return
+        const img = view.querySelector('img')
+        this.app.photoFit(img)
     }
 } // class CollectionExplorer
 

@@ -507,6 +507,27 @@ class GameBase extends AppletBase {
             this.app.photoZoomOut(img, event, opt)
         }
     }
+    onSwipe(elem, delta) {
+        const that = this
+        const minSwipeDist = 50
+        const mx = Math.abs(delta.x)
+        const my = Math.abs(delta.y)
+        const dist = Math.max(mx, my)
+        const horiz = mx > my
+        const onRight = delta.x > 0
+        const onLeft = !onRight
+        if (horiz && dist > minSwipeDist && onLeft) {
+            clearTimeout(this.swipeTimer)
+            this.swipeTimer = setTimeout(function() {
+                that.skip()
+            }, 400)
+        }
+    }
+    onDoubleTap(img, event) {
+        const ui = window.WfUI
+        const tw = ui.ImageTwist(img)
+        tw.fit()
+    }
     _getSparqlOptions() {
         return {}
     }
@@ -537,7 +558,7 @@ class GameBase extends AppletBase {
                 const list = wiki.collectPeople(result.items, that.shuffleResult)
 
                 if (!list || list.length < limit) {
-                    alert('Получено недостаточно данных.')
+                    alert('Получено недостаточно данных. Попробуйте ещё раз.')
                     superFunc.call(that, false, onError)
                     return
                 }
