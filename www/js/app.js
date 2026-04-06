@@ -221,7 +221,7 @@ window.WfApp = function(settings) {
 
         event.preventDefault()
 
-        if (event.type === 'touchstart') {
+        if (event.type === 'touchstart' && event.touches.length < 2) {
             tapInfo = tapInfo || { counter: 0, time: 0, target: null }
             const curTime = new Date().getTime()
             if (curTime - tapInfo.time < tapMinTimeMs && tapInfo.target === elem) {
