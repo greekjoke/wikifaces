@@ -192,6 +192,16 @@ window.WfApp = function(settings) {
 
     let mtouchDist = -1
 
+    function calcTouchesCenter(event) {
+        if (!event || !event.touches) return
+        const rc = event.target.getBoundingClientRect();
+        const ar = [...event.touches]
+        const pt = ar.reduce(
+            (a, t) => [t.clientX + a[0], t.clientY + a[1]],
+            [0, 0])
+        return [pt[0] - rc.left, pt[1] - rc.top] // global to local
+    }
+
     subscribe(document.body, 'mousedown touchstart', function(event) {
         const elem = event.target
         if (!elem.classList.contains('draggable'))
@@ -223,7 +233,7 @@ window.WfApp = function(settings) {
             const dist = Math.sqrt(dx * dx + dy * dy)
             const old = mtouchDist
             if (old > 0) {
-                const scale = 0.1
+                const scale = 0.5
                 const delta = (dist / old - 1.0) * scale
                 const action = 'onGesture'
                 const topApplet = getTopApplet()
@@ -379,8 +389,12 @@ window.WfApp = function(settings) {
             if (!tw) return
             const rc = tw.view.getBoundingClientRect()
             let pt = tw.viewToImg([rc.width / 2, rc.height / 2])
-            if (event && event.constructor && event.constructor.name === 'WheelEvent') {
-                pt = [event.offsetX, event.offsetY]
+            if (event && event.constructor) {
+                if (event.constructor.name === 'WheelEvent') {
+                    pt = [event.offsetX, event.offsetY]
+                } else if (event.constructor.name === 'TouchEvent') {
+                    pt = calcTouchesCenter(event)
+                }
             }
             tw.zoomIn(pt)
             onImageChanged(tw.img)
@@ -390,8 +404,12 @@ window.WfApp = function(settings) {
             if (!tw) return
             const rc = tw.view.getBoundingClientRect()
             let pt = tw.viewToImg([rc.width / 2, rc.height / 2])
-            if (event && event.constructor && event.constructor.name === 'WheelEvent') {
-                pt = [event.offsetX, event.offsetY]
+            if (event && event.constructor) {
+                if (event.constructor.name === 'WheelEvent') {
+                    pt = [event.offsetX, event.offsetY]
+                } else if (event.constructor.name === 'TouchEvent') {
+                    pt = calcTouchesCenter(event)
+                }
             }
             tw.zoomOut(pt)
             onImageChanged(tw.img)
