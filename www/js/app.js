@@ -70,20 +70,24 @@ window.WfApp = function(settings) {
         return desc
     }
 
-    function getImageTwisterByButton(bn) {
+    function getImageTwisterByButton(bn, options) {
+        options = options || {}
         const ui = window.WfUI
         const view = bn.closest('.face-slot')
         if (!view) return
         const img = view.querySelector('img')
         if (!img) return
-        return ui.ImageTwist(img)
+        const opt = {}
+        if (options.gesturePower)
+            opt.zoomStep = options.gesturePower
+        return ui.ImageTwist(img, opt)
     }
 
-    function subscribe(elem, event, handler) {
+    function subscribe(elem, event, handler, options) {
         if (!Array.isArray(event))
             event = event.split(' ')
         event.forEach(eventType => {
-            elem.addEventListener(eventType, handler)
+            elem.addEventListener(eventType, handler, options)
         })
     }
 
@@ -192,6 +196,9 @@ window.WfApp = function(settings) {
         const elem = event.target
         if (!elem.classList.contains('draggable'))
             return
+
+        event.preventDefault()
+
         const mouseData = event.touches ? event.touches[0] : event
         const ox = mouseData.clientX - parseInt(elem.style.left)
         const oy = mouseData.clientY - parseInt(elem.style.top)
@@ -199,36 +206,32 @@ window.WfApp = function(settings) {
         elem.setAttribute('data-drag-oy', oy)
         elem.classList.add('dragging')
         mtouchDist = -1
-        // event.preventDefault()
-    })
+    }, { passive: false })
 
     subscribe(document.body, 'mousemove touchmove', function(event) {
         const elem = event.target
         if (!elem.classList.contains('dragging'))
             return
 
+        event.preventDefault()
+
         if (event.touches && event.touches.length > 1) { // multitouch
-            console.warn('multitouch event detected')
             const a = event.touches[0]
             const b = event.touches[1]
             const dx = (b.clientX - a.clientX)
             const dy = (b.clientY - a.clientY)
-            const dist = dx * dx + dy * dy
+            const dist = Math.sqrt(dx * dx + dy * dy)
             const old = mtouchDist
             if (old > 0) {
-                const spread = dist > old
-                const pinch = dist < old
-
-                const action = 'onWheel' // pretend as wheel event
+                const scale = 0.1
+                const delta = (dist / old - 1.0) * scale
+                const action = 'onGesture'
                 const topApplet = getTopApplet()
                 if (utils.hasMethod(topApplet, action)) {
-                    const wheelEvent = event.touches[0]
-                    topApplet[action].call(topApplet, spread ? 1 : -1, wheelEvent)
+                    topApplet[action].call(topApplet, delta, event)
                 }
-
             }
             mtouchDist = dist
-            event.preventDefault();
             return
         }
 
@@ -247,8 +250,7 @@ window.WfApp = function(settings) {
         }
         elem.style.left = `${pos.x}px`
         elem.style.top = `${pos.y}px`
-        // event.preventDefault()
-    })
+    }, { passive: false })
 
     subscribe(document.body, 'mouseup touchend', function(event) {
         document.querySelectorAll('.dragging').forEach(x => {
@@ -372,8 +374,8 @@ window.WfApp = function(settings) {
             tw.orig()
             onImageChanged(tw.img)
         },
-        photoZoomIn(bn, event) {
-            const tw = getImageTwisterByButton(bn)
+        photoZoomIn(bn, event, options) {
+            const tw = getImageTwisterByButton(bn, options)
             if (!tw) return
             const rc = tw.view.getBoundingClientRect()
             let pt = tw.viewToImg([rc.width / 2, rc.height / 2])
@@ -383,8 +385,8 @@ window.WfApp = function(settings) {
             tw.zoomIn(pt)
             onImageChanged(tw.img)
         },
-        photoZoomOut(bn, event) {
-            const tw = getImageTwisterByButton(bn)
+        photoZoomOut(bn, event, options) {
+            const tw = getImageTwisterByButton(bn, options)
             if (!tw) return
             const rc = tw.view.getBoundingClientRect()
             let pt = tw.viewToImg([rc.width / 2, rc.height / 2])
@@ -799,6 +801,24 @@ class CollectionExplorer extends AppletBase {
     onDragging(img, pos) {
         this.app.photoMoveTo(img, pos.x, pos.y)
         return false // pos already changed
+    }
+    onGesture(delta, event) {
+        let view
+        if (event.target.tagName === 'IMG')
+            view = event.target.closest('.face-slot')
+        if (event.target.classList.contains('face-slot'))
+            view = event.target
+        if (!view) return
+        const img = view.querySelector('img')
+        const power = Math.abs(delta)
+        const spread = delta > 0 // zoom-in
+        const pinch = delta < 0 // zoom-out
+        console.log('gesture', delta, power)
+        if (spread) {
+            this.app.photoZoomIn(img, event, { gesturePower: power })
+        } else if (pinch) {
+            this.app.photoZoomOut(img, event, { gesturePower: power })
+        }
     }
 } // class CollectionExplorer
 
