@@ -117,6 +117,13 @@
             "intro": "В этой игре нужно по фотографии человека определить, жив он сейчас или уже нет. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
             "logo": "media/rip2.png"
         },
+	"relatives": {
+            "icon": "-user-group text-gray",
+            "title": "Родственники?",
+            "class": "GamePredictRelative",
+            "intro": "В этой игре нужно по фотографиям людей определить, состоят ли они в родственных связях. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
+            "logo": "media/family.png"
+        },
         "age": {
             "icon": "-person-cane text-gray",
             "title": "Сколько лет?",
@@ -130,14 +137,7 @@
             "class": "GamePredictChildren",
             "intro": "В этой игре нужно по фотографии человека определить сколько у него детей. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
             "logo": "media/children.png"
-        },
-        "occupation": {
-            "icon": "-graduation-cap text-gray",
-            "title": "Угадай профессию!",
-            "class": "GamePredictOccupation",
-            "intro": "В этой игре нужно по фотографии человека определить его принадлежность к профессии. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
-            "logo": "media/graduate1.png"
-        },
+        },        
         "religion": {
             "icon": "-hands-praying text-gray",
             "title": "Угадай религию!",
@@ -145,12 +145,12 @@
             "intro": "В этой игре нужно по фотографии человека определить его принадлежность к религии. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
             "logo": "media/religion2.png"
         },
-        "relatives": {
-            "icon": "-user-group text-gray",
-            "title": "Родственники?",
-            "class": "GamePredictRelative",
-            "intro": "В этой игре нужно по фотографиям людей определить, состоят ли они в родственных связях. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
-            "logo": "media/family.png"
-        }
+	"occupation": {
+            "icon": "-graduation-cap text-gray",
+            "title": "Угадай профессию!",
+            "class": "GamePredictOccupation",
+            "intro": "В этой игре нужно по фотографии человека определить его принадлежность к профессии. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
+            "logo": "media/graduate1.png"
+        }        
     }
 }

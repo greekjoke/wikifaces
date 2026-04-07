@@ -4,7 +4,11 @@
 - игры / сброс статистики.
 
 -------------
-- игра про связи между двумя людьми. Общий бизнес?
+- игра про связи между двумя людьми. 
+	-- общий бизнес?
+	-- общая группа (музыка танцы), коллектив?
+- игра - финансы, графики?
+- игра - животные?
 
 -------------
 какие коллекции ещё можно попробовать собрать:
@@ -14,3 +18,34 @@
 - лидеры (фактические)
 - эзотерики/мистики
 - феномены (память и пр.)
+
+-------------
+бизнес-партнёры
+
+SELECT DISTINCT ?coOwner ?coOwnerLabel ?companyLabel
+WHERE {
+  # 1. Identify the target person (e.g., Elon Musk)
+  ?person rdfs:label "Elon Musk"@en .
+  
+  # 2. Find companies owned by the person (P127 = owned by)
+  ?company wdt:P127 ?person .
+  
+  # 3. Find other owners of those same companies
+  ?company wdt:P127 ?coOwner .
+  
+  # 4. Filter to exclude the original person and ensure it's a person (P31=Q5)
+  FILTER(?coOwner != ?person)
+  ?coOwner wdt:P31 wd:Q5 .                
+  
+  # 5. Label the results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+
+------------
+участники группы
+
+SELECT ?memberLabel WHERE {
+  ?member wdt:P31 wd:Q5 . # Member is a human
+  ?member wdt:P463 wd:Q15920 . # Member is in the band "Metallica"
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
