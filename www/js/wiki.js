@@ -1284,14 +1284,86 @@ ORDER BY ?baseCode
             cacheId = `sparql_person_relatives:${hashStr}`
         }
 
-        // TODO: нужна сортирока результата, чтобы родственники чаще были в паре
-
         return await this._sparql_query_wrapper(cacheId, q, {
             year: '*', // same year for all
             name: 'personLabel',
             page: 'personLabel'
         }, {
             addition: ['birthDate', 'deathDate', 'baseCode', 'personCode', 'type', 'sexCode'],
+            cacheExpireIn: cache.Period.Hour * 8,
+            noCacheCore: true // don't allow to cache query result
+        })
+    },
+
+    sparql_person_owners: async function(num, options) {
+        const utils = WfUtils
+        const cache = window.WfLocalCache
+
+        num = num || 5
+        options = options || {}
+
+        const codeLang = this._sparql_label_code()
+        const codeThumb = this._sparql_thumb_code()
+
+        const countriesMax = options.countriesMax || 10
+        const countries = this._sparql_countries({ shuffle: true, take: countriesMax })
+        const codeCountries = countries.join(' ')
+
+        const maxOffset = 5
+        const ofs = utils.getRandomInt(0, maxOffset)
+        const limit = num * 10
+
+        // choose companies
+        const qCompanies = `
+SELECT ?company (COUNT(DISTINCT ?owner) as ?numOwners) WHERE {
+    SELECT ?company ?owner
+    WHERE {
+        ?company wdt:P31/wdt:P279* wd:Q4830453;
+                wdt:P17 ?country.
+        VALUES ?country { ${codeCountries} }
+        ?company wdt:P127 ?owner.
+        ?owner wdt:P31 wd:Q5;
+            wdt:P569 ?birthDate.
+        FILTER EXISTS { ?owner wdt:P18 ?image. }
+        FILTER NOT EXISTS { ?owner wdt:P570 ?deathDate. }
+    }
+    OFFSET ${ofs}
+    LIMIT ${limit}
+}
+GROUP BY ?company
+`
+        // final query
+        const q = `
+SELECT ?companyCode ?ownerLabel (SAMPLE(?thumburl) as ?thumburl)
+WHERE {
+    { ${qCompanies} }
+    FILTER(?numOwners > 1 && ?numOwners < 8)
+    ?company wdt:P127 ?owner.
+    ?owner wdt:P31 wd:Q5;
+           wdt:P18 ?image.
+    ${codeLang}
+    ${codeThumb}
+    BIND(STRAFTER(wikibase:decodeUri(STR(?company)), "http://www.wikidata.org/entity/") AS ?companyCode)
+}
+GROUP BY ?companyCode ?ownerLabel
+ORDER BY ?companyCode
+LIMIT ${num}
+`
+        let cacheId
+        if (utils.isLocalhost() && false) { // DEBUG
+            console.warn('[wiki] force to use last result')
+            cacheId = `sparql_person_owners:0`
+        } else {
+            const hashStr = utils.simpleHash(q)
+            cacheId = `sparql_person_owners:${hashStr}`
+        }
+
+        return await this._sparql_query_wrapper(cacheId, q, {
+            year: '*', // same year for all
+            name: 'ownerLabel',
+            page: 'ownerLabel'
+        }, {
+            addition: ['companyCode'],
             cacheExpireIn: cache.Period.Hour * 8,
             noCacheCore: true // don't allow to cache query result
         })

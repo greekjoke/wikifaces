@@ -1190,6 +1190,51 @@ class GamePredictRelative extends GameBase {
     }
 }
 
+class GamePredictOwners extends GamePredictRelative {
+    constructor(app, desc, options, gameId) {
+        gameId = gameId || 'GamePredictOwners'
+        options = options || { maxTests:5 }
+        options.buttons = options.buttons || {
+            0: 'Дальше ➡️',
+            1: 'Нет',
+            2: 'Да'
+        }
+        super(app, desc, options, gameId)
+    }
+    _getSparqlMethod() {
+        return 'sparql_person_owners'
+    }
+    _getSparqlOptions() {
+        const opt = super._getSparqlOptions()
+        opt.countriesMax = 3
+        return opt
+    }
+    _getPersonBioHtml(data, other) {
+        let status = 'разные компании'
+
+        if (data.companyCode === other.companyCode) { // co-owners
+            status = 'обшая компания'
+        }
+
+        const a = `Статус: ${status}`
+        return `<span class="relative-status">${a}</span>`
+    }
+    _validate(value) {
+        const card = this.slider.currentSlide
+        if (!card.gameData) {
+            console.warn('game data not found in current card')
+            return false
+        }
+        const [a, b] = card.gameData
+        const sameCompany = a.companyCode === b.companyCode
+
+        if (!sameCompany) // different companies
+            return (value === 1)
+
+        return (value === 2) // valid if they "co-owners"
+    }
+}
+
 // register game classes
 window['GameBase'] = GameBase
 window['GameAliveOrDead'] = GameAliveOrDead
@@ -1198,3 +1243,4 @@ window['GamePredictChildren'] = GamePredictChildren
 window['GamePredictOccupation'] = GamePredictOccupation
 window['GamePredictReligion'] = GamePredictReligion
 window['GamePredictRelative'] = GamePredictRelative
+window['GamePredictOwners'] = GamePredictOwners

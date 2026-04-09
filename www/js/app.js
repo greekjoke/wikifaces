@@ -502,6 +502,8 @@ window.WfApp = function(settings) {
             html = ''
             for (let code in collections) {
                 const item = collections[code]
+                if (item.hide)
+                    continue
                 const action = 'collection-explorer'
                 const iconHtml = this.getCollectionIcon(code)
                 const icon = (iconHtml || '') + (iconHtml ? '&nbsp;' : '')
@@ -544,6 +546,8 @@ window.WfApp = function(settings) {
             html = ''
             for (let code in games) {
                 const item = games[code]
+                if (item.hide)
+                    continue
                 const action = item.layout || 'game-launcher'
                 const iconHtml = buildIconHtml(item.icon)
                 const icon = (iconHtml || '') + (iconHtml ? '&nbsp;' : '')
