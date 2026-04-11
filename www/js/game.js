@@ -1206,20 +1206,12 @@ class GamePredictOwners extends GamePredictRelative {
     }
     _getSparqlOptions() {
         const opt = super._getSparqlOptions()
-        opt.countriesMax = 3
+        opt.maxSearchRange = 200
+        opt.maxSearchOffset = 1
         return opt
     }
     _getPersonBioHtml(data, other) {
         const wiki = window.WfWiki
-        let status = 'разные компании'
-
-        if (data.companyCode === other.companyCode) { // co-owners
-            status = 'обшая компания'
-        }
-
-        // const a = `Статус: ${status}`
-        // return `<span class="company-status">${a}</span>`
-
         const name = data.companyLabel
         const link = wiki.companyLabelToLink(name)
         return `<a href="${link}" target="_blank" class="company-link">${name}</a>`
@@ -1240,6 +1232,20 @@ class GamePredictOwners extends GamePredictRelative {
     }
 }
 
+class GamePredictMusicPartner extends GamePredictOwners {
+    constructor(app, desc, options, gameId) {
+        gameId = gameId || 'GamePredictMusicPartner'
+        super(app, desc, options, gameId)
+    }
+    _getSparqlOptions() {
+        const opt = super._getSparqlOptions()
+        opt.itemId = 'Q215380'
+        // opt.personProp = 'P463'
+        opt.personProp = 'P527'
+        return opt
+    }
+}
+
 // register game classes
 window['GameBase'] = GameBase
 window['GameAliveOrDead'] = GameAliveOrDead
@@ -1249,3 +1255,4 @@ window['GamePredictOccupation'] = GamePredictOccupation
 window['GamePredictReligion'] = GamePredictReligion
 window['GamePredictRelative'] = GamePredictRelative
 window['GamePredictOwners'] = GamePredictOwners
+window['GamePredictMusicPartner'] = GamePredictMusicPartner

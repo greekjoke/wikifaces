@@ -511,7 +511,23 @@ SERVICE wikibase:mwapi {
     _sparql_rand_code: function(seed, field) {
         const utils = window.WfUtils
         seed = seed || utils.genUid()
-        field = field || 'image'
+        let options = {}
+
+        if (typeof(field) === 'object') {
+            options = field || options
+            field = options.field || 'image'
+        } else {
+            field = field || 'image'
+        }
+
+        if (options.oddeven) {
+            return `
+BIND(STRLEN(STR(?${options.oddeven})) AS ?length)
+BIND(IF( (?length - 2 * FLOOR(?length / 2)) = 0, "even", "odd") AS ?parity)
+BIND(MD5(CONCAT(STR(?${field}), '${seed}', ?parity)) as ?randValue)
+            `
+        }
+
         return `BIND(MD5(CONCAT(STR(?${field}), '${seed}')) as ?randValue)`
     },
 
@@ -1303,25 +1319,32 @@ ORDER BY ?baseCode
         num = num || 5
         options = options || {}
 
+        const itemId = options.itemId || 'Q4830453'
+        const personProp = options.personProp || 'P127'
         const codeLang = this._sparql_label_code()
         const codeThumb = this._sparql_thumb_code()
         const codeRand = this._sparql_rand_code(false, 'company')
-        const limit = 2000
+        const limit = options.maxSearchRange || 500
+        const maxOffset = options.maxSearchOffset || 1000
+        const ofs = utils.getRandomInt(0, maxOffset)
+        const oddeven = utils.getRandomInt(0, 2)
 
         // choose companies
         const qCompanies = `
-SELECT ?company ?owner ?image WHERE {
+SELECT ?company ?owner (SAMPLE(?image) as ?image) WHERE {
   ?owner wdt:P31 wd:Q5;
          wdt:P18 ?image;
          wdt:P569 ?ownerBirth.
   FILTER NOT EXISTS { ?owner wdt:P570 ?deathDate }
-  ?company wdt:P31/wdt:P279* wd:Q4830453;
-           wdt:P127 ?owner;
-           wdt:P127 ?person.
+  ?company wdt:P31/wdt:P279* wd:${itemId};
+           wdt:${personProp} ?owner;
+           wdt:${personProp} ?person.
   FILTER(?person != ?owner)
   MINUS { ?company wdt:P576|wdt:P3999 ?endDate. FILTER(?endDate <= NOW()) }
   ?person wdt:P18 ?image2.
 }
+GROUP BY ?company ?owner
+OFFSET ${ofs}
 LIMIT ${limit}
 `
         // shaking query
@@ -1333,6 +1356,7 @@ WHERE {
 }
 GROUP BY ?company ?owner ?randValue
 ORDER BY ?randValue
+OFFSET ${oddeven}
 LIMIT ${num}
 `
         // final (enrichment) query
