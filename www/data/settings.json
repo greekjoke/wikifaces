@@ -124,14 +124,6 @@
             "intro": "В этой игре нужно по фотографиям людей определить, состоят ли они в родственных связях. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
             "logo": "media/family.png"
         },
-        "owners": {
-            "hide": true,
-            "icon": "-briefcase text-gray",
-            "title": "Общий бизнес?",
-            "class": "GamePredictOwners",
-            "intro": "В этой игре нужно по фотографиям людей определить, являются ли они совладельцами общего бизнеса. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
-            "logo": "media/business.png"
-        },
         "age": {
             "icon": "-person-cane text-gray",
             "title": "Сколько лет?",
@@ -152,6 +144,14 @@
             "class": "GamePredictReligion",
             "intro": "В этой игре нужно по фотографии человека определить его принадлежность к религии. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
             "logo": "media/religion2.png"
+        },
+        "owners": {
+            "hide": false,
+            "icon": "-briefcase text-gray",
+            "title": "Общий бизнес?",
+            "class": "GamePredictOwners",
+            "intro": "В этой игре нужно по фотографиям людей определить, являются ли они совладельцами общего бизнеса. Один раунд состоит из {numTests} карточек. Время не ограничено. Удачи!",
+            "logo": "media/business.png"
         },
 	    "occupation": {
             "icon": "-graduation-cap text-gray",

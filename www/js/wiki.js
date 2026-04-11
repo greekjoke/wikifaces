@@ -508,10 +508,11 @@ SERVICE wikibase:mwapi {
 }`
     },
 
-    _sparql_rand_code: function(seed) {
+    _sparql_rand_code: function(seed, field) {
         const utils = window.WfUtils
         seed = seed || utils.genUid()
-        return `BIND(MD5(CONCAT(STR(?image), '${seed}')) as ?randValue)`
+        field = field || 'image'
+        return `BIND(MD5(CONCAT(STR(?${field}), '${seed}')) as ?randValue)`
     },
 
     _sparql_item_ids: function(name, options) {
@@ -1304,50 +1305,44 @@ ORDER BY ?baseCode
 
         const codeLang = this._sparql_label_code()
         const codeThumb = this._sparql_thumb_code()
-
-        const countriesMax = options.countriesMax || 10
-        const countries = this._sparql_countries({ shuffle: true, take: countriesMax })
-        const codeCountries = countries.join(' ')
-
-        const maxOffset = 5
-        const ofs = utils.getRandomInt(0, maxOffset)
-        const limit = num * 10
+        const codeRand = this._sparql_rand_code(false, 'company')
+        const limit = 5000
 
         // choose companies
         const qCompanies = `
-SELECT ?company (COUNT(DISTINCT ?owner) as ?numOwners) WHERE {
-    SELECT ?company ?owner
-    WHERE {
-        ?company wdt:P31/wdt:P279* wd:Q4830453;
-                wdt:P17 ?country.
-        VALUES ?country { ${codeCountries} }
-        ?company wdt:P127 ?owner.
-        ?owner wdt:P31 wd:Q5;
-            wdt:P569 ?birthDate.
-        FILTER EXISTS { ?owner wdt:P18 ?image. }
-        FILTER NOT EXISTS { ?owner wdt:P570 ?deathDate. }
-    }
-    OFFSET ${ofs}
-    LIMIT ${limit}
+SELECT ?company ?owner ?image WHERE {
+  ?owner wdt:P31 wd:Q5;
+         wdt:P18 ?image;
+         wdt:P569 ?ownerBirth.
+  FILTER NOT EXISTS { ?owner wdt:P570 ?deathDate }
+  ?company wdt:P31/wdt:P279* wd:Q4830453;
+           wdt:P127 ?owner;
+           wdt:P127 ?person.
+  FILTER(?person != ?owner)
+  MINUS { ?company wdt:P576|wdt:P3999 ?endDate. FILTER(?endDate <= NOW()) }
 }
-GROUP BY ?company
+LIMIT ${limit}
 `
-        // final query
-        const q = `
-SELECT ?companyCode ?ownerLabel (SAMPLE(?thumburl) as ?thumburl)
+        // shaking query
+        const qSort = `
+SELECT ?company ?owner ?randValue (SAMPLE(?image) as ?image)
 WHERE {
     { ${qCompanies} }
-    FILTER(?numOwners > 1 && ?numOwners < 8)
-    ?company wdt:P127 ?owner.
-    ?owner wdt:P31 wd:Q5;
-           wdt:P18 ?image.
+    ${codeRand}
+}
+GROUP BY ?company ?owner ?randValue
+ORDER BY ?randValue
+LIMIT ${num}
+`
+        // final (enrichment) query
+        const q = `
+SELECT ?companyCode ?companyLabel ?ownerLabel ?thumburl
+WHERE {
+    { ${qSort} }
     ${codeLang}
     ${codeThumb}
     BIND(STRAFTER(wikibase:decodeUri(STR(?company)), "http://www.wikidata.org/entity/") AS ?companyCode)
 }
-GROUP BY ?companyCode ?ownerLabel
-ORDER BY ?companyCode
-LIMIT ${num}
 `
         let cacheId
         if (utils.isLocalhost() && false) { // DEBUG
@@ -1363,7 +1358,7 @@ LIMIT ${num}
             name: 'ownerLabel',
             page: 'ownerLabel'
         }, {
-            addition: ['companyCode'],
+            addition: ['companyCode', 'companyLabel'],
             cacheExpireIn: cache.Period.Hour * 8,
             noCacheCore: true // don't allow to cache query result
         })
@@ -1391,6 +1386,14 @@ LIMIT ${num}
             }
         });
         return out
+    },
+
+    personLabelToLink: function(label) {
+        return this.site + '/wiki/' + label.replaceAll(' ', '_')
+    },
+
+    companyLabelToLink: function(label) {
+        return this.site + '/wiki/' + label.replaceAll(' ', '_')
     },
 
     /* Person data model & methods */
@@ -1479,7 +1482,7 @@ LIMIT ${num}
                 return colPerson.year
             },
             get link() {
-                return wiki.site + '/wiki/' + colPerson.name.replaceAll(' ', '_')
+                return wiki.personLabelToLink(colPerson.name)
             }
         }
     } // Person

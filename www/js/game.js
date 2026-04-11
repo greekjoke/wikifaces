@@ -1210,14 +1210,19 @@ class GamePredictOwners extends GamePredictRelative {
         return opt
     }
     _getPersonBioHtml(data, other) {
+        const wiki = window.WfWiki
         let status = 'разные компании'
 
         if (data.companyCode === other.companyCode) { // co-owners
             status = 'обшая компания'
         }
 
-        const a = `Статус: ${status}`
-        return `<span class="relative-status">${a}</span>`
+        // const a = `Статус: ${status}`
+        // return `<span class="company-status">${a}</span>`
+
+        const name = data.companyLabel
+        const link = wiki.companyLabelToLink(name)
+        return `<a href="${link}" target="_blank" class="company-link">${name}</a>`
     }
     _validate(value) {
         const card = this.slider.currentSlide
