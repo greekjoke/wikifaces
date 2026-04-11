@@ -1331,9 +1331,8 @@ ORDER BY ?baseCode
 
         // choose companies
         const qCompanies = `
-SELECT ?company ?owner (SAMPLE(?image) as ?image) WHERE {
+SELECT ?company ?owner WHERE {
   ?owner wdt:P31 wd:Q5;
-         wdt:P18 ?image;
          wdt:P569 ?ownerBirth.
   FILTER NOT EXISTS { ?owner wdt:P570 ?deathDate }
   ?company wdt:P31/wdt:P279* wd:${itemId};
@@ -1341,9 +1340,11 @@ SELECT ?company ?owner (SAMPLE(?image) as ?image) WHERE {
            wdt:${personProp} ?person.
   FILTER(?person != ?owner)
   MINUS { ?company wdt:P576|wdt:P3999 ?endDate. FILTER(?endDate <= NOW()) }
-  ?person wdt:P18 ?image2.
+  FILTER EXISTS {
+    ?owner wdt:P18 ?image1.
+    ?person wdt:P18 ?image2.
+  }
 }
-GROUP BY ?company ?owner
 OFFSET ${ofs}
 LIMIT ${limit}
 `
@@ -1352,6 +1353,7 @@ LIMIT ${limit}
 SELECT ?company ?owner ?randValue (SAMPLE(?image) as ?image)
 WHERE {
     { ${qCompanies} }
+    ?owner wdt:P18 ?image.
     ${codeRand}
 }
 GROUP BY ?company ?owner ?randValue

@@ -1206,7 +1206,7 @@ class GamePredictOwners extends GamePredictRelative {
     }
     _getSparqlOptions() {
         const opt = super._getSparqlOptions()
-        opt.maxSearchRange = 200
+        opt.maxSearchRange = 500
         opt.maxSearchOffset = 1
         return opt
     }
@@ -1242,6 +1242,8 @@ class GamePredictMusicPartner extends GamePredictOwners {
         opt.itemId = 'Q215380'
         // opt.personProp = 'P463'
         opt.personProp = 'P527'
+        opt.maxSearchRange = 500
+        opt.maxSearchOffset = 1
         return opt
     }
 }
