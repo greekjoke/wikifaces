@@ -1306,7 +1306,7 @@ ORDER BY ?baseCode
         const codeLang = this._sparql_label_code()
         const codeThumb = this._sparql_thumb_code()
         const codeRand = this._sparql_rand_code(false, 'company')
-        const limit = 5000
+        const limit = 2000
 
         // choose companies
         const qCompanies = `
@@ -1320,6 +1320,7 @@ SELECT ?company ?owner ?image WHERE {
            wdt:P127 ?person.
   FILTER(?person != ?owner)
   MINUS { ?company wdt:P576|wdt:P3999 ?endDate. FILTER(?endDate <= NOW()) }
+  ?person wdt:P18 ?image2.
 }
 LIMIT ${limit}
 `
