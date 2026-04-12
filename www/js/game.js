@@ -591,8 +591,7 @@ class GameBase extends AppletBase {
         options = options || {}
         card.gameData = data // save into the card
     }
-    async _onCardPhoto(card, data, options) {
-        const ui = window.WfUI
+    _getPersData(data) {
         const wiki = window.WfWiki
         const persCached = wiki.Person(data.page) || {}
         const pers = {
@@ -602,7 +601,11 @@ class GameBase extends AppletBase {
             photo: { url: data.photo },
             load: async function() {}
         }
-
+        return pers
+    }
+    async _onCardPhoto(card, data, options) {
+        const ui = window.WfUI
+        const pers = this._getPersData(data)
         // const img = await ui.addFaceSlot(data.page, options)
         const img = await ui.addFaceSlot(pers, options)
 
@@ -707,7 +710,6 @@ class GameAliveOrDead extends GameBase {
 
 } // class GameAliveOrDead
 
-
 class GamePredictAge extends GameAliveOrDead {
     constructor(app, desc, options, gameId) {
         gameId = gameId || 'GamePredictAge'
@@ -743,7 +745,6 @@ class GamePredictAge extends GameAliveOrDead {
             (value === 4 && years > 60)
     }
 }
-
 
 class GamePredictChildren extends GameBase {
     constructor(app, desc, options, gameId) {
@@ -789,7 +790,6 @@ class GamePredictChildren extends GameBase {
         return `<span class="child-count">${a}</span>`
     }
 }
-
 
 class GamePredictOccupation extends GameBase {
     constructor(app, desc, options, gameId) {
@@ -875,7 +875,6 @@ class GamePredictOccupation extends GameBase {
     }
 }
 
-
 class GamePredictReligion extends GamePredictOccupation {
     constructor(app, desc, options, gameId) {
         gameId = gameId || 'GamePredictReligion'
@@ -907,7 +906,6 @@ class GamePredictReligion extends GamePredictOccupation {
         return `<span class="religion">${a}</span>`
     }
 }
-
 
 class GamePredictRelative extends GameBase {
     static SEX_CODES = {
@@ -981,6 +979,7 @@ class GamePredictRelative extends GameBase {
         card.gameData = [options.itemsList[ia], options.itemsList[ib]]
     }
     async _onCardPhoto(card, data, options) {
+        const that = this
         const ui = window.WfUI
         const ar = card.gameData
         const images = []
@@ -989,7 +988,8 @@ class GamePredictRelative extends GameBase {
             throw new Error('expected game data as array of pair items')
 
         await ar.forEach(async data => {
-            const img = await ui.addFaceSlot(data.page, options)
+            const pers = that._getPersData(data)
+            const img = await ui.addFaceSlot(pers, options)
             if (img) {
                 img.classList.add('draggable')
                 images.push(img)
@@ -1248,6 +1248,84 @@ class GamePredictMusicPartner extends GamePredictOwners {
     }
 }
 
+class GamePredictTimeDelta extends GamePredictOwners {
+    constructor(app, desc, options, gameId) {
+        gameId = gameId || 'GamePredictTimeDelta'
+        options = options || {}
+
+        const minDelta = 3
+        let buttonsLkup = {}
+
+        if (!options.buttons) {
+            options.buttons = { 0: 'Дальше ➡️' }
+            buttonsLkup = {
+                1: [minDelta + 1],
+                2: [minDelta + 1, minDelta * 3],
+                3: [minDelta * 3, minDelta * 5],
+                4: [minDelta * 5],
+            }
+            Object.keys(buttonsLkup).forEach(id => {
+                let label
+                const cnt = Object.keys(options.buttons).length
+                const ar = buttonsLkup[id]
+                if (ar.length > 1) {
+                    label = `${ar[0]}-${ar[1]}`
+                } else {
+                    const eq = cnt > 2 ? '>' : '<'
+                    label = `${eq}${ar[0]}`
+                }
+                options.buttons[id] = label
+            })
+        }
+
+        super(app, desc, options, gameId)
+
+        this.minDelta = minDelta
+        this.buttonsLkup = buttonsLkup
+    }
+    _getSparqlMethod() {
+        return 'sparql_person_timedelta'
+    }
+    _getSparqlOptions() {
+        const opt = super._getSparqlOptions()
+        opt.maxSearchRange = 2000
+        opt.countriesMax = 8
+        opt.minDelta = this.minDelta
+        return opt
+    }
+    _getPersData(data) {
+        var opt = super._getPersData(data)
+        opt.year = data.imageYear
+        return opt
+    }
+    _getTimeDelta(card) {
+        const [a, b] = card.gameData
+        return parseInt(b.imageYear) - parseInt(a.imageYear)
+    }
+    _validate(value) {
+        const card = this.slider.currentSlide
+        if (!card.gameData) {
+            console.warn('game data not found in current card')
+            return false
+        }
+        const delta = this._getTimeDelta(card)
+        const ar = this.buttonsLkup[value]
+
+        if ((value === 1 && delta < ar[0]) ||
+           ((value === 2 || value === 3) && delta >= ar[0] && delta <= ar[1]) ||
+           (value === 4 && delta > ar[0]) )
+        {
+            return true
+        }
+
+        return false
+    }
+    _getPersonBioHtml(data) {
+        const a = `Год: ${data.imageYear}`
+        return `<span class="image-year">${a}</span>`
+    }
+}
+
 // register game classes
 window['GameBase'] = GameBase
 window['GameAliveOrDead'] = GameAliveOrDead
@@ -1258,3 +1336,4 @@ window['GamePredictReligion'] = GamePredictReligion
 window['GamePredictRelative'] = GamePredictRelative
 window['GamePredictOwners'] = GamePredictOwners
 window['GamePredictMusicPartner'] = GamePredictMusicPartner
+window['GamePredictTimeDelta'] = GamePredictTimeDelta

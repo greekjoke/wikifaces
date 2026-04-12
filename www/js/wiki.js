@@ -510,15 +510,16 @@ SERVICE wikibase:mwapi {
 
     _sparql_rand_code: function(seed, field) {
         const utils = window.WfUtils
-        seed = seed || utils.genUid()
         let options = {}
 
-        if (typeof(field) === 'object') {
-            options = field || options
-            field = options.field || 'image'
-        } else {
-            field = field || 'image'
+        if (typeof(seed) === 'object') {
+            options = seed
+            seed = options.seed
+            field = options.field
         }
+
+        seed = seed || utils.genUid()
+        field = field || 'image'
 
         if (options.oddeven) {
             return `
@@ -529,6 +530,13 @@ BIND(MD5(CONCAT(STR(?${field}), '${seed}', ?parity)) as ?randValue)
         }
 
         return `BIND(MD5(CONCAT(STR(?${field}), '${seed}')) as ?randValue)`
+    },
+
+    _sparql_hint_code: function(hint) {
+        hint = hint || 'first'
+        if (hint !== 'first')
+            return `hint:Prior hint:runLast true.`
+        return `hint:Prior hint:runFirst true.`
     },
 
     _sparql_item_ids: function(name, options) {
@@ -1386,6 +1394,107 @@ WHERE {
             page: 'ownerLabel'
         }, {
             addition: ['companyCode', 'companyLabel'],
+            cacheExpireIn: cache.Period.Hour * 8,
+            noCacheCore: true // don't allow to cache query result
+        })
+    },
+
+    sparql_person_timedelta: async function(num, options) {
+        const utils = WfUtils
+        const cache = window.WfLocalCache
+
+        num = num || 5
+        options = options || {}
+
+        const codeLang = this._sparql_label_code()
+        const codeThumb = this._sparql_thumb_code()
+        const codeRand = this._sparql_rand_code(false, 'person')
+        const codeHint = this._sparql_hint_code()
+        const minYearsDelta = (options.minDelta || 3) - 1
+        const limit = options.maxSearchRange || 5000
+        const limitPreFinal = num * 2
+        const countriesMax = options.countriesMax || 10
+        const countries = this._sparql_countries({ shuffle: true, take: countriesMax })
+        const codeCountries = countries.join(' ')
+
+        // choose persons & images date
+        const qPers = `
+SELECT ?person ?date
+WHERE {
+    ?person wdt:P31 wd:Q5;
+            wdt:P27 ?ctz;
+            p:P18/pq:P585 ?date.
+    VALUES ?ctz { ${codeCountries} }
+}
+LIMIT ${limit}
+`
+        // get persons min & max dates
+        const qGroup = `
+SELECT ?person (MIN(?date) as ?minDate) (MAX(?date) as ?maxDate)
+WHERE {
+    { ${qPers} }
+}
+GROUP BY ?person
+`
+        // get images & shake it
+        const qImages = `
+SELECT ?person ?delta ?type ?imageDate ?image ?randValue WHERE {
+    { ${qGroup} }
+    ${codeHint}
+    FILTER NOT EXISTS { ?person wdt:P570 ?deathDate }
+    BIND( (YEAR(?maxDate) - YEAR(?minDate)) as ?delta)
+    FILTER(?delta > ${minYearsDelta})
+    ${codeRand}
+    {
+        ?person p:P18 ?stMin.
+        ?stMin pq:P585 ?minDate.
+        ?stMin ps:P18 ?image.
+        BIND(?minDate as ?imageDate)
+        BIND("old" as ?type).
+    } UNION {
+        ?person p:P18 ?stMax.
+        ?stMax pq:P585 ?maxDate.
+        ?stMax ps:P18 ?image.
+        BIND(?maxDate as ?imageDate)
+        BIND("new" as ?type).
+  }
+}
+ORDER BY ?randValue ?imageDate
+LIMIT ${limitPreFinal}
+`
+
+        // final (enrichment) query
+        const q = `
+SELECT ?personLabel ?type
+    (SAMPLE(?thumburl) as ?thumburl)
+    (SAMPLE(?delta) as ?delta)
+    (SAMPLE(?imageYear) as ?imageYear)
+    (SAMPLE(?randValue) as ?randValue)
+WHERE {
+    { ${qImages} }
+    ${codeLang}
+    ${codeThumb}
+    BIND(YEAR(?imageDate) as ?imageYear)
+}
+GROUP BY ?personLabel ?type
+ORDER BY ?randValue ?imageYear
+LIMIT ${num}
+`
+        let cacheId
+        if (utils.isLocalhost() && false) { // DEBUG
+            console.warn('[wiki] force to use last result')
+            cacheId = `sparql_person_timepic:0`
+        } else {
+            const hashStr = utils.simpleHash(q)
+            cacheId = `sparql_person_timepic:${hashStr}`
+        }
+
+        return await this._sparql_query_wrapper(cacheId, q, {
+            year: '*', // same year for all
+            name: 'personLabel',
+            page: 'personLabel'
+        }, {
+            addition: ['type', 'delta', 'imageYear'],
             cacheExpireIn: cache.Period.Hour * 8,
             noCacheCore: true // don't allow to cache query result
         })
