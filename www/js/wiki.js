@@ -773,7 +773,7 @@ WHERE {
         wdt:P27 ?ctz;
         wdt:P18 ?image;
         wdt:P569 ?birthDate.
-    ?ctz wdt:P31 wd:Q3624078 .
+    # ?ctz wdt:P31 wd:Q3624078 .
     VALUES ?ctz { ${codeCountries} }
     FILTER(YEAR(?birthDate) > ${yearMin} && YEAR(?birthDate) < ${yearMax})
     FILTER NOT EXISTS { ?person wdt:P570 ?deathDate }
@@ -791,7 +791,7 @@ WHERE {
         wdt:P18 ?image;
         wdt:P569 ?birthDate;
         wdt:P570 ?deathDate.
-    ?ctz wdt:P31 wd:Q3624078 .
+    # ?ctz wdt:P31 wd:Q3624078 .
     VALUES ?ctz { ${codeCountries} }
     FILTER(YEAR(?birthDate) > ${yearMin} && YEAR(?birthDate) < ${yearMax})
 }
@@ -1329,6 +1329,7 @@ ORDER BY ?baseCode
 
         const itemId = options.itemId || 'Q4830453'
         const personProp = options.personProp || 'P127'
+        const codeHint = this._sparql_hint_code()
         const codeLang = this._sparql_label_code()
         const codeThumb = this._sparql_thumb_code()
         const codeRand = this._sparql_rand_code(false, 'company')
@@ -1343,9 +1344,8 @@ SELECT ?company ?owner WHERE {
   ?owner wdt:P31 wd:Q5;
          wdt:P569 ?ownerBirth.
   FILTER NOT EXISTS { ?owner wdt:P570 ?deathDate }
-  ?company wdt:P31/wdt:P279* wd:${itemId};
-           wdt:${personProp} ?owner;
-           wdt:${personProp} ?person.
+  ?company wdt:P31/wdt:P279* wd:${itemId}.
+  ?company wdt:${personProp} ?owner, ?person.
   FILTER(?person != ?owner)
   MINUS { ?company wdt:P576|wdt:P3999 ?endDate. FILTER(?endDate <= NOW()) }
   FILTER EXISTS {
@@ -1361,6 +1361,7 @@ LIMIT ${limit}
 SELECT ?company ?owner ?randValue (SAMPLE(?image) as ?image)
 WHERE {
     { ${qCompanies} }
+    ${codeHint}
     ?owner wdt:P18 ?image.
     ${codeRand}
 }

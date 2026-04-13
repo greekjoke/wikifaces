@@ -1,3 +1,5 @@
+- игра / sprql owner - улучшить скорость загрузки.
+- игра / sprql owner - баланс/часто выпадают пары.
 - [x] фото персоны как на странице википедии - возможно достать? пока берёт первую картинку (не всегда лучшую).
 - [x] ссылки работают не по всем именам, т.к. не все с английской вики.
 - игры / сводная статистика по всем играм (в разделе Игры).
@@ -11,20 +13,10 @@
 
 -------------
 какие коллекции ещё можно попробовать собрать:
+- носители языка
 - политика
 - fashion
 - медики/врачеватели
 - лидеры (фактические)
 - эзотерики/мистики
 - феномены (память, эсперы и пр.)
-
-------------
-фото и время
-
-SELECT ?image ?date WHERE {
-  wd:Q567 p:P18 ?statement.         # Access the image statement for Angela Merkel
-  ?statement ps:P18 ?image.         # Get the image file (Mainsnake)
-  ?statement pq:P585 ?date.         # Get the "point in time" qualifier
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
-}
-ORDER BY ?date
