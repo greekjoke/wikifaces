@@ -2,6 +2,7 @@
 
 (function() {
     const utils = window.WfUtils
+    const cache = window.WfLocalCache
 
     // currency data service
     frankfurter_request = async function(path) {
@@ -52,7 +53,7 @@
 
         const ticker = options.ticker !== undefined ? options.ticker : 'EUR/USD'
         if (ticker) {
-            const [base, quote] = ticker.split('/')
+            const [base, quote] = ticker.toUpperCase().split('/')
             params['quotes'] = quote
             params['base'] = base
         }
@@ -69,9 +70,9 @@
 
     window.WfFin = {
         test: function() {
-            // this.currency_get_hist_for_year('USD/RUB').then(data => {
-            //     console.log('rate', data)
-            // })
+            this.currency_get_hist_for_year('USD/RUB').then(data => {
+                console.log('rate', data)
+            })
         },
         currency_get_list: frankfurter_get_currencies,
         currency_get_rates: frankfurter_get_rates,
@@ -82,36 +83,21 @@
             ticker = ticker || 'EUR/USD'
             year = year || curYear
 
-            let from = year.toString().padStart(4, '0') + '-01-01'
-            let to = year.toString().padStart(4, '0') + '-12-31'
+            const from = year.toString().padStart(4, '0') + '-01-01'
+            const to = year.toString().padStart(4, '0') + '-12-31'
             const cacheKey = `fin:currency_by_year:${ticker}:${year}`
-            let data = utils.storageRead(cacheKey)
+            let data = cache.get(cacheKey)
 
-            if (year < curYear) {
-                if (data !== undefined)
-                    return data
-                // TODO: если давно год сменился, данные могут быть не все
-                data = await this.currency_get_hist(ticker, from, to)
-            } else {
-                if (data !== undefined && data.length > 0) {
-                    const last = data.at(-1)
-                    from = last.date
-                }
-                const data2 = await this.currency_get_hist(ticker, from)
-                if (!data2)
-                    return data // no new data or failed
-                data = data || []
-                data2.forEach(item => {
-                    const sim = data.find(x => x.date == item.date)
-                    if (sim) {
-                        sim.rate = item.rate
-                    } else {
-                        data.push(item)
-                    }
-                }, this)
-            }
             if (data !== undefined)
-                utils.storageWrite(cacheKey, data)
+                return data
+
+            data = await this.currency_get_hist(ticker, from, to)
+
+            if (data !== undefined) {
+                const cacheExpireIn = cache.Period.Day * 5
+                cache.set(cacheKey, data, cacheExpireIn)
+            }
+
             return data
         }
     } // WfFin

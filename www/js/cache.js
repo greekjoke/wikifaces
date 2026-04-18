@@ -11,6 +11,7 @@ window.WfLocalCache = {
     },
 
     _isExpired(item) {
+        const self = window.WfLocalCache
         const now = new Date()
         const t = new Date(item.date)
         const deltaSec = (now - t) / 1000

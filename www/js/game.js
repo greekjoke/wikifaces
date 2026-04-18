@@ -1326,6 +1326,76 @@ class GamePredictTimeDelta extends GamePredictOwners {
     }
 }
 
+class GamePredictFin extends GameBase {
+    constructor(app, desc, options, gameId) {
+        gameId = gameId || 'GamePredictFin'
+        options = options || {}
+        super(app, desc, options, gameId)
+    }
+    _getSparqlMethod() {
+        return ''
+    }
+    load(onReady, onError) {
+        const that = this
+        const utils = window.WfUtils
+        const fin = window.WfFin
+        const cards = this.cards
+        const superFunc = super.load
+        const ticker = 'USD/RUB' // TODO:
+        const year = 2025 // TODO:
+
+        fin.currency_get_hist_for_year(ticker, year)
+            .then(async result => {
+                if (!result) {
+                    alert('Ошибка при получении данных.')
+                    superFunc.call(that, false, onError)
+                    return
+                }
+
+                const viewPoints = 12
+                const predictPoints = viewPoints
+                const totalPoints = result.length
+
+                if (totalPoints < result.length - viewPoints - predictPoints - 1) {
+                    alert('Получено недостаточно данных. Попробуйте ещё раз.')
+                    superFunc.call(that, false, onError)
+                    return
+                }
+
+                for (let i=0; i < cards.length; i++) {
+                    const card = cards[i]
+                    const con = card.querySelector('.content')
+                    const maxOfs = totalPoints - viewPoints - predictPoints - 1
+                    const ofs = utils.getRandomInt(viewPoints, maxOfs)
+
+                    con.innerHTML = '' // clear
+
+                    var curData = result.slice(ofs - viewPoints, ofs)
+                        .map(x => { return { date: x.date, value: x.rate }})
+                    var futDate = result.slice(ofs, predictPoints)
+                        .map(x => { return { date: x.date, value: x.rate }})
+
+                    // TODO: make pictures
+
+                    // that._onCardData(card, item, {
+                    //     itemsList: list,
+                    //     cardIndex: i
+                    // })
+
+                    // await that._onCardPhoto(card, item, {
+                    //     container: con,
+                    //     detDisabled: !cpad,
+                    //     pad: cpad,
+                    //     itemsList: list,
+                    //     cardIndex: i
+                    // })
+                }
+
+                superFunc.call(that, onReady)
+            })
+    }
+}
+
 // register game classes
 window['GameBase'] = GameBase
 window['GameAliveOrDead'] = GameAliveOrDead
@@ -1337,3 +1407,4 @@ window['GamePredictRelative'] = GamePredictRelative
 window['GamePredictOwners'] = GamePredictOwners
 window['GamePredictMusicPartner'] = GamePredictMusicPartner
 window['GamePredictTimeDelta'] = GamePredictTimeDelta
+window['GamePredictFin'] = GamePredictFin

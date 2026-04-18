@@ -10,6 +10,7 @@
         <script src="js/utils.js"></script>
         <script src="js/cache.js"></script>
         <script src="js/fin.js"></script>
+        <script src="js/ui.js"></script>
         <link rel="stylesheet" href="css/main.css">
         <link rel="stylesheet" href="css/face.css">
         <link rel="stylesheet" href="css/explorer.css">
@@ -23,15 +24,234 @@
     </script>
 
     <body>
-        <div id="content" style="width: 300px;"></div>
-        TODO: ...
+        <div id="content" style="padding: 15px;"></div>
     </body>
 
     <script>
+        const findPowerOfTwo = function(n) {
+            let u = 1
+            let best = Number.MAX_VALUE
+            let res = undefined
+
+            for(let i=0; i < 8; i++) {
+                const delta = Math.abs(u - n)
+                if (delta < best) {
+                    best = delta
+                    res = i
+                }
+                u = u << 1
+            }
+
+            return res
+        }
+        const findPowerOf = function(n, base) {
+            let best = Number.MAX_VALUE
+            let res = undefined
+
+            for(let i=0; i < 8; i++) {
+                const u = Math.pow(base, i)
+                const delta = Math.abs(u - n)
+                if (delta < best) {
+                    best = delta
+                    res = i
+                }
+            }
+
+            return res
+        }
+        const calcValueRoundParams = function(arValues) {
+            const arDeltas = arValues.slice(1)
+                .map((x, i) => Math.abs(arValues[i] - x))
+                .filter(x => x > 0)
+            const minDelta = Math.min(...arDeltas)
+            const minDeltaFactor = minDelta > 1 ?
+                (1.0 / Math.round(minDelta)) : Math.round(1.0 / minDelta)
+            const minValueStep = 1.0 / minDeltaFactor
+            const dig= findPowerOf(minDeltaFactor, 10)
+            return {
+                count: arValues.length,
+                delta: minDelta,
+                factor: minDeltaFactor,
+                step: minValueStep,
+                dig: dig,
+                round: function(v) {
+                    const n = Math.round(v / this.step)
+                    return n * this.step
+                }
+            }
+        }
         document.addEventListener('DOMContentLoaded', async function() {
             const fin = window.WfFin
-            fin.test()
+
+            // receive fin data
+            let numPoints = 20
+            const ticker = 'USD/RUB' // 'EUR/USD'
+            const data = await fin.currency_get_hist_for_year(ticker, 2025)
+            if (!data || data.length < 2)
+                return
+            numPoints = Math.min(numPoints, data.length)
+            const firstDataIndex = 50
+            const curData = data.slice(firstDataIndex, firstDataIndex + numPoints)
+                .map(x => { return { date: x.date, value: x.rate }})
+
+                console.log('fin-data', curData)
+
+            // make image 500x750
+            const con = document.getElementById('content')
+            const canvas = document.createElement('canvas')
+            canvas.width = 300
+            canvas.height = Math.round(canvas.width * 3 / 2)
+            con.appendChild(canvas)
+            const ctx = canvas.getContext('2d')
+            ctx.imageSmoothingEnabled = false
+
+            // calculate diagram metrics
+            const fontSize = 10
+            const arValues = curData.map(x => x.value)
+            const arTimes = curData.map(x => new Date(x.date).getTime())
+            const minValue = Math.min(...arValues)
+            const maxValue = Math.max(...arValues)
+            const minDate = Math.min(...arTimes)
+            const maxDate = Math.max(...arTimes)
+            const yAxisPad = Math.round(fontSize * 3 / 2)
+            const yAxisScale = 0.8
+            const yViewOfs = (canvas.height - yAxisPad) * (1.0 - yAxisScale) / 2
+            const valueParams = calcValueRoundParams(arValues)
+
+            const modelToViewY = function(v) {
+                const f = (v - minValue) / (maxValue - minValue)
+                return Math.round((1.0 - f) * yAxisScale * (canvas.height - yAxisPad) + yViewOfs)
+            }
+            const viewToModelY = function(v) {
+                const f = (v - yViewOfs) / (yAxisScale * (canvas.height - yAxisPad))
+                return (1.0 - f) * (maxValue - minValue) + minValue
+            }
+
+            const testV = arValues[0]
+            const testY = modelToViewY(testV)
+            const testS = testV.toFixed(valueParams.dig)
+            const xAxisPad = Math.round(testS.length * fontSize * 2 / 3) // 40
+
+            // calculate points
+            const dots = []
+            curData.forEach((u, i) => {
+                const x = Math.round((i / (curData.length - 1)) * (canvas.width - xAxisPad))
+                const y = modelToViewY(u.value)
+                dots.push([x, y])
+            })
+
+            // clear background
+            ctx.fillStyle = 'black'
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // render label
+            const labelFontSize = 28
+            ctx.font = `${labelFontSize}px sans-serif`
+            ctx.fillStyle = '#335'
+            ctx.fillText(ticker, 5, labelFontSize)
+
+            // render x-axis
+            ctx.font = `${fontSize}px sans-serif`
+            ctx.fillStyle = '#333'
+            ctx.strokeStyle = 'white'
+            ctx.lineWidth = 0.5
+            ctx.fillRect(0, canvas.height - yAxisPad, canvas.width, yAxisPad)
+            //ctx.strokeRect(-1, canvas.height - yAxisPad, canvas.width+2, yAxisPad+2)
+            let lastMonth = -1
+            const textMinWidth = fontSize * 3
+            const textSpanH = Math.max(1, Math.ceil(textMinWidth / ((canvas.width - xAxisPad) / curData.length)))
+            const monthNames = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
+            const vGrid = []
+            ctx.fillStyle = '#aaa'
+            for (let i=0; i < curData.length; i += textSpanH) {
+                const t = curData[i].date
+                const month = parseInt(t.substring(5, 7))
+                const day = parseInt(t.substring(8))
+                const s = month === lastMonth ? day.toString() : monthNames[month-1]
+                const [x, y] = dots[i]
+                ctx.fillText(s, x, canvas.height - fontSize / 2)
+                lastMonth = month
+                vGrid.push(x + 0.5)
+            }
+
+            // render y-axis
+            ctx.fillStyle = '#333'
+            ctx.strokeStyle = 'white'
+            ctx.lineWidth = 0.5
+            ctx.fillRect(canvas.width - xAxisPad, 0, xAxisPad, canvas.height - yAxisPad)
+            //ctx.strokeRect(canvas.width - xAxisPad, -1, xAxisPad + 2, canvas.height - yAxisPad + 1)
+            ctx.fillStyle = '#aaa'
+            const yAxisTop = viewToModelY(0)
+            const yAxisBottom = viewToModelY(canvas.height - yAxisPad)
+            const yAxisMin = valueParams.round(yAxisBottom)
+            const yAxisMax = valueParams.round(yAxisTop)
+            const yAxisTicks = Math.round((yAxisMax - yAxisMin) / valueParams.step)
+            const textMinHeight = fontSize * 2
+            const textSpanV = Math.max(1, Math.ceil(textMinHeight / ((canvas.height - yAxisPad) / yAxisTicks)))
+            const hGrid = []
+            for (let i=0; i < yAxisTicks; i += textSpanV) {
+                const v = yAxisMin + i * valueParams.step
+                const y = modelToViewY(v)
+                const s = v.toFixed(valueParams.dig)
+                ctx.fillText(s, canvas.width - xAxisPad + 2, y + fontSize / 2)
+                hGrid.push(y + 0.5)
+            }
+
+            // render last value label (on y-axis)
             // TODO:
+
+            // render vertical-grid lines
+            ctx.lineWidth = 0.5
+            ctx.strokeStyle = '#555'
+            vGrid.forEach((x, i) => {
+                if (i === 0) return // skip first line
+                ctx.beginPath()
+                ctx.moveTo(x, 0)
+                ctx.lineTo(x, canvas.height - yAxisPad)
+                ctx.stroke()
+            })
+
+            // render horizon-grid lines
+            ctx.lineWidth = 0.5
+            ctx.strokeStyle = '#555'
+            hGrid.forEach((y, i) => {
+                ctx.beginPath()
+                ctx.moveTo(0, y)
+                ctx.lineTo(canvas.width - xAxisPad, y)
+                ctx.stroke()
+            })
+
+            // render chart line
+            ctx.lineWidth = 2
+            ctx.strokeStyle = 'yellow'
+            ctx.beginPath()
+            dots.forEach((u, i) => {
+                const [x, y] = u
+                if (i < 1) {
+                    ctx.moveTo(x, y)
+                } else {
+                    ctx.lineTo(x, y)
+                }
+                dots.push([x, y])
+            })
+            ctx.stroke()
+
+            // render chart dots
+            ctx.lineWidth = 1
+            dots.forEach(u => {
+                const [x, y] = u
+
+                ctx.beginPath();
+                ctx.fillStyle = 'red'
+                ctx.arc(x, y, 5, 0, 2 * Math.PI)
+                ctx.fill()
+
+                ctx.beginPath();
+                ctx.fillStyle = 'yellow'
+                ctx.arc(x, y, 3, 0, 2 * Math.PI)
+                ctx.fill()
+            })
+
         });
     </script>
 </html>
