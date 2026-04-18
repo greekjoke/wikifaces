@@ -227,6 +227,11 @@ window.WfUtils = {
         return out.join('')
     },
 
+    dateYearToText: function(date) {
+        date = date || new Date()
+        return date.toISOString().split('T')[0]
+    },
+
     yoSuffix: function(years) {
         years = parseInt(years)
         const tail = years % 10

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta http-equiv="Cache-Control" content="max-age=3600, must-revalidate" />
+        <title>Test finance data loader</title>
+        <script src="js/picojs/pico.js"></script>
+        <script src="js/utils.js"></script>
+        <script src="js/cache.js"></script>
+        <script src="js/fin.js"></script>
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/face.css">
+        <link rel="stylesheet" href="css/explorer.css">
+        <link rel="stylesheet" href="css/viewer.css">
+    </head>
+
+    <script type="text/template" id="tpl-face-slot">
+        <div class="face-slot">
+            <img src="" loading="lazy" />
+        </div>
+    </script>
+
+    <body>
+        <div id="content" style="width: 300px;"></div>
+        TODO: ...
+    </body>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const fin = window.WfFin
+            fin.test()
+            // TODO:
+        });
+    </script>
+</html>
