@@ -84,7 +84,7 @@
             const fin = window.WfFin
 
             // receive fin data
-            let numPoints = 20
+            let numPoints = 30
             const ticker = 'USD/RUB' // 'EUR/USD'
             const data = await fin.currency_get_hist_for_year(ticker, 2025)
             if (!data || data.length < 2)
@@ -144,7 +144,7 @@
             ctx.fillStyle = 'black'
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // render label
+            // render title label
             const labelFontSize = 28
             ctx.font = `${labelFontSize}px sans-serif`
             ctx.fillStyle = '#335'
@@ -198,7 +198,26 @@
             }
 
             // render last value label (on y-axis)
-            // TODO:
+            if (true) {
+                const v = arValues.at(-1)
+                const y = modelToViewY(v)
+                const s = v.toFixed(valueParams.dig)
+
+                ctx.fillStyle = 'yellow'
+                ctx.fillRect(canvas.width - xAxisPad, y - fontSize / 2, xAxisPad, fontSize + 2)
+
+                ctx.fillStyle = 'black'
+                ctx.fillText(s, canvas.width - xAxisPad + 2, y + fontSize / 2)
+
+                ctx.lineWidth = 0.5
+                ctx.strokeStyle = 'yellow'
+                ctx.setLineDash([10, 5])
+                ctx.beginPath()
+                ctx.moveTo(0, y + 0.5)
+                ctx.lineTo(canvas.width - xAxisPad, y + 0.5)
+                ctx.stroke()
+                ctx.setLineDash([])
+            }
 
             // render vertical-grid lines
             ctx.lineWidth = 0.5
@@ -223,7 +242,7 @@
 
             // render chart line
             ctx.lineWidth = 2
-            ctx.strokeStyle = 'yellow'
+            ctx.strokeStyle = '#5de'
             ctx.beginPath()
             dots.forEach((u, i) => {
                 const [x, y] = u
@@ -232,23 +251,21 @@
                 } else {
                     ctx.lineTo(x, y)
                 }
-                dots.push([x, y])
             })
             ctx.stroke()
 
             // render chart dots
-            ctx.lineWidth = 1
-            dots.forEach(u => {
+            dots.slice(0, -1).forEach(u => {
                 const [x, y] = u
 
                 ctx.beginPath();
-                ctx.fillStyle = 'red'
-                ctx.arc(x, y, 5, 0, 2 * Math.PI)
+                ctx.fillStyle = 'blue'
+                ctx.arc(x, y, 4, 0, 2 * Math.PI)
                 ctx.fill()
 
                 ctx.beginPath();
-                ctx.fillStyle = 'yellow'
-                ctx.arc(x, y, 3, 0, 2 * Math.PI)
+                ctx.fillStyle = '#5de'
+                ctx.arc(x, y, 2, 0, 2 * Math.PI)
                 ctx.fill()
             })
 
