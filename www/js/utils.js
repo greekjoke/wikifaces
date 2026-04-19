@@ -240,6 +240,39 @@ window.WfUtils = {
         else if (tail === 1) w = 'год'
         else if (tail < 5) w = 'года'
         return w
-    }
+    },
+
+    findPowerOfTwo: function(n) {
+        let u = 1
+        let best = Number.MAX_VALUE
+        let res = undefined
+
+        for(let i=0; i < 8; i++) {
+            const delta = Math.abs(u - n)
+            if (delta < best) {
+                best = delta
+                res = i
+            }
+            u = u << 1
+        }
+
+        return res
+    },
+
+    findPowerOf: function(n, base) {
+        let best = Number.MAX_VALUE
+        let res = undefined
+
+        for(let i=0; i < 8; i++) {
+            const u = Math.pow(base, i)
+            const delta = Math.abs(u - n)
+            if (delta < best) {
+                best = delta
+                res = i
+            }
+        }
+
+        return res
+    },
 
 }

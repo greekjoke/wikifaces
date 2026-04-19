@@ -10,6 +10,7 @@
         <script src="js/utils.js"></script>
         <script src="js/cache.js"></script>
         <script src="js/fin.js"></script>
+        <script src="js/chart.js"></script>
         <script src="js/ui.js"></script>
         <link rel="stylesheet" href="css/main.css">
         <link rel="stylesheet" href="css/face.css">
@@ -17,49 +18,14 @@
         <link rel="stylesheet" href="css/viewer.css">
     </head>
 
-    <script type="text/template" id="tpl-face-slot">
-        <div class="face-slot">
-            <img src="" loading="lazy" />
-        </div>
-    </script>
-
     <body>
         <div id="content" style="padding: 15px;"></div>
     </body>
 
     <script>
-        const findPowerOfTwo = function(n) {
-            let u = 1
-            let best = Number.MAX_VALUE
-            let res = undefined
 
-            for(let i=0; i < 8; i++) {
-                const delta = Math.abs(u - n)
-                if (delta < best) {
-                    best = delta
-                    res = i
-                }
-                u = u << 1
-            }
-
-            return res
-        }
-        const findPowerOf = function(n, base) {
-            let best = Number.MAX_VALUE
-            let res = undefined
-
-            for(let i=0; i < 8; i++) {
-                const u = Math.pow(base, i)
-                const delta = Math.abs(u - n)
-                if (delta < best) {
-                    best = delta
-                    res = i
-                }
-            }
-
-            return res
-        }
         const calcValueRoundParams = function(arValues) {
+            const utils = window.WfUtils
             const arDeltas = arValues.slice(1)
                 .map((x, i) => Math.abs(arValues[i] - x))
                 .filter(x => x > 0)
@@ -67,7 +33,7 @@
             const minDeltaFactor = minDelta > 1 ?
                 (1.0 / Math.round(minDelta)) : Math.round(1.0 / minDelta)
             const minValueStep = 1.0 / minDeltaFactor
-            const dig= findPowerOf(minDeltaFactor, 10)
+            const dig= utils.findPowerOf(minDeltaFactor, 10)
             return {
                 count: arValues.length,
                 delta: minDelta,
@@ -80,21 +46,8 @@
                 }
             }
         }
-        document.addEventListener('DOMContentLoaded', async function() {
-            const fin = window.WfFin
 
-            // receive fin data
-            let numPoints = 30
-            const ticker = 'USD/RUB' // 'EUR/USD'
-            const data = await fin.currency_get_hist_for_year(ticker, 2025)
-            if (!data || data.length < 2)
-                return
-            numPoints = Math.min(numPoints, data.length)
-            const firstDataIndex = 50
-            const curData = data.slice(firstDataIndex, firstDataIndex + numPoints)
-                .map(x => { return { date: x.date, value: x.rate }})
-
-                console.log('fin-data', curData)
+        function drawChart(curData, title) {
 
             // make image 500x750
             const con = document.getElementById('content')
@@ -111,13 +64,21 @@
             const arTimes = curData.map(x => new Date(x.date).getTime())
             const minValue = Math.min(...arValues)
             const maxValue = Math.max(...arValues)
-            const minDate = Math.min(...arTimes)
-            const maxDate = Math.max(...arTimes)
+            const minTime = Math.min(...arTimes)
+            const maxTime = Math.max(...arTimes)
             const yAxisPad = Math.round(fontSize * 3 / 2)
             const yAxisScale = 0.8
             const yViewOfs = (canvas.height - yAxisPad) * (1.0 - yAxisScale) / 2
             const valueParams = calcValueRoundParams(arValues)
 
+            const modelToViewX = function(v) {
+                const f = (v - minTime) / (maxTime - minTime)
+                return Math.round(f * (canvas.width - xAxisPad))
+            }
+            const viewToModelX = function(v) {
+                const f = v / (canvas.width - xAxisPad)
+                return f * (maxTime - minTime) + minTime
+            }
             const modelToViewY = function(v) {
                 const f = (v - minValue) / (maxValue - minValue)
                 return Math.round((1.0 - f) * yAxisScale * (canvas.height - yAxisPad) + yViewOfs)
@@ -130,13 +91,13 @@
             const testV = arValues[0]
             const testY = modelToViewY(testV)
             const testS = testV.toFixed(valueParams.dig)
-            const xAxisPad = Math.round(testS.length * fontSize * 2 / 3) // 40
+            const xAxisPad = Math.round(testS.length * fontSize * 2 / 3)
 
             // calculate points
             const dots = []
             curData.forEach((u, i) => {
-                const x = Math.round((i / (curData.length - 1)) * (canvas.width - xAxisPad))
-                const y = modelToViewY(u.value)
+                const x = modelToViewX(arTimes[i])
+                const y = modelToViewY(arValues[i])
                 dots.push([x, y])
             })
 
@@ -146,9 +107,11 @@
 
             // render title label
             const labelFontSize = 28
+            const yearStr = curData.at(-1).date.substring(0, 4)
             ctx.font = `${labelFontSize}px sans-serif`
             ctx.fillStyle = '#335'
-            ctx.fillText(ticker, 5, labelFontSize)
+            //ctx.fillText(`${ticker}/${yearStr}`, 5, labelFontSize)
+            ctx.fillText(title, 5, labelFontSize)
 
             // render x-axis
             ctx.font = `${fontSize}px sans-serif`
@@ -268,6 +231,44 @@
                 ctx.arc(x, y, 2, 0, 2 * Math.PI)
                 ctx.fill()
             })
+
+            // make image
+            // const dataURL = canvas.toDataURL('image/png')
+            // const img = document.createElement('img')
+            // img.src = dataURL
+            // con.appendChild(img)
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const fin = window.WfFin
+            const con = document.getElementById('content')
+
+            // receive fin data
+            let numPoints = 20
+            const ticker = 'USD/RUB' // 'EUR/USD'
+            const year = 2025
+            const data = await fin.currency_get_hist_for_year(ticker, year)
+            if (!data || data.length < 2)
+                return
+            numPoints = Math.min(numPoints, data.length)
+            const firstDataIndex = 0
+            const curData = data.slice(firstDataIndex, firstDataIndex + numPoints)
+                .map(x => { return { date: x.date, value: x.rate }})
+
+            console.log('fin-data', curData)
+
+            //drawChart(curData, `${ticker}/${year}`)
+
+            const chart = window.WfChart({
+                container: false, //'content',
+                title: `${ticker}/${year}`,
+                width: 300,
+                data: curData
+            })
+            chart.render()
+            const img = document.createElement('img')
+            img.src = chart.makeURL()
+            con.appendChild(img)
 
         });
     </script>
