@@ -1341,7 +1341,7 @@ class GamePredictFin extends GameBase {
             3: '<i class="fa-solid fa-equals"></i> Флэт',
         }
         super(app, desc, options, gameId)
-        this.minChangesPct = 0.5 // TODO: подбирать на основе загруженных цен?
+        this.minChangesPct = 0.5
         this.numViewPoints = 25
         this.numPredictPoints = 5
         const f = this.numPredictPoints / this.numViewPoints
@@ -1434,6 +1434,10 @@ class GamePredictFin extends GameBase {
                     return
                 }
 
+                const sdev = that._calcStandardDeviation(result)
+                console.log('sdev', sdev)
+                that.minChangesPct = sdev
+
                 for (let i=0; i < cards.length; i++) {
                     const card = cards[i]
                     const con = card.querySelector('.content')
@@ -1469,6 +1473,17 @@ class GamePredictFin extends GameBase {
 
                 superFunc.call(that, onReady)
             })
+    }
+    _calcStandardDeviation(data) {
+        if (data.length < 2)
+            return 0
+        const values = data.map(x => x.rate)
+        const ch = values.slice(1).map((x, i) => (x - values[i]) / values[i] * 100)
+        const num = ch.length
+        const mean = ch.reduce((a, v) => a + v, 0) / num
+        const disp = ch.reduce((u, n) => u + (n - mean) ** 2, 0) / (num - 1)
+        const sdev = Math.sqrt(disp)
+        return sdev
     }
     _calcFutResult(showPoints, predictPoints) {
         const last = showPoints.at(-1).value // last test value
