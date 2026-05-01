@@ -1348,6 +1348,61 @@ class GamePredictFin extends GameBase {
         this.chartWidth = 320
         this.chartWidth2 = Math.round(this.chartWidth * f + this.chartWidth)
     }
+    _initSlider() {
+        this._initGameSettings()
+        super._initSlider()
+    }
+    _initGameSettings() {
+        const elem = this.rootElem.querySelector('.slide[data-name="intro"] .toolbar-block')
+        if (!elem)
+            return
+
+        let elemSet = elem.querySelector('.game-settings')
+        if (elemSet)
+            return // already done
+
+        const div = document.createElement('div')
+        div.classList.add('game-settings')
+        div.classList.add('pah1')
+        //div.innerHTML = '<label class="fin-tickers">Валюта&nbsp;<select></select></label>'
+        elem.prepend(div)
+
+        this._initGameSettingsTicker(div)
+    }
+    _initGameSettingsTicker(con) {
+        if (!this.desc.tickers)
+            return
+
+        const that = this;
+        const tickerDef = Object.keys(this.desc.tickers)[0]
+
+        this.selectedTicker = this.readOption('fin-ticker', tickerDef)
+
+        const label = document.createElement('label')
+        label.classList.add('fin-tickers')
+        label.innerHTML = 'Валюта&nbsp;<select></select>'
+        con.appendChild(label)
+
+        const sel = label.querySelector('select')
+
+        Object.keys(this.desc.tickers).forEach(x => {
+            const item = document.createElement('option')
+            item.value = x
+            item.innerText = this.desc.tickers[x]
+            if (x === this.selectedTicker) {
+                item.setAttribute('selected', true);
+            }
+            sel.appendChild(item)
+        }, this)
+
+        sel.addEventListener('change', function(event) {
+            that.selectedTicker = sel.value
+            that.saveOption('fin-ticker', that.selectedTicker)
+            console.log('change fin ticker', that.selectedTicker)
+        })
+
+        console.log('fin ticker selected', this.selectedTicker)
+    }
     _getSparqlMethod() {
         return ''
     }
@@ -1358,7 +1413,7 @@ class GamePredictFin extends GameBase {
         const cards = this.cards
         const superFunc = AppletBase.prototype.load
         const year = 2026 - utils.getRandomInt(0, 10)
-        const ticker = 'USD/RUB' // TODO:
+        const ticker = this.selectedTicker
 
         fin.currency_get_hist_for_year(ticker, year)
             .then(async result => {
