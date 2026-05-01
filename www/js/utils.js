@@ -275,4 +275,12 @@ window.WfUtils = {
         return res
     },
 
+    uri2blob: function(uri) {
+        const b = atob(uri.split(',')[1])
+        const len = b.length
+        const a = []
+        const mime = uri.split(',')[0].split(':')[1].split(';')[0];
+        for(let i=0; i < len; i++) { a.push(b.charCodeAt(i)); }
+        return new Blob([new Uint8Array(a)], { type: mime });
+    },
 }

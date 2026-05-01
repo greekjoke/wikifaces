@@ -463,7 +463,8 @@ class GameBase extends AppletBase {
         }
     }
     _getAnswerText(answerId, card) {
-        const text = answerId ? this.buttons[answerId] : '--'
+        let text = answerId ? this.buttons[answerId] : '--'
+        text = text.replace(/<[^>]*>/g, ''); // remove html
         return 'Ответ: ' + text
     }
     onWheel(delta, event) {
@@ -617,18 +618,21 @@ class GameBase extends AppletBase {
         return img
     }
     _refreshLog(con) {
-        con.innerHTML = '' // clear
-
-        const that = this
         const wiki = window.WfWiki
+
+        con.innerHTML = '' // clear
 
         this.cards.forEach(card => {
             const data = card.gameData
-            const pers = wiki.Person(data.page)
-            const itemElem = that._createLogItem()
-            that._initLogItem(card, itemElem, pers)
+            const pers = this._makePersonByGameData(data)
+            const itemElem = this._createLogItem()
+            this._initLogItem(card, itemElem, pers)
             con.appendChild(itemElem)
-        })
+        }, this)
+    }
+    _makePersonByGameData(data) {
+        const wiki = window.WfWiki
+        return wiki.Person(data.page)
     }
     _initLogItem(card, elem, pers) {
         const data = card.gameData
@@ -1330,7 +1334,19 @@ class GamePredictFin extends GameBase {
     constructor(app, desc, options, gameId) {
         gameId = gameId || 'GamePredictFin'
         options = options || {}
+        options.buttons = options.buttons || {
+            0: 'Дальше ➡️',
+            1: '<i class="fa-solid fa-arrow-trend-up"></i> Рост',
+            2: '<i class="fa-solid fa-arrow-trend-down"></i> Спад',
+            3: '<i class="fa-solid fa-equals"></i> Флэт',
+        }
         super(app, desc, options, gameId)
+        this.minChangesPct = 0.5 // TODO: подбирать на основе загруженных цен?
+        this.numViewPoints = 25
+        this.numPredictPoints = 5
+        const f = this.numPredictPoints / this.numViewPoints
+        this.chartWidth = 320
+        this.chartWidth2 = Math.round(this.chartWidth * f + this.chartWidth)
     }
     _getSparqlMethod() {
         return ''
@@ -1340,9 +1356,9 @@ class GamePredictFin extends GameBase {
         const utils = window.WfUtils
         const fin = window.WfFin
         const cards = this.cards
-        const superFunc = super.load
+        const superFunc = AppletBase.prototype.load
+        const year = 2026 - utils.getRandomInt(0, 10)
         const ticker = 'USD/RUB' // TODO:
-        const year = 2025 // TODO:
 
         fin.currency_get_hist_for_year(ticker, year)
             .then(async result => {
@@ -1352,11 +1368,12 @@ class GamePredictFin extends GameBase {
                     return
                 }
 
-                const viewPoints = 12
-                const predictPoints = viewPoints
+                const viewPoints = this.numViewPoints
+                const predictPoints = this.numPredictPoints
                 const totalPoints = result.length
+                const maxOfs = totalPoints - viewPoints - predictPoints - 1
 
-                if (totalPoints < result.length - viewPoints - predictPoints - 1) {
+                if (totalPoints < viewPoints + predictPoints) {
                     alert('Получено недостаточно данных. Попробуйте ещё раз.')
                     superFunc.call(that, false, onError)
                     return
@@ -1365,34 +1382,133 @@ class GamePredictFin extends GameBase {
                 for (let i=0; i < cards.length; i++) {
                     const card = cards[i]
                     const con = card.querySelector('.content')
-                    const maxOfs = totalPoints - viewPoints - predictPoints - 1
-                    const ofs = utils.getRandomInt(viewPoints, maxOfs)
+                    const ofs = utils.getRandomInt(0, maxOfs)
 
                     con.innerHTML = '' // clear
 
-                    var curData = result.slice(ofs - viewPoints, ofs)
-                        .map(x => { return { date: x.date, value: x.rate }})
-                    var futDate = result.slice(ofs, predictPoints)
-                        .map(x => { return { date: x.date, value: x.rate }})
+                    const info = {
+                        showPoints: result
+                                        .slice(ofs, ofs + viewPoints)
+                                        .map(x => { return { date: x.date, value: x.rate }}),
+                        predictPoints: result
+                                        .slice(ofs + viewPoints, ofs + viewPoints + predictPoints)
+                                        .map(x => { return { date: x.date, value: x.rate }}),
+                        name: `${ticker}/${year}`,
+                        ticker: ticker,
+                        year: year,
+                    }
 
-                    // TODO: make pictures
+                    info.result = that._calcFutResult(info.showPoints, info.predictPoints);
 
-                    // that._onCardData(card, item, {
-                    //     itemsList: list,
-                    //     cardIndex: i
-                    // })
+                    that._onCardData(card, info, {
+                        cardIndex: i
+                    })
 
-                    // await that._onCardPhoto(card, item, {
-                    //     container: con,
-                    //     detDisabled: !cpad,
-                    //     pad: cpad,
-                    //     itemsList: list,
-                    //     cardIndex: i
-                    // })
+                    await that._onCardPhoto(card, info, {
+                        container: con,
+                        detDisabled: true,
+                        pad: 1,
+                        cardIndex: i
+                    })
                 }
 
                 superFunc.call(that, onReady)
             })
+    }
+    _calcFutResult(showPoints, predictPoints) {
+        const last = showPoints.at(-1).value // last test value
+        const futValues = predictPoints.map(x => x.value)
+        const futLast = predictPoints.at(-1).value // last test value
+        const vMin = Math.min(...futValues)
+        const vMax = Math.max(...futValues)
+
+        // how to interpret future prices?
+        const mean = futValues.reduce((a, v) => a + v, 0) / predictPoints.length
+        // const mean = (vMax + vMin) / 2
+        // const mean = futLast
+
+        const ch = (mean - last) / last * 100 // change percent
+        const cha = Math.abs(ch)
+        let dir = 0
+        if (cha > this.minChangesPct) { // if changes mod > 2%
+            dir = ch > 0 ? 1 : -1
+        }
+        return { dir: dir, changes: ch }
+    }
+    _makeTestChartImage(points, title) {
+        const chart = window.WfChart({
+            container: false, // render in-memory
+            title: title,
+            width: this.chartWidth,
+            data: points,
+            last: { markFg:'black', markBg:'yellow', dash:true },
+        })
+        chart.render()
+        return chart.makeURL()
+    }
+    _makeFullChartImage(points, title, markPoint) {
+        markPoint = markPoint || -1
+        const chart = window.WfChart({
+            container: false, // render in-memory
+            title: title,
+            width: this.chartWidth2,
+            height: Math.round(this.chartWidth * 3 / 2),
+            data: points,
+            last: { markFg:'black', markBg:'yellow', dash:true, pos:markPoint },
+            vmarks: [ { markFg:'black', markBg:'yellow', dash:true, pos:markPoint } ],
+            hmarks: [ { pos:-1, dash:true } ],
+        })
+        chart.render()
+        return chart.makeURL()
+    }
+    _getPersData(data) {
+        const title = data.name || 'snapshot'
+        const allPoints = data.showPoints.concat(data.predictPoints)
+        const link1 = this._makeTestChartImage(data.showPoints, title)
+        const link2 = this._makeFullChartImage(allPoints, title, data.showPoints.length-1)
+        const pers = {
+            name: data.ticker,
+            year: data.year || 0,
+            link: link1,
+            photo: { url: link1 },
+            load: async function() {}
+        }
+        data.photo = link2
+        data.pers = pers
+        return pers
+    }
+    _makePersonByGameData(data) {
+        return data.pers
+    }
+    _initLogItem(card, elem, pers) {
+        super._initLogItem(card, elem, pers);
+        elem.querySelectorAll('a').forEach(a => {
+            const href = a.href;
+            if (href && href.startsWith('data:image')) {
+                this.app.bindDataLink(a);
+            }
+        }, this);
+    }
+    _getPersonBioHtml(data) {
+        const v = data.showPoints.at(-1) // last test point
+        const r = data.result;
+        const ch = r.changes.toFixed(2)
+        const icon = r.dir > 0 ? 'fa-arrow-trend-up' :
+                    (r.dir < 0 ? 'fa-arrow-trend-down' : 'fa-equals')
+        return `<span class="fin-test-date">После: ${v.date}</span>` +
+                `<span class="fin-test-dir"><i class="fa-solid ${icon}"></i></span>` +
+                `<span class="fin-test-changes" data-dir="${r.dir}">${ch}%</span>`
+    }
+    _validate(value) {
+        const card = this.slider.currentSlide
+        if (!card.gameData) {
+            console.warn('game data not found in current card')
+            return false
+        }
+        const r = card.gameData.result
+        return (value === 1 && r.dir > 0) ||
+                (value === 2 && r.dir < 0) ||
+                (value === 3 && r.dir === 0)
     }
 }
 

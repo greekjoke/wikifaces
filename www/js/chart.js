@@ -2,6 +2,7 @@
 
 window.WfChart = function(options) {
     options = options || {}
+
     const utils = window.WfUtils
     const curData = options.data || [{ date:'2026-01-01', value:1.0 }]
     const container = options.container || document.body
@@ -154,25 +155,73 @@ window.WfChart = function(options) {
         return hGrid
     }
 
-    const renderLastValue = function() {
-        const v = arValues.at(-1)
-        const y = modelToViewY(v)
-        const s = v.toFixed(valueParams.dig)
+    const renderHorizMark = function(opt) {
+        opt = opt || options
 
-        ctx.fillStyle = options.lastBg || 'yellow'
+        const pos = typeof(opt.pos) === 'number' ? opt.pos : -1
+        const v = opt.value || arValues.at(pos)
+        const y = modelToViewY(v)
+        const s = opt.text || v.toFixed(valueParams.dig)
+
+        if (y < 0 || y > canvas.height - yAxisPad)
+            return; // out of view
+
+        ctx.fillStyle = opt.markBg || 'red'
         ctx.fillRect(canvas.width - xAxisPad, y - fontSize / 2, xAxisPad, fontSize + 2)
 
-        ctx.fillStyle = options.lastFg || 'black'
+        ctx.fillStyle = opt.markFg || 'white'
         ctx.fillText(s, canvas.width - xAxisPad + 2, y + fontSize / 2)
 
         ctx.lineWidth = 0.5
-        ctx.strokeStyle = options.lastBg || 'yellow'
-        ctx.setLineDash([10, 5])
+        ctx.strokeStyle = opt.markBg || 'red'
+
+        if (opt.dash)
+            ctx.setLineDash([10, 5])
+
         ctx.beginPath()
         ctx.moveTo(0, y + 0.5)
         ctx.lineTo(canvas.width - xAxisPad, y + 0.5)
         ctx.stroke()
-        ctx.setLineDash([])
+
+        if (opt.dash)
+            ctx.setLineDash([])
+    }
+
+    const renderVertMark = function(opt) {
+        opt = opt || options
+
+        const pos = typeof(opt.pos) === 'number' ? opt.pos : -1
+        const v = opt.value || arTimes.at(pos)
+        const x = modelToViewX(v)
+        const s = opt.text || utils.dateYearToText(new Date(v))
+        const span = (fontSize / 2) * (s.length + 1)
+
+        if (x < 0 || x > canvas.width - xAxisPad)
+            return; // out of view
+
+        ctx.fillStyle = opt.markBg || 'red'
+        ctx.fillRect(x - span/2, canvas.height - yAxisPad, span, yAxisPad)
+
+        ctx.fillStyle = opt.markFg || 'white'
+        ctx.fillText(s, x - span/2, canvas.height - fontSize / 3)
+
+        ctx.lineWidth = 0.5
+        ctx.strokeStyle = opt.markBg || 'red'
+
+        if (opt.dash)
+            ctx.setLineDash([10, 5])
+
+        ctx.beginPath()
+        ctx.moveTo(x + 0.5, 0)
+        ctx.lineTo(x + 0.5, canvas.height - yAxisPad)
+        ctx.stroke()
+
+        if (opt.dash)
+            ctx.setLineDash([])
+    }
+
+    const renderLastValue = function(opt) {
+        renderHorizMark(opt)
     }
 
     const renderVGrid = function(vGrid) {
@@ -233,11 +282,25 @@ window.WfChart = function(options) {
         canvas: canvas,
         render: function() {
             clearBackground()
+
             if (options.title)
                 renderTitle(options.title)
+
             const vGrid = renderXAxis()
             const hGrid = renderYAxis()
-            renderLastValue()
+
+            if (Array.isArray(options.hmarks)) {
+                options.hmarks.forEach(x => renderHorizMark(x));
+            }
+
+            if (Array.isArray(options.vmarks)) {
+                options.vmarks.forEach(x => renderVertMark(x));
+            }
+
+            if (options.last) {
+                renderLastValue(typeof(options.last) === 'object' ? options.last : undefined)
+            }
+
             renderVGrid(vGrid)
             renderHGrid(hGrid)
             renderChartLine()

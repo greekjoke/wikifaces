@@ -131,8 +131,10 @@ window.WfApp = function(settings) {
 
     document.body.addEventListener('click', function(event) {
         const elem = event.target
+
         if (elem.tagName !== 'BUTTON' && !elem.classList.contains('button'))
             return
+
         const pass = elem.getAttribute('data-pass')
         let action = elem.getAttribute('data-action')
         if (!action)
@@ -567,6 +569,22 @@ window.WfApp = function(settings) {
                 throw new Error('unknown game class: ' + cls)
             const inst = new window[cls](app, item)
             applet.push(inst)
+        },
+        bindDataLink: function(a) {
+            if (!a)
+                return
+            if (!a.href || !a.href.startsWith('data:image'))
+                return
+            a.addEventListener('click', (event) => {
+                event.preventDefault();
+                const blob = utils.uri2blob(a.href);
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                setTimeout(function() {
+                    URL.revokeObjectURL(url); // clean-up
+                }, 2000);
+                return false;
+            });
         }
     }
 

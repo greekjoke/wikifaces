@@ -243,33 +243,80 @@
             const fin = window.WfFin
             const con = document.getElementById('content')
 
-            // receive fin data
-            let numPoints = 20
-            const ticker = 'USD/RUB' // 'EUR/USD'
-            const year = 2025
-            const data = await fin.currency_get_hist_for_year(ticker, year)
-            if (!data || data.length < 2)
-                return
-            numPoints = Math.min(numPoints, data.length)
-            const firstDataIndex = 0
-            const curData = data.slice(firstDataIndex, firstDataIndex + numPoints)
-                .map(x => { return { date: x.date, value: x.rate }})
+            const test_frankfurter = async function() {
+                // receive fin data
+                let numPoints = 20
+                //const ticker = 'USD/RUB'
+                const ticker = 'EUR/USD'
+                const year = 2025
+                const data = await fin.currency_get_hist_for_year(ticker, year)
+                if (!data || data.length < 2)
+                    return
+                numPoints = Math.min(numPoints, data.length)
+                const firstDataIndex = 150
+                const curData = data.slice(firstDataIndex, firstDataIndex + numPoints)
+                    .map(x => { return { date: x.date, value: x.rate }})
 
-            console.log('fin-data', curData)
+                console.log('fin-data', curData)
 
-            //drawChart(curData, `${ticker}/${year}`)
+                //drawChart(curData, `${ticker}/${year}`)
 
-            const chart = window.WfChart({
-                container: false, //'content',
-                title: `${ticker}/${year}`,
-                width: 300,
-                data: curData
-            })
-            chart.render()
-            const img = document.createElement('img')
-            img.src = chart.makeURL()
-            con.appendChild(img)
+                const chart = window.WfChart({
+                    container: false, //'content',
+                    title: `${ticker}/${year}`,
+                    width: 300,
+                    data: curData,
+                    last: { markFg:'black', markBg:'yellow', dash:true },
+                    hmarks: [ { pos: -3 } ],
+                    vmarks: [ { pos: -3 } ],
+                })
+                chart.render()
+                const img = document.createElement('img')
+                img.src = chart.makeURL()
+                con.appendChild(img)
+            }
+
+            const test_yahoo = async function() {
+                const url = 'https://finance.yahoo.com/quote/AAPL/history/'
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        credentials: 'include',
+                        referrerPolicy: 'no-referrer'
+                    })
+                    if (!response.ok)
+                        throw new Error(`http status: ${response.status}`)
+                    const html = await response.text()
+                    console.log(`request done`, html)
+                } catch (err) {
+                    console.error('fetching data:', err)
+                }
+            }
+
+            test_frankfurter()
+            //test_yahoo()
 
         });
     </script>
+
+    <!-- <script type="module">
+        // Импортируем специальную 'browser' сборку библиотеки
+        import { MarketFeed } from 'https://esm.sh/market-feed/browser';
+
+        const feed = new MarketFeed();
+
+        // Получаем исторические данные для Apple за последние 5 дней с дневными интервалами
+        // Прокси используется автоматически, вам не нужно о нем думать
+        // const data = await feed.history({
+        //     symbol: 'AAPL',
+        //     interval: '1d',
+        //     period: '5d'
+        // });
+
+        const data = await feed.quote("AAPL");
+
+        console.log(data); // Здесь будут котировки
+    </script> -->
+
 </html>

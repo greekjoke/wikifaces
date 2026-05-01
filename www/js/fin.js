@@ -12,7 +12,10 @@
             const reqNum = this.requestCounter
             const url = `https://api.frankfurter.dev/v2/${path}`
             console.log(`[${reqNum}] request frankfurter_request url: ${url}`)
-            const response = await fetch(url)
+            const response = await fetch(url, {
+                //method: 'GET',
+                //credentials: 'include'
+            })
             if (!response.ok)
                 throw new Error(`http status: ${response.status}`)
             const data = await response.json()

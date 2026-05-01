@@ -214,3 +214,24 @@ body.modal .slide button {
 .game-log-item-wrapper.answer-invalid {
     background-color: #e88;
 }
+
+/* fin */
+.fin-test-dir {
+    display: inline-block;
+    padding: 0 5px;
+}
+.fin-test-changes {
+    font-weight: bold;
+    color: #444;
+}
+.fin-test-changes[data-dir="-1"] {
+    font-weight: bold;
+    color: #c21;
+}
+.fin-test-changes[data-dir="1"] {
+    font-weight: bold;
+    color: #372;
+}
+.fin-test-changes[data-dir="1"]::before {
+    content: '+';
+}
