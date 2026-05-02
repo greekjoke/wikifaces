@@ -542,6 +542,9 @@ window.WfUI = {
         })
 
         return {
+            get rootElem() {
+                return con
+            },
             getByName(name) {
                 if (!(name in byName))
                     throw new Error('unkown slide name: ' + name)

@@ -1345,8 +1345,9 @@ class GamePredictFin extends GameBase {
         this.numViewPoints = 25
         this.numPredictPoints = 5
         const f = this.numPredictPoints / this.numViewPoints
-        this.chartWidth = 320
+        this.chartWidth = 250
         this.chartWidth2 = Math.round(this.chartWidth * f + this.chartWidth)
+        this.chartWidthAuto = false
     }
     _initSlider() {
         this._initGameSettings()
@@ -1415,6 +1416,14 @@ class GamePredictFin extends GameBase {
         const year = 2026 - utils.getRandomInt(0, 10)
         const ticker = this.selectedTicker
 
+        if (this.chartWidthAuto) {
+            const sliderHeight = this.slider.rootElem.offsetHeight
+            const imgHeight = sliderHeight - 150
+            const f = this.chartWidth2 / this.chartWidth
+            this.chartWidth = Math.round(imgHeight * 2 / 3)
+            this.chartWidth2 = Math.round(this.chartWidth * f)
+        }
+
         fin.currency_get_hist_for_year(ticker, year)
             .then(async result => {
                 if (!result) {
@@ -1435,8 +1444,8 @@ class GamePredictFin extends GameBase {
                 }
 
                 const sdev = that._calcStandardDeviation(result)
-                console.log('sdev', sdev)
                 that.minChangesPct = sdev
+                console.log('sdev', sdev)
 
                 for (let i=0; i < cards.length; i++) {
                     const card = cards[i]
@@ -1459,9 +1468,7 @@ class GamePredictFin extends GameBase {
 
                     info.result = that._calcFutResult(info.showPoints, info.predictPoints);
 
-                    that._onCardData(card, info, {
-                        cardIndex: i
-                    })
+                    that._onCardData(card, info, { cardIndex: i })
 
                     await that._onCardPhoto(card, info, {
                         container: con,
@@ -1549,6 +1556,20 @@ class GamePredictFin extends GameBase {
     }
     _makePersonByGameData(data) {
         return data.pers
+    }
+    _refreshLog(con) {
+        super._refreshLog(con)
+
+        const p = con.parentElement
+        let elem = p.querySelector('.fin-details')
+        if (!elem) {
+            elem = document.createElement('div')
+            elem.classList.add('fin-details', 'pav1')
+            con.before(elem)
+        }
+        const s = this.minChangesPct.toFixed(2)
+        elem.innerText = `Движением считается изменение цены более чем на ${s}%. `
+            + 'Это значение рассчитано на основе стандартного отклонения цены за год. '
     }
     _initLogItem(card, elem, pers) {
         super._initLogItem(card, elem, pers);
