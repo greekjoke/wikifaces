@@ -1,5 +1,13 @@
 {
     "collections": {
+
+        "disease": {
+            "icon": "-briefcase-medical text-gray",
+            "title": "ДЦП",
+            "link": "https://en.wikipedia.org/wiki/Disease",
+            "query": "disease|Q210427"
+        },
+
         "lit": {
             "icon": "-award text-darkgold",
             "title": "Литература (нобелевские лауреаты)",

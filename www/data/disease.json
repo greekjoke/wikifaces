@@ -1,0 +1,502 @@
+[
+    {
+        "condition": "Q84263196",
+        "conditionLabel": "коронавирусная инфекция COVID-19",
+        "count": "2956"
+    },
+    {
+        "condition": "Q10874",
+        "conditionLabel": "слепота",
+        "count": "1293"
+    },
+    {
+        "condition": "Q12204",
+        "conditionLabel": "туберкулёз",
+        "count": "1005"
+    },
+    {
+        "condition": "Q11085",
+        "conditionLabel": "болезнь Паркинсона",
+        "count": "876"
+    },
+    {
+        "condition": "Q11081",
+        "conditionLabel": "болезнь Альцгеймера",
+        "count": "840"
+    },
+    {
+        "condition": "Q38404",
+        "conditionLabel": "аутизм",
+        "count": "425"
+    },
+    {
+        "condition": "Q131755",
+        "conditionLabel": "биполярное аффективное расстройство",
+        "count": "403"
+    },
+    {
+        "condition": "Q132971",
+        "conditionLabel": "Дислексия",
+        "count": "315"
+    },
+    {
+        "condition": "Q12133",
+        "conditionLabel": "нарушение слуха",
+        "count": "299"
+    },
+    {
+        "condition": "Q181923",
+        "conditionLabel": "синдром дефицита внимания и гиперактивности",
+        "count": "235"
+    },
+    {
+        "condition": "Q41571",
+        "conditionLabel": "эпилепсия",
+        "count": "233"
+    },
+    {
+        "condition": "Q12195",
+        "conditionLabel": "полиомиелит",
+        "count": "231"
+    },
+    {
+        "condition": "Q1049655",
+        "conditionLabel": "параплегия",
+        "count": "220"
+    },
+    {
+        "condition": "Q186676",
+        "conditionLabel": "заикание",
+        "count": "193"
+    },
+    {
+        "condition": "Q194101",
+        "conditionLabel": "карликовость",
+        "count": "172"
+    },
+    {
+        "condition": "Q124407",
+        "conditionLabel": "сахарный диабет 1-го типа",
+        "count": "171"
+    },
+    {
+        "condition": "Q12199",
+        "conditionLabel": "синдром приобретённого иммунного дефицита",
+        "count": "168"
+    },
+    {
+        "condition": "Q210427",
+        "conditionLabel": "детский церебральный паралич",
+        "count": "161"
+    },
+    {
+        "condition": "Q41112",
+        "conditionLabel": "шизофрения",
+        "count": "155"
+    },
+    {
+        "condition": "Q161790",
+        "conditionLabel": "синдром Аспергера",
+        "count": "152"
+    },
+    {
+        "condition": "Q3321212",
+        "conditionLabel": "одноглазость",
+        "count": "150"
+    },
+    {
+        "condition": "Q4340209",
+        "conditionLabel": "депрессия",
+        "count": "144"
+    },
+    {
+        "condition": "Q12078",
+        "conditionLabel": "злокачественная опухоль",
+        "count": "140"
+    },
+    {
+        "condition": "Q12206",
+        "conditionLabel": "сахарный диабет",
+        "count": "137"
+    },
+    {
+        "condition": "Q206901",
+        "conditionLabel": "боковой амиотрофический склероз",
+        "count": "133"
+    },
+    {
+        "condition": "Q12202",
+        "conditionLabel": "инсульт",
+        "count": "125"
+    },
+    {
+        "condition": "Q8277",
+        "conditionLabel": "рассеянный склероз",
+        "count": "122"
+    },
+    {
+        "condition": "Q178275",
+        "conditionLabel": "испанский грипп",
+        "count": "118"
+    },
+    {
+        "condition": "Q501829",
+        "conditionLabel": "гигантизм",
+        "count": "114"
+    },
+    {
+        "condition": "Q35869",
+        "conditionLabel": "бронхиальная астма",
+        "count": "113"
+    },
+    {
+        "condition": "Q2840",
+        "conditionLabel": "грипп",
+        "count": "106"
+    },
+    {
+        "condition": "Q128581",
+        "conditionLabel": "рак молочной железы",
+        "count": "95"
+    },
+    {
+        "condition": "Q477415",
+        "conditionLabel": "ампутация",
+        "count": "86"
+    },
+    {
+        "condition": "Q12131",
+        "conditionLabel": "инвалидность",
+        "count": "86"
+    },
+    {
+        "condition": "Q42844",
+        "conditionLabel": "большое депрессивное расстройство",
+        "count": "83"
+    },
+    {
+        "condition": "Q15326",
+        "conditionLabel": "алкоголизм",
+        "count": "83"
+    },
+    {
+        "condition": "Q944758",
+        "conditionLabel": "тетраплегия",
+        "count": "79"
+    },
+    {
+        "condition": "Q187255",
+        "conditionLabel": "ревматоидный артрит",
+        "count": "77"
+    },
+    {
+        "condition": "Q58202712",
+        "conditionLabel": "применена операция по смене пола",
+        "count": "75"
+    },
+    {
+        "condition": "Q83030",
+        "conditionLabel": "деменция",
+        "count": "72"
+    },
+    {
+        "condition": "Q47715",
+        "conditionLabel": "синдром Дауна",
+        "count": "69"
+    },
+    {
+        "condition": "Q133696",
+        "conditionLabel": "дальтонизм",
+        "count": "67"
+    },
+    {
+        "condition": "Q18556697",
+        "conditionLabel": "ВИЧ-инфекция",
+        "count": "62"
+    },
+    {
+        "condition": "Q178190",
+        "conditionLabel": "обсессивно-компульсивное расстройство",
+        "count": "58"
+    },
+    {
+        "condition": "Q47912",
+        "conditionLabel": "рак лёгкого",
+        "count": "57"
+    },
+    {
+        "condition": "Q208166",
+        "conditionLabel": "пограничное расстройство личности",
+        "count": "56"
+    },
+    {
+        "condition": "Q205214",
+        "conditionLabel": "синдром Гийена — Барре",
+        "count": "56"
+    },
+    {
+        "condition": "Q13258",
+        "conditionLabel": "синестезия",
+        "count": "55"
+    },
+    {
+        "condition": "Q3025883",
+        "conditionLabel": "сахарный диабет 2-го типа",
+        "count": "52"
+    },
+    {
+        "condition": "Q749409",
+        "conditionLabel": "Несовершенный остеогенез",
+        "count": "52"
+    },
+    {
+        "condition": "Q81867",
+        "conditionLabel": "альбинизм",
+        "count": "52"
+    },
+    {
+        "condition": "Q202387",
+        "conditionLabel": "посттравматическое стрессовое расстройство",
+        "count": "46"
+    },
+    {
+        "condition": "Q107231",
+        "conditionLabel": "паралич",
+        "count": "46"
+    },
+    {
+        "condition": "Q216866",
+        "conditionLabel": "сиамские близнецы",
+        "count": "41"
+    },
+    {
+        "condition": "Q190805",
+        "conditionLabel": "заболевание сердца",
+        "count": "40"
+    },
+    {
+        "condition": "Q41861",
+        "conditionLabel": "артериальная гипертензия",
+        "count": "38"
+    },
+    {
+        "condition": "Q29496",
+        "conditionLabel": "лейкоз",
+        "count": "38"
+    },
+    {
+        "condition": "Q212961",
+        "conditionLabel": "рак поджелудочной железы",
+        "count": "37"
+    },
+    {
+        "condition": "Q181257",
+        "conditionLabel": "рак простаты",
+        "count": "37"
+    },
+    {
+        "condition": "Q1436063",
+        "conditionLabel": "расстройство аутистического спектра",
+        "count": "36"
+    },
+    {
+        "condition": "Q179294",
+        "conditionLabel": "евнух",
+        "count": "36"
+    },
+    {
+        "condition": "Q191779",
+        "conditionLabel": "синдром Туретта",
+        "count": "35"
+    },
+    {
+        "condition": "Q1472",
+        "conditionLabel": "болезнь Крона",
+        "count": "35"
+    },
+    {
+        "condition": "Q12192",
+        "conditionLabel": "пневмония",
+        "count": "34"
+    },
+    {
+        "condition": "Q12135",
+        "conditionLabel": "психическое расстройство",
+        "count": "33"
+    },
+    {
+        "condition": "Q116168059",
+        "conditionLabel": "Q116168059",
+        "count": "30"
+    },
+    {
+        "condition": "Q12152",
+        "conditionLabel": "инфаркт миокарда",
+        "count": "30"
+    },
+    {
+        "condition": "Q110256843",
+        "conditionLabel": "необрезанный мужчина",
+        "count": "29"
+    },
+    {
+        "condition": "Q844717",
+        "conditionLabel": "Расщепление позвоночника",
+        "count": "29"
+    },
+    {
+        "condition": "Q467635",
+        "conditionLabel": "миеломная болезнь",
+        "count": "29"
+    },
+    {
+        "condition": "Q737460",
+        "conditionLabel": "нарушения зрения",
+        "count": "29"
+    },
+    {
+        "condition": "Q183560",
+        "conditionLabel": "умственная отсталость",
+        "count": "29"
+    },
+    {
+        "condition": "Q52849",
+        "conditionLabel": "анкилозирующий спондилоартрит",
+        "count": "29"
+    },
+    {
+        "condition": "Q199804",
+        "conditionLabel": "хроническая обструктивная болезнь лёгких",
+        "count": "28"
+    },
+    {
+        "condition": "Q544006",
+        "conditionLabel": "тревожное расстройство",
+        "count": "27"
+    },
+    {
+        "condition": "Q188874",
+        "conditionLabel": "колоректальный рак",
+        "count": "26"
+    },
+    {
+        "condition": "Q205764",
+        "conditionLabel": "эндометриоз",
+        "count": "25"
+    },
+    {
+        "condition": "Q843356",
+        "conditionLabel": "Слепоглухота",
+        "count": "24"
+    },
+    {
+        "condition": "Q847057",
+        "conditionLabel": "пигментный ретинит",
+        "count": "23"
+    },
+    {
+        "condition": "Q1118643",
+        "conditionLabel": "глухонемота",
+        "count": "23"
+    },
+    {
+        "condition": "Q3378593",
+        "conditionLabel": "наркомания",
+        "count": "22"
+    },
+    {
+        "condition": "Q233309",
+        "conditionLabel": "опухоль головного мозга",
+        "count": "22"
+    },
+    {
+        "condition": "Q540571",
+        "conditionLabel": "фибромиалгия",
+        "count": "21"
+    },
+    {
+        "condition": "Q304497",
+        "conditionLabel": "гемиплегия",
+        "count": "21"
+    },
+    {
+        "condition": "Q133087",
+        "conditionLabel": "подагра",
+        "count": "21"
+    },
+    {
+        "condition": "Q174857",
+        "conditionLabel": "сколиоз",
+        "count": "21"
+    },
+    {
+        "condition": "Q12174",
+        "conditionLabel": "ожирение",
+        "count": "21"
+    },
+    {
+        "condition": "Q11088",
+        "conditionLabel": "целиакия",
+        "count": "21"
+    },
+    {
+        "condition": "Q244438",
+        "conditionLabel": "Прозопагнозия",
+        "count": "20"
+    },
+    {
+        "condition": "Q9303627",
+        "conditionLabel": "рак мозга",
+        "count": "19"
+    },
+    {
+        "condition": "Q5114004",
+        "conditionLabel": "хроническая травматическая энцефалопатия",
+        "count": "19"
+    },
+    {
+        "condition": "Q208414",
+        "conditionLabel": "лимфома",
+        "count": "19"
+    },
+    {
+        "condition": "Q131749",
+        "conditionLabel": "нервная анорексия",
+        "count": "19"
+    },
+    {
+        "condition": "Q41083",
+        "conditionLabel": "сифилис",
+        "count": "19"
+    },
+    {
+        "condition": "Q1485",
+        "conditionLabel": "системная красная волчанка",
+        "count": "19"
+    },
+    {
+        "condition": "Q1209150",
+        "conditionLabel": "ишемический инсульт",
+        "count": "18"
+    },
+    {
+        "condition": "Q2909116",
+        "conditionLabel": "хромота",
+        "count": "18"
+    },
+    {
+        "condition": "Q684924",
+        "conditionLabel": "Ревматизм",
+        "count": "18"
+    },
+    {
+        "condition": "Q170990",
+        "conditionLabel": "артрит",
+        "count": "18"
+    },
+    {
+        "condition": "Q118418",
+        "conditionLabel": "диссоциальное расстройство личности",
+        "count": "17"
+    }
+]

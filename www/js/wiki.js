@@ -1501,6 +1501,54 @@ LIMIT ${num}
         })
     },
 
+    sparql_disease: async function(diseaseId) {
+        if (!diseaseId)
+            throw new Error('sparql_disease: diseaseId is required')
+        const args = [...arguments]
+        diseaseId = args.map(x => `wd:${x}`).join(' ')
+        const codeLang = this._sparql_label_code()
+        const codeThumb = this._sparql_thumb_code()
+
+        // subquery
+        const qSub = `
+SELECT ?person (SAMPLE(?year) as ?year) (SAMPLE(?image) as ?image) WHERE
+{
+    {
+        SELECT ?person ?year ?image
+        WHERE {
+            ?person wdt:P31 wd:Q5;
+                    wdt:P18 ?image;
+                    wdt:P27 ?ctz;
+                    wdt:P569 ?birthDate;
+                    wdt:P1050 ?dis.
+            ?ctz wdt:P31 wd:Q3624078.
+            VALUES ?dis { ${diseaseId} }
+            FILTER NOT EXISTS { ?person wdt:P570 ?deathDate }
+            BIND(YEAR(?birthDate) as ?year)
+        } LIMIT 100
+    }
+}
+GROUP BY ?person
+`
+
+        // final query
+        const q = `
+SELECT ?personLabel ?thumburl ?year
+WHERE {
+    { ${qSub} }
+    ${codeLang}
+    ${codeThumb}
+}
+ORDER BY ASC(?year) ?personLabel
+`
+
+        const cacheId = `sparql_disease:${diseaseId}`
+        return await this._sparql_query_wrapper(cacheId, q, {
+            name: 'personLabel',
+            page: 'personLabel'
+        }, { reversePerson: true })
+    },
+
     getCachedCollections: function() {
         const out = {}
         const cache = window.WfLocalCache
