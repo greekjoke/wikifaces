@@ -11,6 +11,12 @@
         },
         "disease": {
             "title": "Болезни"
+        },
+        "death_manner": {
+            "title": "Смерть (обстоятельства)"
+        },
+        "death_cause": {
+            "title": "Смерть (причина)"
         }
     },
     "collections": {
@@ -18,7 +24,19 @@
             "icon": "-briefcase-medical text-red",
             "title": "Болезни",
             "link": "https://en.wikipedia.org/wiki/Disease",
-            "query": "disease|%localdb:disease:500%"
+            "query": "disease|%localdb:disease:100%"
+        },
+         "death_manner": {
+            "icon": "-skull-crossbones text-gray",
+            "title": "Обстоятельства смерти",
+            "link": "https://en.wikipedia.org/wiki/manner+of+death",
+            "query": "death_manner|%localdb:death_manner:10%"
+        },
+        "death_cause": {
+            "icon": "-book-skull text-gray",
+            "title": "Причина смерти",
+            "link": "https://en.wikipedia.org/wiki/cause+of+death",
+            "query": "death_cause|%localdb:death_cause:100%"
         },
         "lit": {
             "group": "nobel",

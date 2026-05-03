@@ -13,6 +13,8 @@ __wikiLoadLocalFile('countries', 'data/countries.json')
 __wikiLoadLocalFile('occupation', 'data/occupation.json')
 __wikiLoadLocalFile('religion', 'data/religion.json')
 __wikiLoadLocalFile('disease', 'data/disease.json')
+__wikiLoadLocalFile('death_manner', 'data/death_manner.json')
+__wikiLoadLocalFile('death_cause', 'data/death_cause.json')
 
 window.WfWiki = {
 
@@ -1554,6 +1556,98 @@ ORDER BY ASC(?year) ?personLabel
 `
 
         const cacheId = `sparql_disease:${diseaseId}`
+        return await this._sparql_query_wrapper(cacheId, q, {
+            name: 'personLabel',
+            page: 'personLabel'
+        })
+    },
+
+    sparql_death_manner: async function(mannerId) {
+        if (!mannerId)
+            throw new Error('sparql_death_manner: mannerId is required')
+        const args = [...arguments]
+        mannerId = args.map(x => `wd:${x}`).join(' ')
+        const codeLang = this._sparql_label_code()
+        const codeThumb = this._sparql_thumb_code()
+
+        // subquery
+        const qSub = `
+SELECT ?person (SAMPLE(?year) as ?year) (SAMPLE(?image) as ?image) WHERE
+{
+    {
+        SELECT ?person ?year ?image
+        WHERE {
+            ?person wdt:P31 wd:Q5;
+                    wdt:P18 ?image;
+                    wdt:P27 ?ctz;
+                    wdt:P569 ?birthDate;
+                    wdt:P1196 ${mannerId}.
+            FILTER(?birthDate > "1900-01-01T00:00:00Z"^^xsd:dateTime)
+            BIND(YEAR(?birthDate) as ?year)
+        } LIMIT 100
+    }
+}
+GROUP BY ?person
+`
+
+        // final query
+        const q = `
+SELECT ?personLabel ?thumburl ?year
+WHERE {
+    { ${qSub} }
+    ${codeLang}
+    ${codeThumb}
+}
+ORDER BY ASC(?year) ?personLabel
+`
+
+        const cacheId = `sparql_death_manner:${mannerId}`
+        return await this._sparql_query_wrapper(cacheId, q, {
+            name: 'personLabel',
+            page: 'personLabel'
+        })
+    },
+
+    sparql_death_cause: async function(causeId) {
+        if (!causeId)
+            throw new Error('sparql_death_cause: causeId is required')
+        const args = [...arguments]
+        causeId = args.map(x => `wd:${x}`).join(' ')
+        const codeLang = this._sparql_label_code()
+        const codeThumb = this._sparql_thumb_code()
+
+        // subquery
+        const qSub = `
+SELECT ?person (SAMPLE(?year) as ?year) (SAMPLE(?image) as ?image) WHERE
+{
+    {
+        SELECT ?person ?year ?image
+        WHERE {
+            ?person wdt:P31 wd:Q5;
+                    wdt:P18 ?image;
+                    wdt:P27 ?ctz;
+                    wdt:P569 ?birthDate;
+                    wdt:P509 ${causeId}.
+            FILTER(?birthDate > "1900-01-01T00:00:00Z"^^xsd:dateTime)
+            BIND(YEAR(?birthDate) as ?year)
+        } LIMIT 100
+    }
+}
+GROUP BY ?person
+`
+
+        // final query
+        const q = `
+SELECT ?personLabel ?thumburl ?year
+WHERE {
+    { ${qSub} }
+    ${codeLang}
+    ${codeThumb}
+}
+ORDER BY ASC(?year) ?personLabel
+`
+
+        const cacheId = `sparql_death_cause:${causeId}`
         return await this._sparql_query_wrapper(cacheId, q, {
             name: 'personLabel',
             page: 'personLabel'
