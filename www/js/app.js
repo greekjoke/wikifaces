@@ -7,6 +7,7 @@ window.WfApp = function(settings) {
     const ui = window.WfUI
     const utils = window.WfUtils
     const wiki = window.WfWiki
+    const collectionGroups = settings.groups || {}
     const collections = settings.collections || {}
     const games = settings.games || {}
     let applet = []
@@ -121,6 +122,40 @@ window.WfApp = function(settings) {
                 detDisabled: !app.getCustomFacePad()
             })
         }, 500)
+    }
+
+    function applyCollectionTemplates() {
+        Object.keys(collections).forEach(code => {
+            const src = collections[code]
+            let q = src.query || ''
+            if (q.indexOf('%') !== -1) {
+                q.match(/%[^%]*%/gi).forEach(match => {
+                    const s = match.substring(1, match.length - 1)
+                    const parts = s.split(':')
+                    const method = parts[0]
+                    const param1 = parts.length > 1 ? parts[1] : undefined
+                    const param2 = parts.length > 2 ? parts[2] : undefined
+                    if (method === 'localdb') {
+                        const limit = parseInt(param2 || 100)
+                        const items = wiki._sparql_item_ids(param1, {entry:true, take:limit})
+                        items.sort((a, b) => a.label.localeCompare(b.label))
+                        items.forEach(entry => {
+                            const clone = { ...src };
+                            const newCode = `${code}-${entry.code}`
+                            clone.title = entry.label
+                            clone.link = `https://ru.wikipedia.org/wiki/${entry.label}`
+                            clone.query = q.replaceAll(match, entry.code)
+                            clone.group = code
+                            collections[newCode] = clone
+                            if (!(code in collectionGroups)) {
+                                collectionGroups[code] = { title: src.title }
+                            }
+                        })
+                    }
+                });
+                delete collections[code]
+            }
+        }, this)
     }
 
     console.log('app starts...')
@@ -325,10 +360,15 @@ window.WfApp = function(settings) {
         getCollectionsInfo: function() { return collections },
         getGamesInfo: function() { return games },
         loadCollection: async function(id) {
-            if (!(id in collections))
-                throw new Error(`invalid collection ID: ${id}`)
+            let col = undefined
+            if (typeof(id) === 'object') {
+                col = id;
+            } else {
+                if (!(id in collections))
+                    throw new Error(`invalid collection ID: ${id}`)
+                col = collections[id]
+            }
             let res = []
-            const col = collections[id]
             if (col.query) {
                 const queryParts = col.query.split('|')
                 const method = queryParts.shift()
@@ -501,22 +541,50 @@ window.WfApp = function(settings) {
             const list = con.querySelector('.collections-list')
             if (!list)
                 return
-            html = ''
+
+            applyCollectionTemplates()
+
+            const lkupGroups = {}
+            let html = ''
+
             for (let code in collections) {
                 const item = collections[code]
+
                 if (item.hide)
                     continue
+
                 const action = 'collection-explorer'
                 const iconHtml = this.getCollectionIcon(code)
                 const icon = (iconHtml || '') + (iconHtml ? '&nbsp;' : '')
-                const title = `${icon}${item.title}`
-                html += '<li>' +
-                    `<button data-action="${action}" data-pass="${code}">${title}</button>` +
-                    '</li>'
+                const title = `${icon}<span class="label">${item.title}</span>`
+                const htmlPart = `<li><button data-action="${action}" data-pass="${code}">${title}</button></li>`
+
+                const groupId = item.group || 'default'
+                if (!(groupId in lkupGroups))
+                    lkupGroups[groupId] = []
+                lkupGroups[groupId].push(htmlPart)
             }
+
+            if (!('default' in collectionGroups)) {
+                collectionGroups['default'] = { title:'Прочее' }
+            }
+
+            Object.keys(collectionGroups).forEach(x => {
+                const parts = lkupGroups[x]
+                if (!parts)
+                    return
+                const info = collectionGroups[x]
+                const title = info.title
+                const items = parts.join('')
+                html += `<li><details name="collection-group"><summary>${title}</summary>`+
+                    `<ul class="list-none collections-list">${items}</ul>`+
+                    `</details></li>`
+            }, this)
+
             list.innerHTML = html
         },
         initLayout_collection_explorer: function(con, cid) {
+            applyCollectionTemplates()
             const a = new CollectionExplorer(app, cid)
             applet.push(a)
             a.load()

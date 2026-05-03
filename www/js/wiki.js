@@ -12,6 +12,7 @@ const __wikiLoadLocalFile = async function(id, url) {
 __wikiLoadLocalFile('countries', 'data/countries.json')
 __wikiLoadLocalFile('occupation', 'data/occupation.json')
 __wikiLoadLocalFile('religion', 'data/religion.json')
+__wikiLoadLocalFile('disease', 'data/disease.json')
 
 window.WfWiki = {
 
@@ -542,15 +543,26 @@ BIND(MD5(CONCAT(STR(?${field}), '${seed}', ?parity)) as ?randValue)
     _sparql_item_ids: function(name, options) {
         const utils = WfUtils
         const data = __wfLocalFiles[name]
+
         if (!data)
             throw new Error(`${name} data not found`)
+
         options = options || {}
-        let codes = data.map(x => `wd:${x.code}`)
+
+        let res
+        if (options.entry)
+            res = data
+        else if (options.codes)
+            res = data.map(x => x.code)
+        else
+            res = data.map(x => `wd:${x.code}`)
+
         if (options.shuffle)
-            codes = utils.shuffle(codes)
+            res = utils.shuffle(res)
         if (options.take)
-            codes = codes.slice(0, options.take)
-        return codes
+            res = res.slice(0, options.take)
+
+        return res
     },
 
     _sparql_countries: function(options) {
@@ -1520,9 +1532,8 @@ SELECT ?person (SAMPLE(?year) as ?year) (SAMPLE(?image) as ?image) WHERE
                     wdt:P18 ?image;
                     wdt:P27 ?ctz;
                     wdt:P569 ?birthDate;
-                    wdt:P1050 ?dis.
-            ?ctz wdt:P31 wd:Q3624078.
-            VALUES ?dis { ${diseaseId} }
+                    wdt:P1050 ${diseaseId}.
+            # ?ctz wdt:P31 wd:Q3624078.
             FILTER NOT EXISTS { ?person wdt:P570 ?deathDate }
             BIND(YEAR(?birthDate) as ?year)
         } LIMIT 100
@@ -1546,7 +1557,7 @@ ORDER BY ASC(?year) ?personLabel
         return await this._sparql_query_wrapper(cacheId, q, {
             name: 'personLabel',
             page: 'personLabel'
-        }, { reversePerson: true })
+        })
     },
 
     getCachedCollections: function() {

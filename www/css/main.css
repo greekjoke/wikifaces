@@ -84,6 +84,15 @@ button.disabled, .button.disabled {
     color: #ccc !important;
 }
 
+button > .label {
+    pointer-events: none;
+    display: inline-block;
+    /* text-transform: lowercase; */
+}
+button > .label::first-letter {
+    text-transform: uppercase;
+}
+
 img.icon
 {
     width: auto;
@@ -104,6 +113,10 @@ img.icon
 }
 .swipeable.dragging {
     filter: blur(3px);
+}
+
+summary {
+    cursor: pointer;
 }
 
 .pa25f { padding: 0.25em; }
