@@ -1654,6 +1654,54 @@ ORDER BY ASC(?year) ?personLabel
         })
     },
 
+    sparql_has_prop: async function(propId, propValue) {
+        if (!propId)
+            throw new Error('sparql_has_prop: propId is required')
+        if (!propValue)
+            throw new Error('sparql_has_prop: propValue is required')
+        const sPropId = `wdt:${propId}`
+        const sPropValue = `wd:${propValue}`
+        const codeLang = this._sparql_label_code()
+        const codeThumb = this._sparql_thumb_code()
+
+        // subquery
+        const qSub = `
+SELECT ?person (SAMPLE(?year) as ?year) (SAMPLE(?image) as ?image) WHERE
+{
+    {
+        SELECT ?person ?year ?image
+        WHERE {
+            ?person wdt:P31 wd:Q5;
+                    ${sPropId} ${sPropValue};
+                    wdt:P27 ?ctz;
+                    wdt:P569 ?birthDate;
+                    wdt:P18 ?image.
+            FILTER NOT EXISTS { ?person wdt:P570 ?deathDate }
+            BIND(YEAR(?birthDate) as ?year)
+        } LIMIT 100
+    }
+}
+GROUP BY ?person
+`
+
+        // final query
+        const q = `
+SELECT ?personLabel ?thumburl ?year
+WHERE {
+    { ${qSub} }
+    ${codeLang}
+    ${codeThumb}
+}
+ORDER BY ASC(?year) ?personLabel
+`
+
+        const cacheId = `sparql_has_prop:${propId}:${propValue}`
+        return await this._sparql_query_wrapper(cacheId, q, {
+            name: 'personLabel',
+            page: 'personLabel'
+        })
+    },
+
     getCachedCollections: function() {
         const out = {}
         const cache = window.WfLocalCache

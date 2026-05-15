@@ -9,6 +9,9 @@
         "art": {
             "title": "Творчество"
         },
+        "lang": {
+            "title": "Носители языка"
+        },
         "disease": {
             "title": "Болезни"
         },
@@ -37,6 +40,104 @@
             "title": "Причина смерти",
             "link": "https://en.wikipedia.org/wiki/cause+of+death",
             "query": "death_cause|%localdb:death_cause:100%"
+        },
+        "lang_eng": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Английский язык",
+            "link": "https://en.wikipedia.org/wiki/English_language",
+            "query": "has_prop|P103|Q1860"
+        },
+        "lang_arb": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Арабский язык",
+            "link": "https://en.wikipedia.org/wiki/Arabic",
+            "query": "has_prop|P103|Q13955"
+        },
+        "lang_bel": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Белорусский язык",
+            "link": "https://en.wikipedia.org/wiki/Belarusian_language",
+            "query": "has_prop|P103|Q9091"
+        },
+        "lang_heb": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Иврит",
+            "link": "https://en.wikipedia.org/wiki/Hebrew_language",
+            "query": "has_prop|P103|Q9288"
+        },
+        "lang_spa": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Испанский язык",
+            "link": "https://en.wikipedia.org/wiki/Spanish_language",
+            "query": "has_prop|P103|Q1321"
+        },
+        "lang_ita": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Итальянский язык",
+            "link": "https://en.wikipedia.org/wiki/Italian_language",
+            "query": "has_prop|P103|Q652"
+        },
+        "lang_chi": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Китайский язык",
+            "link": "https://en.wikipedia.org/wiki/Chinese_language",
+            "query": "has_prop|P103|Q7850"
+        },
+        "lang_ger": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Немецкий язык",
+            "link": "https://en.wikipedia.org/wiki/German_language",
+            "query": "has_prop|P103|Q188"
+        },
+        "lang_rus": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Русский язык",
+            "link": "https://en.wikipedia.org/wiki/Russian_language",
+            "query": "has_prop|P103|Q7737"
+        },
+        "lang_tur": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Турецкий язык",
+            "link": "https://en.wikipedia.org/wiki/Turkish_language",
+            "query": "has_prop|P103|Q256"
+        },
+        "lang_ukr": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Украинский язык",
+            "link": "https://en.wikipedia.org/wiki/Ukrainian_language",
+            "query": "has_prop|P103|Q8798"
+        },
+        "lang_fin": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Финский язык",
+            "link": "https://en.wikipedia.org/wiki/Finnish_language",
+            "query": "has_prop|P103|Q1412"
+        },
+        "lang_fra": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Французский язык",
+            "link": "https://en.wikipedia.org/wiki/French_language",
+            "query": "has_prop|P103|Q150"
+        },
+        "lang_jap": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Японский язык",
+            "link": "https://en.wikipedia.org/wiki/Japanese_language",
+            "query": "has_prop|P103|Q5287"
         },
         "lit": {
             "group": "nobel",
