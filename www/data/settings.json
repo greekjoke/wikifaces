@@ -69,6 +69,13 @@
             "link": "https://en.wikipedia.org/wiki/Hebrew_language",
             "query": "has_prop|P103|Q9288"
         },
+        "lang_isl": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Исландский язык",
+            "link": "https://en.wikipedia.org/wiki/Icelandic_language",
+            "query": "has_prop|P103|Q294"
+        },
         "lang_spa": {
             "group": "lang",
             "icon": "-language text-blue",
@@ -104,6 +111,20 @@
             "link": "https://en.wikipedia.org/wiki/Russian_language",
             "query": "has_prop|P103|Q7737"
         },
+        "lang_sua": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Суахили",
+            "link": "https://en.wikipedia.org/wiki/Swahili",
+            "query": "has_prop|P103|Q7838"
+        },
+        "lang_tat": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Татарский язык",
+            "link": "https://en.wikipedia.org/wiki/Tatar_language",
+            "query": "has_prop|P103|Q25285"
+        },
         "lang_tur": {
             "group": "lang",
             "icon": "-language text-blue",
@@ -131,6 +152,20 @@
             "title": "Французский язык",
             "link": "https://en.wikipedia.org/wiki/French_language",
             "query": "has_prop|P103|Q150"
+        },
+        "lang_hau": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Хауса",
+            "link": "https://en.wikipedia.org/wiki/Hausa_language",
+            "query": "has_prop|P103|Q56475"
+        },
+        "lang_cze": {
+            "group": "lang",
+            "icon": "-language text-blue",
+            "title": "Чешский язык",
+            "link": "https://en.wikipedia.org/wiki/Czech_language",
+            "query": "has_prop|P103|Q9056"
         },
         "lang_jap": {
             "group": "lang",
