@@ -1702,6 +1702,45 @@ ORDER BY ASC(?year) ?personLabel
         })
     },
 
+    sparql_twins: async function() {
+        const codeLang = this._sparql_label_code()
+        const codeThumb = this._sparql_thumb_code()
+
+        // subquery
+        const qSub = `
+SELECT ?person (SAMPLE(?year) as ?year) (SAMPLE(?image) as ?image) WHERE
+{
+    {
+        SELECT ?person ?year ?image
+        WHERE {
+            ?person wdt:P31 wd:Q2301325;
+                    wdt:P18 ?image.
+            OPTIONAL { ?person wdt:P569 ?birthDate. }
+            BIND(YEAR(?birthDate) as ?year)
+        } LIMIT 100
+    }
+}
+GROUP BY ?person
+`
+
+        // final query
+        const q = `
+SELECT ?personLabel ?thumburl ?year
+WHERE {
+    { ${qSub} }
+    ${codeLang}
+    ${codeThumb}
+}
+ORDER BY ASC(?year) ?personLabel
+`
+
+        const cacheId = `sparql_twins:0`
+        return await this._sparql_query_wrapper(cacheId, q, {
+            name: 'personLabel',
+            page: 'personLabel'
+        })
+    },
+
     getCachedCollections: function() {
         const out = {}
         const cache = window.WfLocalCache
