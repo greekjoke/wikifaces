@@ -123,7 +123,7 @@
             "icon": "-language text-blue",
             "title": "Татарский язык",
             "link": "https://en.wikipedia.org/wiki/Tatar_language",
-            "query": "has_prop|P103|Q25285"
+            "query": "has_prop|P1412|Q25285"
         },
         "lang_tur": {
             "group": "lang",
